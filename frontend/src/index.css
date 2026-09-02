@@ -1,0 +1,22 @@
+/* Global styles. Tailwind v4 is pulled in with a single @import (not the old
+   v3 @tailwind directives). Everything else here is base page styling. */
+@import 'tailwindcss';
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: rgb(15 23 42);
+  background: rgb(248 250 252);
+  -webkit-font-smoothing: antialiased;
+}
+
+*:focus-visible {
+  outline: 2px solid rgb(99 102 241);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

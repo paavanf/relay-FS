@@ -1,0 +1,26 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 48 48"
+  fill="none"
+  role="img"
+  aria-label="Relay"
+>
+  <!-- Rounded indigo tile background. -->
+  <rect width="48" height="48" rx="11" fill="#4f46e5" />
+
+  <!-- Two curved arrows chasing each other to form a cycle: the "relay". -->
+  <g
+    stroke="#ffffff"
+    stroke-width="3.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <!-- Upper arrow sweeping clockwise, arrowhead at the top right. -->
+    <path d="M11 26a13 13 0 0 1 22-9.4" />
+    <path d="M33 10v7h-7" />
+
+    <!-- Lower arrow sweeping back, arrowhead at the bottom left. -->
+    <path d="M37 22a13 13 0 0 1-22 9.4" />
+    <path d="M15 38v-7h7" />
+  </g>
+</svg>

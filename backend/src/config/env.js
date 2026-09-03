@@ -4,7 +4,7 @@ const secret = z.string().min(32, 'must be at least 32 characters long');
 
 const baseSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  PORT: z.coerce.number().int().positive().max(65535).default(5022),
+  PORT: z.coerce.number().int().positive().max(65535).default(4000),
   CORS_ORIGIN: z.string().min(1).default('http://localhost:5173'),
   MONGODB_URI: z.string().min(1),
   JWT_ACCESS_SECRET: secret,

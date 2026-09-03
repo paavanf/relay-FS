@@ -12,6 +12,9 @@ export async function startTestDb() {
 
   replSet = await MongoMemoryReplSet.create({
     replSet: { count: 1, storageEngine: 'wiredTiger' },
+    // A cold CI runner downloads the mongod binary before it can start, which
+    // easily exceeds the default launch timeout. Without this margin the suite
+    // fails intermittently on CI rather than cleanly.
     instanceOpts: [{ launchTimeout: 60_000 }],
   });
 

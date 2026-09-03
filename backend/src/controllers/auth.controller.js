@@ -30,8 +30,8 @@ const refreshCookieOptions = {
   maxAge: constants.REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
 };
 
-// Shared by register and login: mint a session for this user and set the
-// cookie. Returns the body both endpoints send back.
+// Mints a session for this user and sets the refresh cookie. Only login uses
+// it - registering does not sign you in.
 async function issueSession(user, req, res) {
   const accessToken = signAccessToken(user._id);
 
@@ -52,12 +52,13 @@ async function issueSession(user, req, res) {
 export async function register(req, res) {
   const user = await registerUser(req.valid.body);
 
-  // Registering signs you straight in - the frontend expects a usable session
-  // in this response, and asking someone to log in immediately after creating
-  // an account is friction with no security benefit.
-  const session = await issueSession(user, req, res);
-
-  res.status(201).json({ message: 'Account created successfully', ...session });
+  // Creating an account deliberately does NOT start a session: no access
+  // token, no refresh cookie. The frontend sends the user to the login page
+  // to sign in with the credentials they just chose.
+  res.status(201).json({
+    message: 'Account created successfully',
+    user: { id: user._id.toString(), email: user.email, name: user.name },
+  });
 }
 
 export async function login(req, res) {

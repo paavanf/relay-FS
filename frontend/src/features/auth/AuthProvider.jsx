@@ -1,9 +1,8 @@
-// AuthContext - provides user info and auth actions to the whole app.
-import { createContext, useState, useEffect } from 'react';
+// AuthProvider - provides user info and auth actions to the whole app.
+import { useState, useEffect } from 'react';
+import { AuthContext } from './AuthContext.js';
 import { setToken, clearToken } from '../../lib/tokenStore.js';
 import { api } from '../../lib/apiClient.js';
-
-export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -39,10 +38,9 @@ export function AuthProvider({ children }) {
   }
 
   async function register(name, email, password) {
-    const result = await api.post('/auth/register', { name, email, password });
-    setToken(result.accessToken);
-    setUser(result.user);
-    setMemberships(result.memberships ?? []);
+    // Only creates the account. Does NOT log the user in - no token, no user
+    // state. The register page sends them to /login to sign in.
+    await api.post('/auth/register', { name, email, password });
   }
 
   async function logout() {
@@ -60,3 +58,5 @@ export function AuthProvider({ children }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
+export default AuthProvider;

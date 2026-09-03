@@ -1,12 +1,11 @@
-// ToastContext - lets any component pop up a small notification.
+// ToastProvider - lets any component pop up a small notification.
 //
 // Call showToast({ type, title, message }) from anywhere. Toasts remove
 // themselves after 5 seconds.
 
-import { createContext, useState } from 'react';
+import { useState } from 'react';
+import { ToastContext } from './ToastContext.js';
 import { ToastContainer } from './ToastContainer.jsx';
-
-export const ToastContext = createContext(null);
 
 // Counter used to give every toast a unique id.
 let nextId = 1;
@@ -35,3 +34,5 @@ export function ToastProvider({ children }) {
     </ToastContext.Provider>
   );
 }
+
+export default ToastProvider;

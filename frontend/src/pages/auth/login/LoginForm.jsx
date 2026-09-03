@@ -1,14 +1,20 @@
 // LoginForm - email + password form.
 // Plain useState, no form library: easier to read while learning.
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { Input } from '../../../components/ui/Input.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { useAuth } from '../../../features/auth/useAuth.js';
 import { useToast } from '../../../components/ui/toast/useToast.js';
 
 export function LoginForm() {
-  const [email, setEmail] = useState('');
+  const location = useLocation();
+
+  // Someone arriving straight from the register page brings their email with
+  // them, so they don't have to type it twice.
+  const prefillEmail = location.state?.prefillEmail || '';
+
+  const [email, setEmail] = useState(prefillEmail);
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -24,7 +30,6 @@ export function LoginForm() {
       await login(email, password);
       navigate('/app');
     } catch (err) {
-      // The auth endpoints don't exist yet, so this is the normal path today.
       showToast({
         type: 'error',
         title: 'Could not log in',
@@ -54,6 +59,8 @@ export function LoginForm() {
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Your password"
         autoComplete="current-password"
+        // A pre-filled email means they just registered - focus the password.
+        autoFocus={Boolean(prefillEmail)}
         required
       />
 

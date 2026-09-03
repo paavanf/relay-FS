@@ -1,5 +1,6 @@
 // RegisterForm - name, email, and password form.
-// Same plain-useState style as LoginForm.
+// Creating an account does not sign you in: on success we send the user to
+// the login page, passing their email along so it can be pre-filled there.
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Input } from '../../../components/ui/Input.jsx';
@@ -23,12 +24,20 @@ export function RegisterForm() {
 
     try {
       await register(name, email, password);
-      navigate('/app');
+
+      showToast({
+        type: 'success',
+        title: 'Account created',
+        message: 'Please log in with your new account',
+      });
+
+      // Carry the email over so the login form can pre-fill it.
+      navigate('/login', { state: { prefillEmail: email } });
     } catch (err) {
       showToast({
         type: 'error',
-        title: 'Could not create your account',
-        message: err.message || 'Please try again in a moment.',
+        title: 'Signup failed',
+        message: err.message || 'Something went wrong',
       });
     } finally {
       setIsSubmitting(false);

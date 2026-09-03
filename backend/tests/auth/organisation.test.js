@@ -9,11 +9,17 @@ import { createApp } from '../../src/app.js';
 
 let app;
 
-// Registers someone and hands back their bearer token.
+// Registers someone and hands back their bearer token. Registering no longer
+// starts a session, so we log in afterwards to get the token.
 async function signUp(email, name = 'Someone') {
-  const res = await request(app)
+  await request(app)
     .post('/api/v1/auth/register')
     .send({ name, email, password: 'password123' });
+
+  const res = await request(app)
+    .post('/api/v1/auth/login')
+    .send({ email, password: 'password123' });
+
   return res.body.accessToken;
 }
 

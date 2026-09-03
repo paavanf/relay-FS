@@ -1,6 +1,6 @@
 // Hook to access the AuthContext.
 import { useContext } from 'react';
-import { AuthContext } from './AuthContext.jsx';
+import { AuthContext } from './AuthContext.js';
 
 export function useAuth() {
   const context = useContext(AuthContext);

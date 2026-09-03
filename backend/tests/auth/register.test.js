@@ -34,21 +34,18 @@ describe('POST /api/v1/auth/register', () => {
     expect(res.body.user.id).toBeDefined();
   });
 
-  it('signs the new user in, so the frontend gets a usable session', async () => {
+  it('does NOT sign the new user in - they must log in themselves', async () => {
     const res = await request(app).post('/api/v1/auth/register').send({
       name: 'Test User',
       email: 'session@example.com',
       password: 'password123',
     });
 
-    expect(res.body.accessToken).toBeDefined();
-    expect(res.body.memberships).toEqual([]);
+    expect(res.body.message).toBe('Account created successfully');
 
-    // The refresh cookie must be httpOnly and scoped to the auth endpoints.
-    const cookie = res.headers['set-cookie']?.join(';') ?? '';
-    expect(cookie).toContain('relay_refresh=');
-    expect(cookie).toContain('HttpOnly');
-    expect(cookie).toContain('Path=/api/v1/auth');
+    // No session is started: no access token, and no refresh cookie.
+    expect(res.body.accessToken).toBeUndefined();
+    expect(res.headers['set-cookie']).toBeUndefined();
   });
 
   it('never returns the password hash', async () => {

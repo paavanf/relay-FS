@@ -1,6 +1,6 @@
 // Hook to access showToast from anywhere in the app.
 import { useContext } from 'react';
-import { ToastContext } from './ToastContext.jsx';
+import { ToastContext } from './ToastContext.js';
 
 export function useToast() {
   const context = useContext(ToastContext);

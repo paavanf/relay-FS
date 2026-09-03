@@ -12,6 +12,7 @@ export async function startTestDb() {
 
   replSet = await MongoMemoryReplSet.create({
     replSet: { count: 1, storageEngine: 'wiredTiger' },
+    instanceOpts: [{ launchTimeout: 60_000 }],
   });
 
   await mongoose.connect(replSet.getUri(), { dbName: 'relay-test' });

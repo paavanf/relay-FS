@@ -2,5 +2,7 @@
 import { cn } from '../../../lib/utils.js';
 
 export function DialogTitle({ children, className }) {
-  return <h2 className={cn('text-lg font-semibold text-slate-900', className)}>{children}</h2>;
+  return (
+    <h2 className={cn('text-xl font-semibold tracking-tight text-ink', className)}>{children}</h2>
+  );
 }

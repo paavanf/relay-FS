@@ -2,5 +2,5 @@
 import { cn } from '../../../lib/utils.js';
 
 export function TableBody({ children, className }) {
-  return <tbody className={cn('divide-y divide-slate-200', className)}>{children}</tbody>;
+  return <tbody className={cn('divide-y divide-white/7', className)}>{children}</tbody>;
 }

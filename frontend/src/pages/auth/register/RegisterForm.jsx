@@ -36,7 +36,7 @@ export function RegisterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <Input
         label="Full name"
         value={name}
@@ -61,13 +61,13 @@ export function RegisterForm() {
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        placeholder="At least 12 characters"
+        placeholder="At least 8 characters, with a letter and a number"
         autoComplete="new-password"
-        minLength={12}
+        minLength={8}
         required
       />
 
-      <Button type="submit" className="w-full" isLoading={isSubmitting}>
+      <Button type="submit" size="lg" className="w-full" isLoading={isSubmitting}>
         Create account
       </Button>
     </form>

@@ -8,6 +8,7 @@ export { Select } from './Select.jsx';
 export { Checkbox } from './Checkbox.jsx';
 export { Badge } from './Badge.jsx';
 export { Spinner } from './Spinner.jsx';
+export { FullScreenLoader } from './FullScreenLoader.jsx';
 export { EmptyState } from './EmptyState.jsx';
 export { ErrorState } from './ErrorState.jsx';
 export { Skeleton } from './Skeleton.jsx';

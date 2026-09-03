@@ -9,8 +9,8 @@ function RegisterPage() {
   useDocumentTitle('Sign up');
 
   return (
-    <Card>
-      <CardContent className="pt-6">
+    <Card tilt>
+      <CardContent className="pt-8">
         <RegisterHeader />
         <RegisterForm />
         <RegisterFooter />

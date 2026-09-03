@@ -6,21 +6,21 @@ export const Checkbox = forwardRef(function Checkbox({ label, className, ...prop
   const id = useId();
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2.5">
       <input
         id={id}
         ref={ref}
         type="checkbox"
         className={cn(
-          'size-4 rounded border-slate-300 text-indigo-600 transition-colors',
-          'focus-visible:ring-2 focus-visible:ring-indigo-500',
+          'size-4 rounded-md border-white/20 bg-white/5 text-indigo-500 transition-colors',
+          'focus-visible:ring-2 focus-visible:ring-indigo-400',
           className,
         )}
         {...props}
       />
 
       {label && (
-        <label htmlFor={id} className="text-sm text-slate-700">
+        <label htmlFor={id} className="text-sm text-ink-soft">
           {label}
         </label>
       )}

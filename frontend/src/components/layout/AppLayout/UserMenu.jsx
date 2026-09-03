@@ -1,4 +1,4 @@
-// UserMenu - the avatar in the top bar. Clicking it opens a small menu
+// UserMenu - the avatar in the top bar. Clicking it opens a small glass menu
 // with a logout button.
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -19,7 +19,12 @@ export function UserMenu() {
 
   return (
     <div className="relative">
-      <button type="button" onClick={() => setIsOpen(!isOpen)} aria-label="Open user menu">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Open user menu"
+        className="block rounded-full transition-transform duration-300 hover:scale-105"
+      >
         <Avatar name={user?.name} size="sm" />
       </button>
 
@@ -28,16 +33,16 @@ export function UserMenu() {
           {/* Invisible full-screen layer: clicking anywhere closes the menu. */}
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} aria-hidden="true" />
 
-          <div className="absolute right-0 z-20 mt-2 w-56 rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
-            <div className="border-b border-slate-100 px-3 py-2">
-              <p className="truncate text-sm font-medium text-slate-900">{user?.name}</p>
-              <p className="truncate text-xs text-slate-500">{user?.email}</p>
+          <div className="glass-strong glass-edge reveal absolute right-0 z-20 mt-3 w-60 rounded-2xl p-1.5">
+            <div className="border-b border-white/8 px-3.5 py-3">
+              <p className="truncate text-sm font-medium text-ink">{user?.name}</p>
+              <p className="truncate text-xs text-ink-faint">{user?.email}</p>
             </div>
 
             <button
               type="button"
               onClick={handleLogout}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100"
+              className="mt-1.5 flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm text-ink-soft transition-colors duration-300 hover:bg-white/8 hover:text-rose-300"
             >
               <LogOut className="size-4" />
               Log out

@@ -34,6 +34,16 @@ export class AppError extends Error {
   static validation(details, message = 'Validation failed') {
     return new AppError(message, 422, { code: ERROR_CODES.VALIDATION_FAILED, details });
   }
+
+  // For faults that are our bug, not the caller's - e.g. middleware wired up
+  // in the wrong order. Marked non-operational so it is logged as an error.
+  static internal(message = 'Internal server error', options) {
+    return new AppError(message, 500, {
+      code: ERROR_CODES.INTERNAL,
+      isOperational: false,
+      ...options,
+    });
+  }
 }
 
 export default AppError;

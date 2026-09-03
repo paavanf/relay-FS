@@ -1,22 +1,344 @@
-/* Global styles. Tailwind v4 is pulled in with a single @import (not the old
-   v3 @tailwind directives). Everything else here is base page styling. */
+/* Relay design system - "deep space" theme.
+   Void-black ground, slow aurora light, glass panels, spring motion.
+
+   Layer order in Tailwind v4 is: theme, base, components, utilities.
+   Custom classes live in @layer components so plain Tailwind utilities on a
+   component still win over them. */
+
 @import 'tailwindcss';
 
-html,
-body,
-#root {
-  height: 100%;
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Ground */
+  --color-void: #04050a;
+  --color-void-soft: #080a12;
+  --color-void-raised: #0d1019;
+
+  /* Text */
+  --color-ink: #f6f8ff;
+  --color-ink-soft: #a7b0c9;
+  --color-ink-faint: #6b7490;
+
+  /* Aurora / accent */
+  --color-aurora-indigo: #6366f1;
+  --color-aurora-violet: #a855f7;
+  --color-aurora-cyan: #22d3ee;
+  --color-aurora-rose: #fb7185;
+  --color-aurora-mint: #34d399;
 }
 
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-  color: rgb(15 23 42);
-  background: rgb(248 250 252);
-  -webkit-font-smoothing: antialiased;
+@layer base {
+  :root {
+    /* Makes native controls (select, checkbox, scrollbars) render dark. */
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--color-void);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-aurora-violet) 45%, transparent);
+    color: #fff;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--color-aurora-indigo);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.09);
+    border-radius: 99px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.16);
+    background-clip: content-box;
+  }
 }
 
-*:focus-visible {
-  outline: 2px solid rgb(99 102 241);
-  outline-offset: 2px;
-  border-radius: 4px;
+/* ---------------------------------------------------------------- keyframes */
+
+/* Slow aurora drift. Each blob gets a different duration so they never
+   line back up into a repeating pattern. */
+@keyframes aurora-drift-a {
+  0%,
+  100% {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(10%, 8%, 0) scale(1.25);
+  }
+}
+
+@keyframes aurora-drift-b {
+  0%,
+  100% {
+    transform: translate3d(8%, 6%, 0) scale(1.15);
+  }
+  50% {
+    transform: translate3d(-10%, -6%, 0) scale(0.9);
+  }
+}
+
+@keyframes aurora-drift-c {
+  0%,
+  100% {
+    transform: translate3d(0, 10%, 0) scale(0.95);
+  }
+  50% {
+    transform: translate3d(6%, -12%, 0) scale(1.3);
+  }
+}
+
+/* Spring-ish reveal: the >1 control point gives a small overshoot. */
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0) scale(0.97);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes shimmer-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.35);
+  }
+}
+
+@layer components {
+  /* ------------------------------------------------------------- aurora bg */
+
+  .aurora-field {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .aurora-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(90px);
+    opacity: 0.5;
+    will-change: transform;
+  }
+
+  /* A faint grid, heavily masked, to give the void a sense of scale. */
+  .aurora-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 10%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 10%, transparent 75%);
+  }
+
+  /* Vignette so content in the middle stays high-contrast. */
+  .aurora-vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 55% at 50% 40%, transparent 30%, rgba(4, 5, 10, 0.75) 100%);
+  }
+
+  /* --------------------------------------------------------------- glass */
+
+  .glass {
+    position: relative;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.018));
+    backdrop-filter: blur(24px) saturate(165%);
+    -webkit-backdrop-filter: blur(24px) saturate(165%);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+      inset 0 0 24px 0 rgba(255, 255, 255, 0.025),
+      0 24px 70px -28px rgba(0, 0, 0, 0.9);
+  }
+
+  .glass-strong {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.03));
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+      0 40px 90px -30px rgba(0, 0, 0, 0.95);
+  }
+
+  /* Thin luminous hairline along the top edge of a panel. */
+  .glass-edge::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 12%;
+    right: 12%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-aurora-violet) 70%, transparent),
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  /* ---------------------------------------------------------------- tilt */
+
+  .tilt {
+    transform: perspective(1100px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+      translate3d(0, 0, 0);
+    transform-style: preserve-3d;
+    transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  /* While the pointer is inside, track it almost immediately. */
+  .tilt.is-tilting {
+    transition: transform 90ms linear;
+  }
+
+  /* Cursor glare that follows the pointer across the card face. */
+  .tilt-glare {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: var(--glare-opacity, 0);
+    transition: opacity 350ms ease;
+    background: radial-gradient(
+      340px circle at var(--glare-x, 50%) var(--glare-y, 50%),
+      rgba(255, 255, 255, 0.16),
+      rgba(255, 255, 255, 0.04) 38%,
+      transparent 65%
+    );
+  }
+
+  /* ------------------------------------------------------------ magnetic */
+
+  .magnetic {
+    transition: transform 550ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  .magnetic.is-pulling {
+    transition: transform 130ms cubic-bezier(0.33, 1, 0.68, 1);
+  }
+
+  /* -------------------------------------------------------------- reveal */
+
+  .reveal {
+    opacity: 0;
+    animation: reveal-rise 780ms cubic-bezier(0.34, 1.32, 0.52, 1) forwards;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
+
+  /* ------------------------------------------------------------ shimmer */
+
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.09), transparent);
+    animation: shimmer-sweep 1.9s infinite;
+  }
+
+  /* Soft coloured halo behind an element, for status dots and icons. */
+  .halo::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: inherit;
+    background: currentColor;
+    filter: blur(9px);
+    opacity: 0.45;
+    z-index: -1;
+  }
+
+  .pulse-dot {
+    animation: pulse-glow 2.6s ease-in-out infinite;
+  }
+
+  /* Gradient display text for hero headings. */
+  .text-aurora {
+    background: linear-gradient(
+      100deg,
+      #ffffff 8%,
+      color-mix(in oklab, var(--color-aurora-violet) 80%, white) 42%,
+      color-mix(in oklab, var(--color-aurora-cyan) 75%, white) 74%,
+      #ffffff 96%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Anyone who asked their OS for less motion gets a still, readable app. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    animation: none;
+  }
+
+  .aurora-blob,
+  .pulse-dot,
+  .shimmer::after {
+    animation: none;
+  }
+
+  .tilt,
+  .magnetic {
+    transition: none;
+    transform: none;
+  }
 }

@@ -12,28 +12,33 @@ function AcceptInvitePage() {
   useDocumentTitle('Accept invite');
 
   return (
-    <Card>
-      <CardContent className="pt-6 text-center">
-        <div className="mx-auto mb-4 w-fit rounded-full bg-indigo-50 p-3">
-          <MailCheck className="size-6 text-indigo-600" aria-hidden="true" />
+    <Card tilt>
+      <CardContent className="pt-8 text-center">
+        <div className="relative mx-auto mb-5 w-fit">
+          <div className="absolute inset-0 rounded-2xl bg-indigo-500/40 blur-xl" aria-hidden="true" />
+          <div className="relative rounded-2xl border border-white/14 bg-white/7 p-3.5">
+            <MailCheck className="size-6 text-indigo-200" aria-hidden="true" />
+          </div>
         </div>
 
-        <h1 className="text-xl font-semibold text-slate-900">You have an invite</h1>
+        <h1 className="text-aurora text-2xl font-semibold tracking-tight">You have an invite</h1>
 
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mx-auto mt-2.5 max-w-xs text-sm leading-relaxed text-ink-soft">
           We found your invite link, but joining an organisation isn&apos;t wired up yet.
         </p>
 
-        <div className="mt-4">
+        <div className="mt-5">
           <Badge variant="amber">Coming in Milestone 1</Badge>
         </div>
 
         {/* Showing the token confirms the route param is being read correctly. */}
-        <p className="mt-4 truncate font-mono text-xs text-slate-400">Invite token: {token}</p>
+        <p className="mt-5 truncate rounded-lg border border-white/8 bg-white/4 px-3 py-2 font-mono text-xs text-ink-faint">
+          {token}
+        </p>
 
         <Link
           to="/login"
-          className="mt-6 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-700"
+          className="mt-7 inline-block text-sm font-medium text-indigo-300 transition-colors duration-300 hover:text-indigo-200"
         >
           Back to log in
         </Link>

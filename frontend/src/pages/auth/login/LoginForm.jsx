@@ -36,7 +36,7 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <Input
         label="Email"
         type="email"
@@ -57,7 +57,7 @@ export function LoginForm() {
         required
       />
 
-      <Button type="submit" className="w-full" isLoading={isSubmitting}>
+      <Button type="submit" size="lg" className="w-full" isLoading={isSubmitting}>
         Log in
       </Button>
     </form>

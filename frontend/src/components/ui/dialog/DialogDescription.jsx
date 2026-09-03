@@ -2,5 +2,5 @@
 import { cn } from '../../../lib/utils.js';
 
 export function DialogDescription({ children, className }) {
-  return <p className={cn('mt-1 text-sm text-slate-500', className)}>{children}</p>;
+  return <p className={cn('mt-2 text-sm leading-relaxed text-ink-soft', className)}>{children}</p>;
 }

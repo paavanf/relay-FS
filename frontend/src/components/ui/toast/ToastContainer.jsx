@@ -7,7 +7,7 @@ export function ToastContainer({ toasts, onDismiss }) {
   return (
     // pointer-events-none so the empty area doesn't block clicks on the page;
     // each Toast turns pointer events back on for itself.
-    <div className="pointer-events-none fixed top-4 right-4 z-50 flex flex-col gap-3">
+    <div className="pointer-events-none fixed top-5 right-5 z-100 flex flex-col gap-3">
       {toasts.map((toast) => (
         <Toast key={toast.id} toast={toast} onDismiss={onDismiss} />
       ))}

@@ -14,18 +14,18 @@ export function SidebarUserCard() {
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+    <div className="mt-2 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
       <Avatar name={user?.name} size="sm" />
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-slate-900">{user?.name}</p>
-        <p className="truncate text-xs text-slate-500">{user?.email}</p>
+        <p className="truncate text-sm font-medium text-ink">{user?.name}</p>
+        <p className="truncate text-xs text-ink-faint">{user?.email}</p>
       </div>
 
       <button
         type="button"
         onClick={handleLogout}
-        className="text-slate-400 transition-colors hover:text-slate-700"
+        className="rounded-lg p-1.5 text-ink-faint transition-colors duration-300 hover:bg-white/8 hover:text-rose-300"
         aria-label="Log out"
       >
         <LogOut className="size-4" />

@@ -21,19 +21,23 @@ export function BackendStatus() {
   const health = data ?? degraded;
 
   let label = 'API offline';
-  let dot = 'bg-red-500';
+  let dot = 'bg-rose-400 text-rose-400';
 
   if (isPending) {
     label = 'Checking API...';
-    dot = 'bg-slate-300';
+    dot = 'bg-white/40 text-white/40';
   } else if (health) {
-    label = `API ${health.status} - db ${health.database}`;
-    dot = health.status === 'ok' ? 'bg-green-500' : 'bg-amber-500';
+    label = `API ${health.status} · db ${health.database}`;
+    dot =
+      health.status === 'ok'
+        ? 'bg-emerald-400 text-emerald-400'
+        : 'bg-amber-400 text-amber-400';
   }
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 text-xs text-slate-500">
-      <span className={cn('size-2 shrink-0 rounded-full', dot)} />
+    <div className="flex items-center gap-2.5 px-3.5 py-2.5 text-[11px] tracking-wide text-ink-faint">
+      {/* halo puts a soft bloom behind the dot using its own text colour. */}
+      <span className={cn('halo pulse-dot relative size-1.5 shrink-0 rounded-full', dot)} />
       <span className="truncate">{label}</span>
     </div>
   );

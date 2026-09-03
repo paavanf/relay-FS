@@ -16,8 +16,10 @@ export default defineConfig({
     port: 5173,
     proxy: {
       // The backend listens on 4000 (see backend/src/config/env.js).
+      // VITE_API_PROXY overrides it, which is handy for pointing the dev
+      // server at a backend running on another port.
       '/api': {
-        target: 'http://localhost:4000',
+        target: process.env.VITE_API_PROXY ?? 'http://localhost:4000',
         changeOrigin: true,
       },
     },

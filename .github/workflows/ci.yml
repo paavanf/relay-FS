@@ -1,1 +1,42 @@
-# TODO: implement
+# Lint, test, and build both workspaces on every push and pull request.
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # mongodb-memory-server downloads a mongod binary the first time it runs.
+      # Caching it keeps later runs fast and avoids failing on a flaky download.
+      - name: Cache MongoDB binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}
+
+      - name: Lint
+        run: npm run lint
+
+      # mongodb-memory-server downloads a mongod binary on first run and boots
+      # it as a single-node replica set, so the transaction tests work here
+      # without any external database service.
+      - name: Test
+        run: npm test
+
+      - name: Build frontend
+        run: npm run build

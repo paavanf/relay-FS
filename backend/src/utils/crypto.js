@@ -5,6 +5,9 @@ export function randomToken(bytes = 48) {
   return randomBytes(bytes).toString('base64url');
 }
 
+/** Alias for randomToken, named for how the auth services read. */
+export const generateToken = randomToken;
+
 /** Deterministic hash for opaque tokens we store but must never read back. */
 export function hashToken(token) {
   return createHash('sha256').update(token).digest('hex');

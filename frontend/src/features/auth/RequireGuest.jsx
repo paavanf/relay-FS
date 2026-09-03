@@ -2,17 +2,13 @@
 // no point showing them a login form, so send them into the app.
 import { Navigate, Outlet } from 'react-router';
 import { useAuth } from './useAuth.js';
-import { Spinner } from '../../components/ui/Spinner.jsx';
+import { FullScreenLoader } from '../../components/ui/FullScreenLoader.jsx';
 
 function RequireGuest() {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center p-12">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <FullScreenLoader />;
   }
 
   if (user) {

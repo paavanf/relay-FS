@@ -16,17 +16,19 @@ export function OrgSwitcher() {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Building2 className="size-4 text-slate-400" aria-hidden="true" />
+    <div className="flex items-center gap-2.5">
+      <div className="rounded-lg border border-white/10 bg-white/6 p-1.5">
+        <Building2 className="size-4 text-indigo-300" aria-hidden="true" />
+      </div>
 
       <select
         value={orgId}
         onChange={handleChange}
         aria-label="Switch organisation"
-        className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm font-medium text-slate-700 focus-visible:ring-2 focus-visible:ring-indigo-500"
+        className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-sm font-medium text-ink transition-colors duration-300 hover:bg-white/9 focus-visible:ring-2 focus-visible:ring-indigo-400"
       >
         {memberships.map((membership) => (
-          <option key={membership.orgId} value={membership.orgId}>
+          <option key={membership.orgId} value={membership.orgId} className="bg-void-soft">
             {membership.orgName}
           </option>
         ))}

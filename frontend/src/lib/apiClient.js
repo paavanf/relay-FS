@@ -27,6 +27,26 @@ function buildUrl(path) {
   return path.startsWith('/api/') ? path : BASE_URL + path;
 }
 
+// A validation failure sends the generic message "Validation failed" and puts
+// the text a person can actually act on inside details:
+//   { body: { fieldErrors: { password: ['Password must contain a number'] } } }
+// Lift those out so forms show the real reason instead of the generic one.
+function readableMessage(error, fallback) {
+  const messages = [];
+
+  for (const target of Object.values(error?.details ?? {})) {
+    for (const fieldMessages of Object.values(target?.fieldErrors ?? {})) {
+      messages.push(...fieldMessages);
+    }
+    messages.push(...(target?.formErrors ?? []));
+  }
+
+  if (messages.length === 0) return error?.message ?? fallback;
+
+  // Cap it: a toast showing every field at once is unreadable.
+  return messages.slice(0, 3).join('. ');
+}
+
 function buildHeaders(body) {
   const headers = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -68,7 +88,7 @@ async function request(method, path, body) {
 
   if (!response.ok) {
     const error = payload?.error ?? {};
-    throw new ApiError(error.message ?? response.statusText, {
+    throw new ApiError(readableMessage(error, response.statusText), {
       status: response.status,
       code: error.code,
       details: error.details,

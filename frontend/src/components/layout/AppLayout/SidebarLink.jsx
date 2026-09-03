@@ -10,15 +10,34 @@ export function SidebarLink({ to, icon: Icon, label, onNavigate }) {
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
-          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+          'group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium',
+          'transition-all duration-300',
           isActive
-            ? 'bg-indigo-50 text-indigo-700'
-            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+            ? 'border border-white/12 bg-white/9 text-ink shadow-[inset_0_1px_0_0_rgba(255,255,255,0.14)]'
+            : 'border border-transparent text-ink-soft hover:bg-white/6 hover:text-ink',
         )
       }
     >
-      <Icon className="size-4.5 shrink-0" aria-hidden="true" />
-      {label}
+      {({ isActive }) => (
+        <>
+          {/* Lit rail on the left edge of the active item. */}
+          {isActive && (
+            <span
+              className="absolute top-1/2 -left-px h-6 w-0.5 -translate-y-1/2 rounded-full bg-indigo-400 shadow-[0_0_12px_2px_rgba(129,140,248,0.9)]"
+              aria-hidden="true"
+            />
+          )}
+
+          <Icon
+            className={cn(
+              'size-4.5 shrink-0 transition-colors duration-300',
+              isActive ? 'text-indigo-300' : 'text-ink-faint group-hover:text-ink-soft',
+            )}
+            aria-hidden="true"
+          />
+          {label}
+        </>
+      )}
     </NavLink>
   );
 }

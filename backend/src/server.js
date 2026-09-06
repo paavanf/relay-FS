@@ -6,6 +6,26 @@ import { logger } from './utils/logger.js';
 const app = createApp();
 let server;
 
+// Mongoose only auto-reconnects once a first connection has succeeded. If the
+// very first attempt fails - an Atlas cluster still waking up is the usual
+// reason - nothing retries, and the API serves 500s from every database route
+// until someone notices and restarts it. So retry in the background, backing
+// off up to 30s.
+function retryConnectInBackground(attempt = 1) {
+  const delayMs = Math.min(30_000, 2 ** attempt * 1000);
+
+  setTimeout(async () => {
+    try {
+      await connectDb();
+      logger.info('Database reconnected; the API is fully available again');
+    } catch (err) {
+      logger.warn({ err: err.message }, `Database still unreachable (attempt ${attempt})`);
+      retryConnectInBackground(attempt + 1);
+    }
+    // unref so a pending retry never keeps the process alive on shutdown.
+  }, delayMs).unref();
+}
+
 async function start() {
   try {
     await connectDb();
@@ -13,7 +33,8 @@ async function start() {
     if (env.isProduction) throw err;
     // Keep the API up in development so the frontend still has something to
     // talk to; /api/health reports the database as disconnected.
-    logger.warn({ err }, 'Starting without a database connection');
+    logger.warn({ err }, 'Starting without a database connection; retrying in the background');
+    retryConnectInBackground();
   }
 
   server = app.listen(env.PORT, () => {

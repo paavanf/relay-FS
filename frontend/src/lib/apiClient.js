@@ -87,6 +87,17 @@ async function request(method, path, body) {
   const payload = response.status === 204 ? null : await response.json().catch(() => null);
 
   if (!response.ok) {
+    // Every error the API itself sends carries an {error:{...}} envelope. A
+    // 5xx with no JSON body therefore did not come from the API - it is the
+    // dev proxy (or a gateway) saying it could not reach the backend at all.
+    // Reporting that as "Internal Server Error" sends you hunting for a
+    // server bug that does not exist.
+    if (payload === null && response.status >= 500) {
+      throw new ApiError('Cannot reach the Relay API. Is the backend running?', {
+        status: response.status,
+      });
+    }
+
     const error = payload?.error ?? {};
     throw new ApiError(readableMessage(error, response.statusText), {
       status: response.status,

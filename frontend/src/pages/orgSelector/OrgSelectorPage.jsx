@@ -1,9 +1,9 @@
 // OrgSelectorPage - the first screen after logging in. Pick an organisation.
 import { useAuth } from '../../features/auth/useAuth.js';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
-import { Logo } from '../../components/Logo.jsx';
 import { AuroraBackground } from '../../components/AuroraBackground.jsx';
 import { Reveal } from '../../components/motion/Reveal.jsx';
+import { OrgSelectorHeader } from './OrgSelectorHeader.jsx';
 import { OrgList } from './OrgList.jsx';
 import { EmptyOrgState } from './EmptyOrgState.jsx';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
@@ -18,7 +18,7 @@ function OrgSelectorPage() {
 
       <div className="relative z-10 mx-auto max-w-3xl px-6 py-16">
         <Reveal delay={0} className="mb-12">
-          <Logo size="md" />
+          <OrgSelectorHeader />
         </Reveal>
 
         <Reveal delay={90}>

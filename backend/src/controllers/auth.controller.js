@@ -22,12 +22,17 @@ import { env } from '../config/env.js';
 // secure    - HTTPS only, outside development
 // sameSite  - not sent on cross-site requests, which blunts CSRF
 // path      - only ever sent to the auth endpoints that need it
+//
+// Deliberately no maxAge/expires: this is a session cookie, so the browser
+// discards it when it fully closes. Reloading a page or closing a tab still
+// keeps you signed in, but someone opening the app on a shared machine later
+// starts at the login page. The token still expires server-side after
+// REFRESH_TOKEN_EXPIRY_DAYS regardless of what the browser does with it.
 const refreshCookieOptions = {
   httpOnly: true,
   secure: env.isProduction,
   sameSite: 'strict',
   path: constants.REFRESH_COOKIE_PATH,
-  maxAge: constants.REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
 };
 
 // Mints a session for this user and sets the refresh cookie. Only login uses

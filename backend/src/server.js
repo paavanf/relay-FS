@@ -19,6 +19,24 @@ async function start() {
   server = app.listen(env.PORT, () => {
     logger.info(`Relay API listening on http://localhost:${env.PORT}`);
   });
+
+  // Without this, a failed bind reaches the uncaughtException handler and is
+  // reported as a FATAL with a stack trace, which reads like a crash in the
+  // app. The usual cause is far more mundane: a second copy of this server is
+  // already running. Say that plainly and stop.
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      logger.error(
+        `Port ${env.PORT} is already in use, so the API cannot start. ` +
+          'Another Relay backend is probably still running - stop that one, ' +
+          `or start this with a different PORT (e.g. PORT=${env.PORT + 1} npm run dev).`,
+      );
+      process.exit(1);
+    }
+
+    logger.fatal({ err }, 'Server error');
+    process.exit(1);
+  });
 }
 
 async function shutdown(signal) {

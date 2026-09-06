@@ -7,7 +7,7 @@ Shift rostering, swaps, and fairness tracking. npm workspaces monorepo: `backend
 ```bash
 npm install
 cp backend/.env.example backend/.env   # optional in development
-npm run dev                            # backend :4000 + frontend :5173
+npm run dev                            # backend :4917 + frontend :5173
 ```
 
 `/api` is proxied from the Vite dev server to the backend, so the frontend calls relative paths.

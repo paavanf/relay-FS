@@ -43,6 +43,13 @@ export function AuthProvider({ children }) {
     await api.post('/auth/register', { name, email, password });
   }
 
+  // Adds a membership the user just gained (e.g. by creating an organisation)
+  // so it shows up straight away, without waiting for a page refresh to
+  // re-fetch /auth/me.
+  function addMembership(newMembership) {
+    setMemberships((prev) => [...prev, newMembership]);
+  }
+
   async function logout() {
     try {
       await api.post('/auth/logout');
@@ -54,7 +61,7 @@ export function AuthProvider({ children }) {
     setMemberships([]);
   }
 
-  const value = { user, memberships, isLoading, login, register, logout };
+  const value = { user, memberships, isLoading, login, register, logout, addMembership };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

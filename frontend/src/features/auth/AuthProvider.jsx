@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { AuthContext } from './AuthContext.js';
 import { setToken, clearToken } from '../../lib/tokenStore.js';
+import { markTabSession, hasTabSession, clearTabSession } from '../../lib/tabSession.js';
 import { api } from '../../lib/apiClient.js';
 
 export function AuthProvider({ children }) {
@@ -9,8 +10,15 @@ export function AuthProvider({ children }) {
   const [memberships, setMemberships] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // On mount: try to refresh the session using the cookie.
+  // On mount: restore the session, but only for a tab that already had one.
+  // A tab opened after the last one was closed carries no marker, so we skip
+  // the refresh entirely and leave the user logged out.
   useEffect(() => {
+    if (!hasTabSession()) {
+      setIsLoading(false);
+      return;
+    }
+
     tryRestoreSession();
   }, []);
 
@@ -23,6 +31,7 @@ export function AuthProvider({ children }) {
       setMemberships(me.memberships);
     } catch {
       // No valid session - user needs to log in.
+      clearTabSession();
       setUser(null);
       setMemberships([]);
     } finally {
@@ -33,6 +42,10 @@ export function AuthProvider({ children }) {
   async function login(email, password) {
     const result = await api.post('/auth/login', { email, password });
     setToken(result.accessToken);
+
+    // This tab now owns a session; the marker dies with the tab.
+    markTabSession();
+
     setUser(result.user);
     setMemberships(result.memberships);
   }
@@ -57,6 +70,7 @@ export function AuthProvider({ children }) {
       // Ignore - we're logging out anyway.
     }
     clearToken();
+    clearTabSession();
     setUser(null);
     setMemberships([]);
   }

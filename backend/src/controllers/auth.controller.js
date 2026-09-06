@@ -22,19 +22,17 @@ import { env } from '../config/env.js';
 // secure    - HTTPS only, outside development
 // sameSite  - not sent on cross-site requests, which blunts CSRF
 // path      - only ever sent to the auth endpoints that need it
-// maxAge    - persistent, so the session survives closing the browser
+// No maxAge, so this is a session cookie the browser drops when it closes.
 //
-// The cookie lives in one browser profile and is never carried in a URL, so
-// another person on another browser or machine has no cookie at all and
-// always starts at the login page. The one case this cannot cover is someone
-// using the *same* browser profile - to a cookie, the profile is the identity
-// - which is what the logout button is for.
+// The frontend is stricter still: it keeps a per-tab marker in sessionStorage
+// and will not restore a session into a tab that has no marker, so closing the
+// tab logs you out even while the browser stays open. This cookie is the
+// coarser backstop underneath that.
 const refreshCookieOptions = {
   httpOnly: true,
   secure: env.isProduction,
   sameSite: 'strict',
   path: constants.REFRESH_COOKIE_PATH,
-  maxAge: constants.REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
 };
 
 // Mints a session for this user and sets the refresh cookie. Only login uses

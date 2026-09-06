@@ -37,7 +37,7 @@ describe('auth flow', () => {
     expect(res.body.memberships).toEqual([]);
   });
 
-  it('sets a persistent, locked-down refresh cookie', async () => {
+  it('sets a locked-down session cookie that does not outlive the browser', async () => {
     const res = await request(app).post('/api/v1/auth/login').send(credentials);
     const cookie = res.headers['set-cookie'].join(';');
 
@@ -48,8 +48,10 @@ describe('auth flow', () => {
     expect(cookie).toContain('SameSite=Strict');
     expect(cookie).toContain('Path=/api/v1/auth');
 
-    // Persistent, so the session survives closing the browser.
-    expect(cookie).toContain('Max-Age=');
+    // No Max-Age/Expires: the browser discards it on close. Closing just the
+    // tab is handled on the frontend by the per-tab sessionStorage marker.
+    expect(cookie).not.toContain('Max-Age');
+    expect(cookie).not.toContain('Expires');
   });
 
   it('rejects a wrong password without revealing whether the email exists', async () => {

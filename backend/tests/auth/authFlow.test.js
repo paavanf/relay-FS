@@ -37,20 +37,19 @@ describe('auth flow', () => {
     expect(res.body.memberships).toEqual([]);
   });
 
-  it('sets the refresh cookie as a session cookie, not a persistent one', async () => {
+  it('sets a persistent, locked-down refresh cookie', async () => {
     const res = await request(app).post('/api/v1/auth/login').send(credentials);
     const cookie = res.headers['set-cookie'].join(';');
 
-    // Security attributes must stay put.
+    // Security attributes: unreadable by JS, not sent cross-site, and only
+    // ever sent to the auth endpoints.
     expect(cookie).toContain('relay_refresh=');
     expect(cookie).toContain('HttpOnly');
     expect(cookie).toContain('SameSite=Strict');
     expect(cookie).toContain('Path=/api/v1/auth');
 
-    // No Max-Age or Expires means the browser drops it when it closes, so a
-    // shared machine does not hand the next person a live session.
-    expect(cookie).not.toContain('Max-Age');
-    expect(cookie).not.toContain('Expires');
+    // Persistent, so the session survives closing the browser.
+    expect(cookie).toContain('Max-Age=');
   });
 
   it('rejects a wrong password without revealing whether the email exists', async () => {

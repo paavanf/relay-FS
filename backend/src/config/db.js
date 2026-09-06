@@ -14,15 +14,27 @@ mongoose.set('strictQuery', true);
 
 let registered = false;
 
-// Warns when pointed at a local mongod. Deliberately does not throw: the rest
-// of the API (auth, health, everything non-transactional) works fine against
-// standalone, so blocking startup would be worse than a warning.
-function warnIfStandalone(uri) {
-  if (!uri.includes('localhost') && !uri.includes('127.0.0.1')) return;
+// Warns when the server we connected to is not a replica set.
+//
+// This asks the server what it actually is rather than guessing from the URI:
+// a local mongod converted to a single-node replica set supports transactions
+// perfectly well, and string-matching "127.0.0.1" would keep nagging about a
+// problem that had already been fixed.
+//
+// Deliberately does not throw. The rest of the API (auth, health, everything
+// non-transactional) works fine on a standalone, so blocking startup would be
+// worse than a warning.
+async function warnIfNoReplicaSet() {
+  try {
+    const info = await mongoose.connection.db.admin().command({ hello: 1 });
+    if (info.setName) return; // part of a replica set - transactions available
 
-  logger.warn('Using local MongoDB. Transactions require a replica set.');
-  logger.warn('createOrganisation and acceptInvite will fail on a standalone mongod.');
-  logger.warn('Recommended: MongoDB Atlas (free tier) - mongodb.com/cloud/atlas/register');
+    logger.warn('MongoDB is a standalone, not a replica set.');
+    logger.warn('createOrganisation and acceptInvite need transactions and will fail.');
+    logger.warn('Fix: run mongod with a replSetName, or use MongoDB Atlas.');
+  } catch {
+    // A diagnostic must never be the thing that breaks startup.
+  }
 }
 
 function registerConnectionEvents() {
@@ -35,7 +47,6 @@ function registerConnectionEvents() {
 
 export async function connectDb(uri = env.MONGODB_URI) {
   registerConnectionEvents();
-  warnIfStandalone(uri);
 
   await mongoose.connect(uri, {
     serverSelectionTimeoutMS: 10_000,
@@ -43,6 +54,10 @@ export async function connectDb(uri = env.MONGODB_URI) {
   });
 
   logger.info({ database: mongoose.connection.name }, 'MongoDB connected successfully');
+
+  // Asked after connecting, because it queries the server itself.
+  await warnIfNoReplicaSet();
+
   return mongoose.connection;
 }
 

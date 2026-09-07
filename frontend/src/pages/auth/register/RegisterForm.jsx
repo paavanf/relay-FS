@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Input } from '../../../components/ui/Input.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
+import { Callout, calloutLinkStyles } from '../../../components/ui/Callout.jsx';
 import { useAuth } from '../../../features/auth/useAuth.js';
 import { useToast } from '../../../components/ui/toast/useToast.js';
 
@@ -76,16 +77,12 @@ export function RegisterForm() {
       />
 
       {isDuplicate && (
-        <p className="rounded-lg border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+        <Callout variant="warning">
           Already have an account?{' '}
-          <Link
-            to="/login"
-            state={{ prefillEmail: email }}
-            className="font-medium text-amber-200 underline transition-colors hover:text-white"
-          >
+          <Link to="/login" state={{ prefillEmail: email }} className={calloutLinkStyles}>
             Log in instead
           </Link>
-        </p>
+        </Callout>
       )}
 
       <Input

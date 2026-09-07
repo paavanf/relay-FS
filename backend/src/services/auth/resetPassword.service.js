@@ -18,6 +18,13 @@ export async function resetPassword({ rawToken, newPassword }) {
   if (!user) throw AppError.badRequest('Invalid reset link');
 
   user.passwordHash = await argon2.hash(newPassword, { type: argon2.argon2id });
+
+  // Someone who forgot their password has usually just failed a few login
+  // attempts, so clear the lockout too - otherwise the new password would be
+  // refused for the next few minutes.
+  user.failedLoginAttempts = 0;
+  user.lockedUntil = null;
+
   await user.save();
 
   // Spend the token, so the link cannot be reused.

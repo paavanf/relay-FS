@@ -6,6 +6,7 @@ export { Textarea } from './Textarea.jsx';
 export { Select } from './Select.jsx';
 export { Checkbox } from './Checkbox.jsx';
 export { Badge } from './Badge.jsx';
+export { Callout, calloutLinkStyles } from './Callout.jsx';
 export { Spinner } from './Spinner.jsx';
 export { FullScreenLoader } from './FullScreenLoader.jsx';
 export { EmptyState } from './EmptyState.jsx';

@@ -25,6 +25,13 @@ export const REFRESH_TOKEN_EXPIRY_DAYS = 30;
 
 export const INVITE_EXPIRY_HOURS = 72;
 
+// Per-account brute-force protection. The IP rate limiter above slows an
+// attacker down; this stops one specific account being ground through from
+// many addresses. Short enough that a genuine user who mistyped is not
+// seriously inconvenienced.
+export const MAX_FAILED_LOGIN_ATTEMPTS = 5;
+export const ACCOUNT_LOCKOUT_MINUTES = 3;
+
 export const REFRESH_COOKIE_NAME = 'relay_refresh';
 
 // The refresh cookie is only ever sent to the auth endpoints that need it.
@@ -71,6 +78,8 @@ export const constants = Object.freeze({
   ACCESS_TOKEN_EXPIRY,
   REFRESH_TOKEN_EXPIRY_DAYS,
   INVITE_EXPIRY_HOURS,
+  MAX_FAILED_LOGIN_ATTEMPTS,
+  ACCOUNT_LOCKOUT_MINUTES,
   REFRESH_COOKIE_NAME,
   REFRESH_COOKIE_PATH,
   ROLES,

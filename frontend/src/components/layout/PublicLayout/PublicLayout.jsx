@@ -7,7 +7,7 @@
 
 import { Outlet } from 'react-router';
 import { Logo } from '../../Logo.jsx';
-import { SwapCycleMark } from './SwapCycleMark.jsx';
+import { SwapCycleGraphic } from '../../brand/SwapCycleGraphic.jsx';
 import { ThemeToggle } from '../../ui/ThemeToggle.jsx';
 
 function PublicLayout() {
@@ -29,7 +29,7 @@ function PublicLayout() {
       {/* Brand panel. Hidden on small screens, where the form is the point. */}
       <aside className="hidden w-1/2 flex-col justify-center border-l border-line bg-surface-sunken px-12 lg:flex">
         <div className="max-w-md">
-          <SwapCycleMark />
+          <SwapCycleGraphic />
 
           <h2 className="mt-10 text-xl font-semibold tracking-[-0.01em] text-ink">
             Rosters that share the load

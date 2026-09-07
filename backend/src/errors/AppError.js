@@ -31,6 +31,12 @@ export class AppError extends Error {
     return new AppError(message, 409, { code: ERROR_CODES.CONFLICT, ...options });
   }
 
+  // Used for per-account lockout as well as the IP rate limiter, so the
+  // caller can tell the difference between "slow down" and "wrong password".
+  static tooManyRequests(message = 'Too many requests', options) {
+    return new AppError(message, 429, { code: ERROR_CODES.RATE_LIMITED, ...options });
+  }
+
   static validation(details, message = 'Validation failed') {
     return new AppError(message, 422, { code: ERROR_CODES.VALIDATION_FAILED, details });
   }

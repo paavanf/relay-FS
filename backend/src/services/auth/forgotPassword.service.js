@@ -14,6 +14,14 @@ export async function requestPasswordReset(email) {
   // Silently succeed if the user doesn't exist (no user enumeration).
   if (!user) return;
 
+  // Only the newest link should work. Spending any outstanding token means a
+  // resend cannot leave two valid links in someone's inbox, and an older link
+  // that leaked cannot be used once a fresh one has been asked for.
+  await PasswordResetToken.updateMany(
+    { userId: user._id, usedAt: null, expiresAt: { $gt: new Date() } },
+    { $set: { usedAt: new Date() } },
+  );
+
   const rawToken = generateToken(32);
   const tokenHash = hashToken(rawToken);
 

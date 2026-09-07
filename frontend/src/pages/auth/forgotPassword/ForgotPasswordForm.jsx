@@ -2,13 +2,21 @@
 //
 // The confirmation is identical whether or not the address is registered.
 // Saying "no such account" would let anyone check which emails have accounts.
+//
+// The email stays in state after sending so the resend button can re-use it
+// without asking for it again.
 
 import { useState } from 'react';
-import { MailCheck } from 'lucide-react';
 import { Input } from '../../../components/ui/Input.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
+import { ResetLinkSent } from './ResetLinkSent.jsx';
 import { requestReset } from '../../../features/auth/api/passwordReset.js';
 import { useToast } from '../../../components/ui/toast/useToast.js';
+import { useCountdown } from '../../../hooks/useCountdown.js';
+
+// Long enough to stop the endpoint being hammered, short enough that someone
+// waiting on a slow inbox does not give up.
+const RESEND_COOLDOWN_SECONDS = 60;
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
@@ -16,14 +24,25 @@ export function ForgotPasswordForm() {
   const [isSent, setIsSent] = useState(false);
 
   const { showToast } = useToast();
+  const { secondsLeft, start } = useCountdown();
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  // Shared by the first send and every resend: the request, the cooldown, and
+  // the error handling are identical.
+  async function sendLink({ isResend }) {
     setIsSubmitting(true);
 
     try {
       await requestReset(email);
       setIsSent(true);
+      start(RESEND_COOLDOWN_SECONDS);
+
+      if (isResend) {
+        showToast({
+          type: 'success',
+          title: 'Link sent again',
+          message: 'Any earlier link has stopped working.',
+        });
+      }
     } catch (err) {
       showToast({
         type: 'error',
@@ -35,15 +54,19 @@ export function ForgotPasswordForm() {
     }
   }
 
+  function handleSubmit(event) {
+    event.preventDefault();
+    sendLink({ isResend: false });
+  }
+
   if (isSent) {
     return (
-      <div className="rounded-xl border border-line bg-surface-raised p-5">
-        <MailCheck className="size-5 text-success" aria-hidden="true" />
-        <p className="mt-3 text-sm font-medium text-ink">Check your inbox</p>
-        <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">
-          If that email is registered, we have sent a reset link. It expires in an hour.
-        </p>
-      </div>
+      <ResetLinkSent
+        email={email}
+        secondsLeft={secondsLeft}
+        isSending={isSubmitting}
+        onResend={() => sendLink({ isResend: true })}
+      />
     );
   }
 

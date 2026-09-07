@@ -21,6 +21,14 @@ const userSchema = new mongoose.Schema(
 
     // Argon2id hash. Never the raw password.
     passwordHash: { type: String, required: true },
+
+    // Brute-force bookkeeping. Counts consecutive failures only: one correct
+    // password resets it to zero.
+    failedLoginAttempts: { type: Number, default: 0 },
+
+    // While this is in the future, login is refused before the password is
+    // even checked. Null means the account is not locked.
+    lockedUntil: { type: Date, default: null },
   },
   { timestamps: true },
 );

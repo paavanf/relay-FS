@@ -1,11 +1,20 @@
 // LoginForm - email + password form.
 // Plain useState, no form library: easier to read while learning.
+//
+// Failures are shown inline rather than as a toast, because the thing that
+// went wrong is a property of this form. A 429 gets special treatment: after
+// too many wrong passwords the account itself is locked, so the button stays
+// disabled until the wait named in the message has elapsed.
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { Input } from '../../../components/ui/Input.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
+import { LoginError } from './LoginError.jsx';
 import { useAuth } from '../../../features/auth/useAuth.js';
-import { useToast } from '../../../components/ui/toast/useToast.js';
+import { useCountdown } from '../../../hooks/useCountdown.js';
+import { parseLockoutSeconds, formatWait } from './lockoutWait.js';
+
+const GENERIC_FAILURE = 'Invalid email or password.';
 
 export function LoginForm() {
   const location = useLocation();
@@ -17,24 +26,31 @@ export function LoginForm() {
   const [email, setEmail] = useState(prefillEmail);
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const { login } = useAuth();
-  const { showToast } = useToast();
+  const { secondsLeft, start } = useCountdown();
   const navigate = useNavigate();
+
+  const isLockedOut = secondsLeft > 0;
 
   async function handleSubmit(event) {
     event.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage(null);
 
     try {
       await login(email, password);
       navigate('/app');
     } catch (err) {
-      showToast({
-        type: 'error',
-        title: 'Could not log in',
-        message: err.message || 'Please check your email and password.',
-      });
+      const isRateLimited = err.status === 429;
+
+      // Only a rate-limited response carries a real reason worth repeating.
+      // Anything else stays generic, so a failed login never hints at
+      // whether the email exists.
+      setErrorMessage(isRateLimited ? err.message : GENERIC_FAILURE);
+
+      if (isRateLimited) start(parseLockoutSeconds(err.message));
     } finally {
       setIsSubmitting(false);
     }
@@ -42,6 +58,8 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      <LoginError message={errorMessage} secondsLeft={secondsLeft} />
+
       <Input
         label="Email"
         type="email"
@@ -64,8 +82,14 @@ export function LoginForm() {
         required
       />
 
-      <Button type="submit" size="lg" className="w-full" isLoading={isSubmitting}>
-        Log in
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full"
+        isLoading={isSubmitting}
+        disabled={isLockedOut}
+      >
+        {isLockedOut ? `Locked for ${formatWait(secondsLeft)}` : 'Log in'}
       </Button>
     </form>
   );

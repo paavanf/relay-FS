@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Input } from '../../../components/ui/Input.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
+import { Callout } from '../../../components/ui/Callout.jsx';
 import { submitNewPassword } from '../../../features/auth/api/passwordReset.js';
 import { useToast } from '../../../components/ui/toast/useToast.js';
 
@@ -76,9 +77,7 @@ export function ResetPasswordForm({ token }) {
       />
 
       {error && (
-        <p className="rounded-lg border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
-          {error}
-        </p>
+        <Callout variant="danger">{error}</Callout>
       )}
 
       <Button type="submit" size="lg" className="w-full" isLoading={isSubmitting}>

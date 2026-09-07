@@ -4,20 +4,29 @@
 import argon2 from 'argon2';
 import { User } from '../../models/index.js';
 import { AppError } from '../../errors/AppError.js';
+import { assertNotLocked, recordFailedAttempt, clearLockout } from './lockout.service.js';
 
 export async function loginUser({ email, password }) {
   const user = await User.findOne({ email });
 
   // Generic error message - never reveal whether the email exists.
-  // This prevents user enumeration attacks.
+  // This prevents user enumeration attacks. Note there is no lockout
+  // bookkeeping here: an unknown address has no account to lock, and doing
+  // any extra work would make "no such user" distinguishable.
   if (!user) {
     throw AppError.unauthorized('Invalid email or password');
   }
 
+  // Checked before the password, so a locked account cannot be tested at all.
+  assertNotLocked(user);
+
   const validPassword = await argon2.verify(user.passwordHash, password);
   if (!validPassword) {
+    await recordFailedAttempt(user);
     throw AppError.unauthorized('Invalid email or password');
   }
+
+  await clearLockout(user);
 
   return user;
 }

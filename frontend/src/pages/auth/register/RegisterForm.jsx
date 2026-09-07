@@ -1,18 +1,24 @@
-// RegisterForm - name, email, and password form.
+// RegisterForm.jsx - name, email, and password form.
 // Creating an account does not sign you in: on success we send the user to
 // the login page, passing their email along so it can be pre-filled there.
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Input } from '../../../components/ui/Input.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { useAuth } from '../../../features/auth/useAuth.js';
 import { useToast } from '../../../components/ui/toast/useToast.js';
+
+const DUPLICATE_MESSAGE = 'This email is already registered. Try logging in instead.';
 
 export function RegisterForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Set when the API reports the email is taken (409), so we can offer a
+  // route out instead of just an error.
+  const [isDuplicate, setIsDuplicate] = useState(false);
 
   const { register } = useAuth();
   const { showToast } = useToast();
@@ -21,6 +27,7 @@ export function RegisterForm() {
   async function handleSubmit(event) {
     event.preventDefault();
     setIsSubmitting(true);
+    setIsDuplicate(false);
 
     try {
       await register(name, email, password);
@@ -31,13 +38,15 @@ export function RegisterForm() {
         message: 'Please log in with your new account',
       });
 
-      // Carry the email over so the login form can pre-fill it.
       navigate('/login', { state: { prefillEmail: email } });
     } catch (err) {
+      const duplicate = err.status === 409;
+      setIsDuplicate(duplicate);
+
       showToast({
         type: 'error',
-        title: 'Signup failed',
-        message: err.message || 'Something went wrong',
+        title: duplicate ? 'Email already registered' : 'Signup failed',
+        message: duplicate ? DUPLICATE_MESSAGE : err.message || 'Something went wrong',
       });
     } finally {
       setIsSubmitting(false);
@@ -62,8 +71,22 @@ export function RegisterForm() {
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@example.com"
         autoComplete="email"
+        error={isDuplicate ? DUPLICATE_MESSAGE : undefined}
         required
       />
+
+      {isDuplicate && (
+        <p className="rounded-lg border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+          Already have an account?{' '}
+          <Link
+            to="/login"
+            state={{ prefillEmail: email }}
+            className="font-medium text-amber-200 underline transition-colors hover:text-white"
+          >
+            Log in instead
+          </Link>
+        </p>
+      )}
 
       <Input
         label="Password"

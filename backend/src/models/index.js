@@ -10,4 +10,5 @@ export { User } from './User.js';
 export { Organisation } from './Organisation.js';
 export { Membership } from './Membership.js';
 export { RefreshToken } from './RefreshToken.js';
+export { PasswordResetToken } from './PasswordResetToken.js';
 export { Invite } from './Invite.js';

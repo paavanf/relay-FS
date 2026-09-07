@@ -18,6 +18,8 @@ import RootRedirect from '../pages/RootRedirect/index.js';
 import LoginPage from '../pages/auth/login/index.js';
 import RegisterPage from '../pages/auth/register/index.js';
 import AcceptInvitePage from '../pages/auth/acceptInvite/index.js';
+import ForgotPasswordPage from '../pages/auth/forgotPassword/index.js';
+import ResetPasswordPage from '../pages/auth/resetPassword/index.js';
 import OrgSelectorPage from '../pages/orgSelector/index.js';
 import SchedulePage from '../pages/schedule/index.js';
 import MyShiftsPage from '../pages/myShifts/index.js';
@@ -50,10 +52,16 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Invites are public, but a logged-in user should still be able to open one.
+  // Public, and deliberately NOT behind RequireGuest: someone already signed
+  // in on this browser must still be able to open an invite or a reset link
+  // from their email rather than being redirected into the app.
   {
     element: <PublicLayout />,
-    children: [{ path: '/invite/:token', element: <AcceptInvitePage /> }],
+    children: [
+      { path: '/invite/:token', element: <AcceptInvitePage /> },
+      { path: '/forgot-password', element: <ForgotPasswordPage /> },
+      { path: '/reset-password/:token', element: <ResetPasswordPage /> },
+    ],
   },
 
   // Everything below here needs a logged-in user.

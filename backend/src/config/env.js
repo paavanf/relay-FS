@@ -9,6 +9,15 @@ const baseSchema = z.object({
   MONGODB_URI: z.string().min(1),
   JWT_ACCESS_SECRET: secret,
   JWT_REFRESH_SECRET: secret,
+
+  // Email. RESEND_API_KEY is optional on purpose: without it the app still
+  // starts, and password-reset links are logged to the console instead of
+  // being emailed, so the flow is usable before any email setup is done.
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default('onboarding@resend.dev'),
+
+  // Where links in emails should point (the frontend, not the API).
+  FRONTEND_URL: z.string().default('http://localhost:5173'),
 });
 
 // Outside production we fall back to local defaults so the API boots before a

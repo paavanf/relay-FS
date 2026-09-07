@@ -6,6 +6,8 @@ export { loginUser } from './login.service.js';
 export { refreshAccessToken } from './refresh.service.js';
 export { logoutUser } from './logout.service.js';
 export { getCurrentUser } from './me.service.js';
+export { requestPasswordReset } from './forgotPassword.service.js';
+export { resetPassword } from './resetPassword.service.js';
 export { signAccessToken, verifyAccessToken } from './token.service.js';
 export {
   createRefreshToken,

@@ -26,3 +26,16 @@ export const loginSchema = z
     password: z.string().min(1, 'Password required'),
   })
   .strict();
+
+export const forgotPasswordSchema = z
+  .object({
+    email: z.string().trim().toLowerCase().email('Invalid email'),
+  })
+  .strict();
+
+export const resetPasswordSchema = z
+  .object({
+    // Same strength rules a new account has to meet.
+    password: passwordSchema,
+  })
+  .strict();

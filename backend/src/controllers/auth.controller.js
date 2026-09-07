@@ -14,6 +14,8 @@ import {
   getCurrentUser,
   signAccessToken,
   createRefreshToken,
+  requestPasswordReset,
+  resetPassword,
 } from '../services/auth/index.js';
 import { constants } from '../config/constants.js';
 import { env } from '../config/env.js';
@@ -92,4 +94,21 @@ export async function me(req, res) {
   // req.userId is set by the authenticate middleware.
   const result = await getCurrentUser(req.userId);
   res.json(result);
+}
+
+export async function forgotPassword(req, res) {
+  await requestPasswordReset(req.valid.body.email);
+
+  // Deliberately identical whether or not the email is registered - a
+  // different response here would let anyone test which emails have accounts.
+  res.json({ message: 'If that email is registered, a reset link has been sent.' });
+}
+
+export async function resetPasswordHandler(req, res) {
+  await resetPassword({
+    rawToken: req.params.token,
+    newPassword: req.valid.body.password,
+  });
+
+  res.json({ message: 'Password reset successfully. You can now log in.' });
 }

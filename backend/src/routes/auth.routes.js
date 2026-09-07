@@ -7,8 +7,21 @@ import rateLimit from 'express-rate-limit';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { validate } from '../middleware/validate.js';
 import { authenticate } from '../middleware/authenticate.js';
-import { registerSchema, loginSchema } from '../validators/auth.validators.js';
-import { register, login, refresh, logout, me } from '../controllers/auth.controller.js';
+import {
+  registerSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from '../validators/auth.validators.js';
+import {
+  register,
+  login,
+  refresh,
+  logout,
+  me,
+  forgotPassword,
+  resetPasswordHandler,
+} from '../controllers/auth.controller.js';
 import { constants } from '../config/constants.js';
 import { env } from '../config/env.js';
 
@@ -32,5 +45,20 @@ router.post('/login', authLimiter, validate({ body: loginSchema }), asyncHandler
 router.post('/refresh', asyncHandler(refresh));
 router.post('/logout', asyncHandler(logout));
 router.get('/me', authenticate, asyncHandler(me));
+
+// Rate limited: both are unauthenticated and would otherwise let someone
+// hammer the mail service or guess reset tokens.
+router.post(
+  '/forgot-password',
+  authLimiter,
+  validate({ body: forgotPasswordSchema }),
+  asyncHandler(forgotPassword),
+);
+router.post(
+  '/reset-password/:token',
+  authLimiter,
+  validate({ body: resetPasswordSchema }),
+  asyncHandler(resetPasswordHandler),
+);
 
 export default router;

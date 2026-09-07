@@ -1,7 +1,12 @@
 node_modules/
 dist/
 build/
-coverage/
+# Test-coverage output only. Anchored to the workspace roots on purpose:
+# a bare "coverage/" also matches source directories such as
+# backend/src/services/coverage/, and excludes them silently.
+/coverage/
+backend/coverage/
+frontend/coverage/
 .env
 .env.local
 *.log

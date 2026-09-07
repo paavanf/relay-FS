@@ -12,3 +12,10 @@ export { Membership } from './Membership.js';
 export { RefreshToken } from './RefreshToken.js';
 export { PasswordResetToken } from './PasswordResetToken.js';
 export { Invite } from './Invite.js';
+
+// Rostering configuration: what shifts exist, who is qualified for them, how
+// many are needed, and when people can work.
+export { Qualification } from './Qualification.js';
+export { ShiftTemplate } from './ShiftTemplate.js';
+export { CoverageRequirement } from './CoverageRequirement.js';
+export { Availability } from './Availability.js';

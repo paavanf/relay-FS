@@ -9,10 +9,6 @@ import {
 } from '../services/organisation/index.js';
 import { env } from '../config/env.js';
 
-// Invite links point at the frontend, not the API, so build them from the
-// configured CORS origin rather than guessing from the request host.
-const FRONTEND_URL = env.corsOrigins[0] ?? 'http://localhost:5173';
-
 export async function createOrg(req, res) {
   const org = await createOrganisation({
     name: req.valid.body.name,
@@ -47,7 +43,10 @@ export async function inviteMember(req, res) {
     inviteId: invite._id.toString(),
     email: invite.email,
     role: invite.role,
-    inviteLink: `${FRONTEND_URL}/invite/${rawToken}`,
+    // Same source of truth as the password-reset link: FRONTEND_URL points at
+    // the frontend, whereas CORS_ORIGIN is a list of allowed origins and can
+    // hold several, so its first entry is not reliably the app's own address.
+    inviteLink: `${env.FRONTEND_URL}/invite/${rawToken}`,
     expiresAt: invite.expiresAt,
   });
 }

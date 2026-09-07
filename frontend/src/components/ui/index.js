@@ -1,5 +1,4 @@
-// Re-exports every UI component so pages can import them in one line:
-//   import { Button, Card, Badge } from '@/components/ui';
+// Re-exports every UI component, so a page can import several in one line.
 
 export { Button } from './Button.jsx';
 export { Input } from './Input.jsx';
@@ -15,6 +14,7 @@ export { Skeleton } from './Skeleton.jsx';
 export { Avatar } from './Avatar.jsx';
 export { PageHeader } from './PageHeader.jsx';
 export { Tabs } from './Tabs.jsx';
+export { ThemeToggle } from './ThemeToggle.jsx';
 
 export {
   Card,

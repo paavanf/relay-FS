@@ -1,26 +1,15 @@
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  viewBox="0 0 48 48"
-  fill="none"
-  role="img"
-  aria-label="Relay"
->
-  <!-- Rounded indigo tile background. -->
-  <rect width="48" height="48" rx="11" fill="#4f46e5" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="Relay">
+  <rect width="32" height="32" rx="7" fill="#0F766E" />
 
-  <!-- Two curved arrows chasing each other to form a cycle: the "relay". -->
-  <g
+  <!-- Three nodes joined in a loop: the shape of a multi-party swap. -->
+  <path
+    d="M16 8.5 L23.5 21.5 L8.5 21.5 Z"
     stroke="#ffffff"
-    stroke-width="3.2"
-    stroke-linecap="round"
+    stroke-opacity="0.45"
+    stroke-width="1.6"
     stroke-linejoin="round"
-  >
-    <!-- Upper arrow sweeping clockwise, arrowhead at the top right. -->
-    <path d="M11 26a13 13 0 0 1 22-9.4" />
-    <path d="M33 10v7h-7" />
-
-    <!-- Lower arrow sweeping back, arrowhead at the bottom left. -->
-    <path d="M37 22a13 13 0 0 1-22 9.4" />
-    <path d="M15 38v-7h7" />
-  </g>
+  />
+  <circle cx="16" cy="8.5" r="2.8" fill="#ffffff" />
+  <circle cx="23.5" cy="21.5" r="2.8" fill="#ffffff" />
+  <circle cx="8.5" cy="21.5" r="2.8" fill="#ffffff" />
 </svg>

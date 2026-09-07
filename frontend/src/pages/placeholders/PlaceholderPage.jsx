@@ -1,69 +1,49 @@
-// PlaceholderPage - the shared "this feature isn't built yet" screen.
+// PlaceholderPage - the shared screen for features still being built.
 //
-// Every feature page waiting on a later milestone renders this with its own
-// title and capability list, so an unfinished page still looks deliberate.
-// The capability list uses an overlapping offset panel for spatial depth.
+// It sits inside the real app shell and states plainly what the feature will
+// do, so an unfinished area reads as a product rolling out rather than a
+// broken page.
 
-import { Construction, Check } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
 import { Card, CardContent } from '../../components/ui/Card.jsx';
-import { Reveal } from '../../components/motion/Reveal.jsx';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
 
-function PlaceholderPage({ title, description, milestone, capabilities = [] }) {
+function PlaceholderPage({ title, description, capabilities = [] }) {
   useDocumentTitle(title);
 
   return (
-    <div className="mx-auto max-w-4xl px-2 pt-8 pb-16">
-      <Reveal delay={0}>
-        <PageHeader title={title} description={description} />
-      </Reveal>
+    <div className="mx-auto max-w-3xl">
+      <PageHeader title={title} description={description} />
 
-      <Reveal delay={140} className="mt-10">
-        <Card tilt>
-          <CardContent className="pt-8">
-            <div className="flex items-center gap-2.5">
-              <Construction className="size-4 text-amber-300" aria-hidden="true" />
-              <Badge variant="amber">Coming in Milestone {milestone}</Badge>
-            </div>
+      <Card className="mt-6">
+        <CardContent className="py-6">
+          <Badge variant="warning">In development</Badge>
 
-            <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-ink-soft">
-              This screen is a placeholder. The layout, routing, and permissions around it already
-              work — only the feature itself is still to come.
-            </p>
-          </CardContent>
-        </Card>
-      </Reveal>
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-ink-muted">
+            The layout, routing and permissions around this page already work. The feature itself
+            is still being built.
+          </p>
 
-      {capabilities.length > 0 && (
-        // Pulled up and inset so it overlaps the card above it.
-        <div className="relative z-10 -mt-6 px-4 sm:px-10">
-          <Reveal delay={260}>
-            <div className="glass-strong glass-edge rounded-2xl p-7">
-              <h2 className="text-[11px] font-semibold tracking-[0.18em] text-ink-faint uppercase">
-                What it will do
-              </h2>
+          {capabilities.length > 0 && (
+            <div className="mt-6 border-t border-line pt-5">
+              <h2 className="text-[13px] font-medium text-ink">What it will do</h2>
 
-              <ul className="mt-5 space-y-3.5">
-                {capabilities.map((capability, index) => (
-                  <Reveal
-                    as="li"
-                    key={capability}
-                    delay={340 + index * 80}
-                    className="flex items-start gap-3 text-sm leading-relaxed text-ink-soft"
-                  >
-                    <span className="mt-0.5 rounded-md border border-indigo-400/25 bg-indigo-500/15 p-1">
-                      <Check className="size-3 text-indigo-200" aria-hidden="true" />
-                    </span>
+              <ul className="mt-3 space-y-2">
+                {capabilities.map((capability) => (
+                  <li key={capability} className="flex gap-2.5 text-[13px] text-ink-muted">
+                    <span
+                      className="mt-[7px] size-1 shrink-0 rounded-full bg-ink-subtle"
+                      aria-hidden="true"
+                    />
                     {capability}
-                  </Reveal>
+                  </li>
                 ))}
               </ul>
             </div>
-          </Reveal>
-        </div>
-      )}
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

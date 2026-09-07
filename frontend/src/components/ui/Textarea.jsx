@@ -1,4 +1,4 @@
-// Textarea - a multi-line glass text box. Same pattern as Input.
+// Textarea - multi-line field. Same shape as Input.
 import { forwardRef, useId } from 'react';
 import { cn } from '../../lib/utils.js';
 
@@ -8,10 +8,7 @@ export const Textarea = forwardRef(function Textarea({ label, error, className, 
   return (
     <div className="w-full">
       {label && (
-        <label
-          htmlFor={id}
-          className="mb-2 block text-xs font-medium tracking-wider text-ink-soft uppercase"
-        >
+        <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-ink-muted">
           {label}
         </label>
       )}
@@ -20,19 +17,18 @@ export const Textarea = forwardRef(function Textarea({ label, error, className, 
         id={id}
         ref={ref}
         rows={4}
+        aria-invalid={error ? true : undefined}
         className={cn(
-          'w-full resize-y rounded-xl border bg-white/4 px-4 py-3 text-sm text-ink backdrop-blur-xl',
-          'shadow-[inset_0_1px_0_0_rgba(255,255,255,0.07)] transition-all duration-300',
-          'placeholder:text-ink-faint hover:bg-white/6 focus:bg-white/7 focus:outline-none',
-          error
-            ? 'border-rose-400/50 focus:border-rose-400/70'
-            : 'border-white/10 focus:border-indigo-400/60',
+          'w-full resize-y rounded-lg border bg-surface-raised px-3 py-2 text-sm text-ink',
+          'transition-colors placeholder:text-ink-subtle',
+          'focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-brand-600',
+          error ? 'border-danger' : 'border-line-strong hover:border-ink-subtle',
           className,
         )}
         {...props}
       />
 
-      {error && <p className="mt-2 text-sm text-rose-300">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-danger">{error}</p>}
     </div>
   );
 });

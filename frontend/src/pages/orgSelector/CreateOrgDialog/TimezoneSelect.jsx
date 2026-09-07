@@ -1,6 +1,5 @@
-// TimezoneSelect.jsx
-// A short list of common timezones for the create-organisation form.
-// The roster is generated and displayed in whichever one is picked here.
+// TimezoneSelect - common timezones for the create-organisation form.
+// The roster is generated and displayed in whichever one is chosen.
 
 import { Select } from '../../../components/ui/Select.jsx';
 
@@ -22,7 +21,7 @@ export function TimezoneSelect({ value, onChange, disabled }) {
       disabled={disabled}
     >
       {timezones.map((zone) => (
-        <option key={zone.value} value={zone.value} className="bg-void-soft">
+        <option key={zone.value} value={zone.value}>
           {zone.label}
         </option>
       ))}

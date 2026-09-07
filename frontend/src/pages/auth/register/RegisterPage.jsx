@@ -1,21 +1,18 @@
-// RegisterPage - puts the sign-up header, form, and footer together in a card.
-import { Card, CardContent } from '../../../components/ui/Card.jsx';
+// RegisterPage - heading, form, and link back to sign in.
 import { RegisterHeader } from './RegisterHeader.jsx';
 import { RegisterForm } from './RegisterForm.jsx';
 import { RegisterFooter } from './RegisterFooter.jsx';
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle.js';
 
 function RegisterPage() {
-  useDocumentTitle('Sign up');
+  useDocumentTitle('Create account');
 
   return (
-    <Card tilt>
-      <CardContent className="pt-8">
-        <RegisterHeader />
-        <RegisterForm />
-        <RegisterFooter />
-      </CardContent>
-    </Card>
+    <div>
+      <RegisterHeader />
+      <RegisterForm />
+      <RegisterFooter />
+    </div>
   );
 }
 

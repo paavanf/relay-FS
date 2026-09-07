@@ -1,9 +1,9 @@
 // BackendStatus - a small dot showing whether the API is reachable.
 // Polls /api/health every 30 seconds.
 //
-// Note: /api/health answers 503 when the API is running but its database is
-// down, and the body still describes that. We treat that as "degraded" rather
-// than "offline", otherwise you can't tell a stopped API from a missing DB.
+// /api/health answers 503 when the API is up but its database is not, and the
+// body still describes that. Treating it as "degraded" rather than "offline"
+// keeps a stopped API distinguishable from a missing database.
 
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../../lib/apiClient.js';
@@ -21,23 +21,19 @@ export function BackendStatus() {
   const health = data ?? degraded;
 
   let label = 'API offline';
-  let dot = 'bg-rose-400 text-rose-400';
+  let dot = 'bg-danger';
 
   if (isPending) {
-    label = 'Checking API...';
-    dot = 'bg-white/40 text-white/40';
+    label = 'Checking';
+    dot = 'bg-ink-subtle';
   } else if (health) {
-    label = `API ${health.status} · db ${health.database}`;
-    dot =
-      health.status === 'ok'
-        ? 'bg-emerald-400 text-emerald-400'
-        : 'bg-amber-400 text-amber-400';
+    label = health.status === 'ok' ? 'Connected' : 'Database unavailable';
+    dot = health.status === 'ok' ? 'bg-success' : 'bg-warning';
   }
 
   return (
-    <div className="flex items-center gap-2.5 px-3.5 py-2.5 text-[11px] tracking-wide text-ink-faint">
-      {/* halo puts a soft bloom behind the dot using its own text colour. */}
-      <span className={cn('halo pulse-dot relative size-1.5 shrink-0 rounded-full', dot)} />
+    <div className="flex items-center gap-2 px-0.5 py-1.5 text-xs text-ink-subtle">
+      <span className={cn('size-1.5 shrink-0 rounded-full', dot)} aria-hidden="true" />
       <span className="truncate">{label}</span>
     </div>
   );

@@ -1,25 +1,28 @@
-// Badge - a small luminous pill for statuses and labels.
+// Badge - a small status chip. 6px radius, the smallest in the system.
+//
+// Variants are named for what they mean, not what colour they are, so a
+// status cannot drift to a hue that contradicts it.
 import { cn } from '../../lib/utils.js';
 
 const variantStyles = {
-  default: 'bg-white/8 text-ink-soft border-white/12',
-  indigo: 'bg-indigo-500/15 text-indigo-200 border-indigo-400/25',
-  green: 'bg-emerald-500/15 text-emerald-200 border-emerald-400/25',
-  amber: 'bg-amber-500/15 text-amber-200 border-amber-400/25',
-  red: 'bg-rose-500/15 text-rose-200 border-rose-400/25',
-  slate: 'bg-white/6 text-ink-faint border-white/10',
+  neutral: 'bg-surface-sunken text-ink-muted border-line',
+  brand: 'bg-brand-50 text-brand-700 border-brand-600/20',
+  success: 'bg-success-tint text-success border-success/20',
+  warning: 'bg-warning-tint text-warning border-warning/20',
+  danger: 'bg-danger-tint text-danger border-danger/20',
+  info: 'bg-info-tint text-info border-info/20',
 };
 
 const sizeStyles = {
-  sm: 'px-2.5 py-0.5 text-xs',
-  md: 'px-3 py-1 text-sm',
+  sm: 'px-1.5 py-0.5 text-[11px]',
+  md: 'px-2 py-0.5 text-xs',
 };
 
-export function Badge({ children, variant = 'default', size = 'sm', className }) {
+export function Badge({ children, variant = 'neutral', size = 'md', className }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border font-medium backdrop-blur-md',
+        'inline-flex items-center gap-1 rounded-md border font-medium',
         variantStyles[variant],
         sizeStyles[size],
         className,

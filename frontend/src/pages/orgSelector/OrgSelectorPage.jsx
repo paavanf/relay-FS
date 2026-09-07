@@ -1,12 +1,10 @@
-// OrgSelectorPage - the first screen after logging in. Pick an organisation,
+// OrgSelectorPage - the first screen after signing in. Pick an organisation,
 // or create one.
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useAuth } from '../../features/auth/useAuth.js';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
 import { Button } from '../../components/ui/Button.jsx';
-import { AuroraBackground } from '../../components/AuroraBackground.jsx';
-import { Reveal } from '../../components/motion/Reveal.jsx';
 import { OrgSelectorHeader } from './OrgSelectorHeader.jsx';
 import { OrgList } from './OrgList.jsx';
 import { EmptyOrgState } from './EmptyOrgState.jsx';
@@ -22,38 +20,29 @@ function OrgSelectorPage() {
   const hasOrgs = memberships.length > 0;
 
   return (
-    <div className="relative min-h-full overflow-hidden">
-      <AuroraBackground />
+    <div className="min-h-full bg-surface-page">
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <OrgSelectorHeader />
 
-      <div className="relative z-10 mx-auto max-w-3xl px-6 py-16">
-        <Reveal delay={0} className="mb-12">
-          <OrgSelectorHeader />
-        </Reveal>
-
-        <Reveal delay={90}>
-          <PageHeader
-            title="Choose an organisation"
-            description="You can switch between these at any time from the top bar."
-            className="mb-10"
-            actions={
-              // Only shown when they already have orgs - the empty state has
-              // its own, more prominent button.
-              hasOrgs ? (
-                <Button onClick={() => setIsDialogOpen(true)}>
-                  <Plus className="size-4" />
-                  Create organisation
-                </Button>
-              ) : null
-            }
-          />
-        </Reveal>
+        <PageHeader
+          title="Choose an organisation"
+          description="You can switch between these at any time from the top bar."
+          className="mt-8 mb-6"
+          actions={
+            // The empty state has its own, more prominent button.
+            hasOrgs ? (
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus className="size-4" />
+                Create organisation
+              </Button>
+            ) : null
+          }
+        />
 
         {hasOrgs ? (
           <OrgList memberships={memberships} />
         ) : (
-          <Reveal delay={200}>
-            <EmptyOrgState onCreateClick={() => setIsDialogOpen(true)} />
-          </Reveal>
+          <EmptyOrgState onCreateClick={() => setIsDialogOpen(true)} />
         )}
       </div>
 

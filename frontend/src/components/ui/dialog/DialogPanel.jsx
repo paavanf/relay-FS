@@ -1,11 +1,13 @@
-// DialogPanel - the floating glass box that holds the dialog's content.
+// DialogPanel - the panel holding the dialog's content. Sized to its content
+// rather than filling the screen.
 import { cn } from '../../../lib/utils.js';
 
 export function DialogPanel({ children, className }) {
   return (
     <div
       className={cn(
-        'glass-strong glass-edge reveal relative w-full max-w-lg rounded-3xl p-8',
+        'relative w-full max-w-md rounded-xl border border-line bg-surface-raised',
+        'shadow-overlay',
         className,
       )}
     >

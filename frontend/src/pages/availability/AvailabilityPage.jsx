@@ -6,7 +6,6 @@ function AvailabilityPage() {
     <PlaceholderPage
       title="Availability"
       description="Tell Relay when you can work, so the roster respects it."
-      milestone={2}
       capabilities={[
         'Set the hours you are normally available each week',
         'Add one-off exceptions for holidays and appointments',

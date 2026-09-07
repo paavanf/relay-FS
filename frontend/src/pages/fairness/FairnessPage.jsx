@@ -6,7 +6,6 @@ function FairnessPage() {
     <PlaceholderPage
       title="Fairness"
       description="Track how the awkward shifts are shared out over time."
-      milestone={6}
       capabilities={[
         'See how nights, weekends, and holidays are distributed',
         'Compare your own share against the team average',

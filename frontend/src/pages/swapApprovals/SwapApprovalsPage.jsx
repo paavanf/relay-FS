@@ -6,7 +6,6 @@ function SwapApprovalsPage() {
     <PlaceholderPage
       title="Swap approvals"
       description="Review and decide on swaps the team has proposed."
-      milestone={8}
       capabilities={[
         'Work through swaps waiting on a manager decision',
         'See exactly what each swap changes before approving it',

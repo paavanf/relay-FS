@@ -1,9 +1,8 @@
 // AcceptInvitePage - where an invite link lands.
-// Accepting invites needs backend endpoints that arrive in Milestone 1, so for
-// now we confirm the link was read and explain what happens next.
+// Joining an organisation needs endpoints that arrive in a later milestone, so
+// for now this confirms the link was read and says what happens next.
 import { Link, useParams } from 'react-router';
 import { MailCheck } from 'lucide-react';
-import { Card, CardContent } from '../../../components/ui/Card.jsx';
 import { Badge } from '../../../components/ui/Badge.jsx';
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle.js';
 
@@ -12,38 +11,31 @@ function AcceptInvitePage() {
   useDocumentTitle('Accept invite');
 
   return (
-    <Card tilt>
-      <CardContent className="pt-8 text-center">
-        <div className="relative mx-auto mb-5 w-fit">
-          <div className="absolute inset-0 rounded-2xl bg-indigo-500/40 blur-xl" aria-hidden="true" />
-          <div className="relative rounded-2xl border border-white/14 bg-white/7 p-3.5">
-            <MailCheck className="size-6 text-indigo-200" aria-hidden="true" />
-          </div>
-        </div>
+    <div>
+      <MailCheck className="size-5 text-brand-600" aria-hidden="true" />
 
-        <h1 className="text-aurora text-2xl font-semibold tracking-tight">You have an invite</h1>
+      <h1 className="mt-3 text-2xl font-semibold tracking-[-0.01em] text-ink">
+        You have an invite
+      </h1>
+      <p className="mt-1.5 text-sm text-ink-muted">
+        We found your invite link, but joining an organisation is not wired up yet.
+      </p>
 
-        <p className="mx-auto mt-2.5 max-w-xs text-sm leading-relaxed text-ink-soft">
-          We found your invite link, but joining an organisation isn&apos;t wired up yet.
-        </p>
+      <div className="mt-4">
+        <Badge variant="warning">In development</Badge>
+      </div>
 
-        <div className="mt-5">
-          <Badge variant="amber">Coming in Milestone 1</Badge>
-        </div>
+      {/* Showing the token confirms the route param is being read correctly. */}
+      <p className="data mt-5 truncate rounded-lg border border-line bg-surface-sunken px-3 py-2 text-xs text-ink-subtle">
+        {token}
+      </p>
 
-        {/* Showing the token confirms the route param is being read correctly. */}
-        <p className="mt-5 truncate rounded-lg border border-white/8 bg-white/4 px-3 py-2 font-mono text-xs text-ink-faint">
-          {token}
-        </p>
-
-        <Link
-          to="/login"
-          className="mt-7 inline-block text-sm font-medium text-indigo-300 transition-colors duration-300 hover:text-indigo-200"
-        >
-          Back to log in
+      <p className="mt-6 border-t border-line pt-3 text-[13px] text-ink-muted">
+        <Link to="/login" className="font-medium text-brand-600 hover:text-brand-700">
+          Back to sign in
         </Link>
-      </CardContent>
-    </Card>
+      </p>
+    </div>
   );
 }
 

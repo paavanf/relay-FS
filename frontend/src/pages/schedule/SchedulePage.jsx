@@ -6,7 +6,6 @@ function SchedulePage() {
     <PlaceholderPage
       title="Schedule"
       description="The published roster for your whole team, week by week."
-      milestone={5}
       capabilities={[
         'See every shift for the week in one grid, grouped by day',
         'Filter by role, qualification, or team member',

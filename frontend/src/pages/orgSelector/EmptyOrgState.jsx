@@ -1,5 +1,5 @@
-// EmptyOrgState - shown when the user isn't a member of any organisation yet.
-// Offers the way out of that state: create one.
+// EmptyOrgState - shown when the user belongs to no organisation yet.
+// Offers the way out of that state rather than just describing it.
 import { Building2, Plus } from 'lucide-react';
 import { EmptyState } from '../../components/ui/EmptyState.jsx';
 import { Card } from '../../components/ui/Card.jsx';

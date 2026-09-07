@@ -1,19 +1,18 @@
-// Sidebar - the left-hand navigation for the app.
-// Manager-only links are hidden from ordinary members.
-import { Calendar, User, Clock, ArrowLeftRight, BarChart3, Users, Settings } from 'lucide-react';
+// Sidebar - the app's navigation.
+// Primary work is grouped above a divider; managing the organisation sits
+// below it. Manager-only items are hidden from ordinary members.
+import { Calendar, User, Clock, ArrowLeftRight, Scale, Users, Settings } from 'lucide-react';
 import { SidebarLink } from './SidebarLink.jsx';
 import { SidebarUserCard } from './SidebarUserCard.jsx';
 import { BackendStatus } from './BackendStatus.jsx';
-import { Reveal } from '../../motion/Reveal.jsx';
 import { useOrg } from '../../../features/organisation/useOrg.js';
 
-// Listed here so the reveal stagger can be derived from the index.
 const primaryLinks = [
   { to: 'schedule', icon: Calendar, label: 'Schedule' },
-  { to: 'my-shifts', icon: User, label: 'My Shifts' },
+  { to: 'my-shifts', icon: User, label: 'My shifts' },
   { to: 'availability', icon: Clock, label: 'Availability' },
   { to: 'swaps', icon: ArrowLeftRight, label: 'Swaps' },
-  { to: 'fairness', icon: BarChart3, label: 'Fairness' },
+  { to: 'fairness', icon: Scale, label: 'Fairness' },
 ];
 
 const managerLinks = [
@@ -26,36 +25,29 @@ export function Sidebar({ onNavigate }) {
   const base = `/app/${orgId}`;
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-1 p-4">
-      <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto">
-        {primaryLinks.map((link, index) => (
-          <Reveal key={link.to} delay={140 + index * 55}>
-            <SidebarLink
-              to={`${base}/${link.to}`}
-              icon={link.icon}
-              label={link.label}
-              onNavigate={onNavigate}
-            />
-          </Reveal>
+    <div className="flex h-full min-h-0 flex-col px-4 py-3">
+      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
+        {primaryLinks.map((link) => (
+          <SidebarLink
+            key={link.to}
+            to={`${base}/${link.to}`}
+            icon={link.icon}
+            label={link.label}
+            onNavigate={onNavigate}
+          />
         ))}
 
         {isManager && (
           <>
-            <div className="my-3 px-3.5">
-              <p className="text-[10px] font-semibold tracking-[0.18em] text-ink-faint uppercase">
-                Manage
-              </p>
-            </div>
-
-            {managerLinks.map((link, index) => (
-              <Reveal key={link.to} delay={430 + index * 55}>
-                <SidebarLink
-                  to={`${base}/${link.to}`}
-                  icon={link.icon}
-                  label={link.label}
-                  onNavigate={onNavigate}
-                />
-              </Reveal>
+            <hr className="my-2.5 border-line" />
+            {managerLinks.map((link) => (
+              <SidebarLink
+                key={link.to}
+                to={`${base}/${link.to}`}
+                icon={link.icon}
+                label={link.label}
+                onNavigate={onNavigate}
+              />
             ))}
           </>
         )}

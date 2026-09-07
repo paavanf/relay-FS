@@ -1,6 +1,7 @@
-// Skeleton - a translucent block with a light sweep, shown while data loads.
+// Skeleton - a placeholder block with a quiet sweep while data loads.
+// The sweep is defined in index.css so reduced-motion can switch it off.
 import { cn } from '../../lib/utils.js';
 
 export function Skeleton({ className }) {
-  return <div className={cn('shimmer rounded-lg bg-white/6', className)} />;
+  return <div className={cn('skeleton rounded-md', className)} />;
 }

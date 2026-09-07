@@ -1,6 +1,6 @@
-// ErrorState - a rose-lit glass panel telling the user something went wrong,
-// with an optional Retry button.
-import { AlertCircle } from 'lucide-react';
+// ErrorState - something failed, with a way to try again.
+// Danger colour is used because this is a real failure, not for emphasis.
+import { AlertTriangle } from 'lucide-react';
 import { cn } from '../../lib/utils.js';
 import { Button } from './Button.jsx';
 
@@ -8,27 +8,18 @@ export function ErrorState({ title = 'Something went wrong', message, onRetry, c
   return (
     <div
       className={cn(
-        'relative flex flex-col items-center overflow-hidden rounded-2xl border border-rose-400/20',
-        'bg-rose-500/8 px-6 py-10 text-center backdrop-blur-xl',
+        'flex flex-col items-center rounded-xl border border-danger/25 bg-danger-tint px-6 py-8 text-center',
         className,
       )}
     >
-      {/* Rose bloom bleeding in from the top. */}
-      <div
-        className="pointer-events-none absolute -top-16 left-1/2 size-48 -translate-x-1/2 rounded-full bg-rose-500/25 blur-3xl"
-        aria-hidden="true"
-      />
+      <AlertTriangle className="size-5 text-danger" aria-hidden="true" />
 
-      <div className="relative rounded-xl border border-rose-400/25 bg-rose-500/12 p-3">
-        <AlertCircle className="size-5 text-rose-200" aria-hidden="true" />
-      </div>
+      <h3 className="mt-3 text-sm font-semibold text-ink">{title}</h3>
 
-      <h3 className="relative mt-4 text-base font-semibold text-ink">{title}</h3>
-
-      {message && <p className="relative mt-1.5 max-w-sm text-sm text-rose-100/80">{message}</p>}
+      {message && <p className="mt-1 max-w-sm text-[13px] text-ink-muted">{message}</p>}
 
       {onRetry && (
-        <Button variant="secondary" size="sm" className="relative mt-6" onClick={onRetry}>
+        <Button variant="secondary" size="sm" className="mt-4" onClick={onRetry}>
           Try again
         </Button>
       )}

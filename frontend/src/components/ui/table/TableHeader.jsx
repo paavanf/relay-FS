@@ -1,6 +1,13 @@
-// TableHeader - the <thead> of a table.
+// TableHeader - sticky, on the sunken surface so it separates from the rows
+// without needing a shadow.
 import { cn } from '../../../lib/utils.js';
 
 export function TableHeader({ children, className }) {
-  return <thead className={cn('border-b border-white/10 bg-white/4', className)}>{children}</thead>;
+  return (
+    <thead
+      className={cn('sticky top-0 z-10 border-b border-line bg-surface-sunken', className)}
+    >
+      {children}
+    </thead>
+  );
 }

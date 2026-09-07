@@ -6,7 +6,6 @@ function SwapsPage() {
     <PlaceholderPage
       title="Swaps"
       description="Hand over a shift, or pick one up from someone else."
-      milestone={7}
       capabilities={[
         'Offer a shift you cannot work to the rest of the team',
         'Browse shifts other people are trying to give away',

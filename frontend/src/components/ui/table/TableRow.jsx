@@ -1,9 +1,9 @@
-// TableRow - a single <tr>.
+// TableRow - a single row, with a quiet hover so the eye can track across.
 import { cn } from '../../../lib/utils.js';
 
 export function TableRow({ children, className, ...props }) {
   return (
-    <tr className={cn('transition-colors duration-300 hover:bg-white/5', className)} {...props}>
+    <tr className={cn('transition-colors hover:bg-surface-sunken', className)} {...props}>
       {children}
     </tr>
   );

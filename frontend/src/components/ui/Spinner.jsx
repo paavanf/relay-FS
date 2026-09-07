@@ -1,10 +1,10 @@
-// Spinner - an animated loading arc with a faint track behind it.
+// Spinner - a loading arc over a faint track.
 import { cn } from '../../lib/utils.js';
 
 const sizeStyles = {
-  sm: 'size-4',
-  md: 'size-6',
-  lg: 'size-9',
+  sm: 'size-3.5',
+  md: 'size-5',
+  lg: 'size-7',
 };
 
 export function Spinner({ size = 'md', className }) {
@@ -16,13 +16,8 @@ export function Spinner({ size = 'md', className }) {
       role="status"
       aria-label="Loading"
     >
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-20" />
-      <path
-        d="M12 2a10 10 0 0 1 10 10"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" className="opacity-25" />
+      <path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   );
 }

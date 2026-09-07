@@ -1,11 +1,18 @@
-// Table - the outer <table>. Wrapped in a scrolling glass shell so wide
-// tables scroll sideways instead of breaking the page layout.
+// Table - the outer table, in a bordered panel that scrolls sideways rather
+// than letting a wide roster break the page.
+//
+// tabular-nums is set here so every figure in the table lines up down its
+// column, which is what makes a dense grid scannable.
 import { cn } from '../../../lib/utils.js';
 
 export function Table({ children, className }) {
   return (
-    <div className="glass w-full overflow-x-auto rounded-2xl">
-      <table className={cn('w-full border-collapse text-left text-sm', className)}>{children}</table>
+    <div className="w-full overflow-x-auto rounded-xl border border-line bg-surface-raised">
+      <table
+        className={cn('w-full border-collapse text-left text-sm tabular-nums', className)}
+      >
+        {children}
+      </table>
     </div>
   );
 }

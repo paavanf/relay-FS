@@ -1,6 +1,5 @@
-// CreateOrgDialog.jsx
-// Dialog for creating a new organisation. Owns the submit logic; the fields
-// themselves live in CreateOrgForm.
+// CreateOrgDialog - creates an organisation. Owns the submit logic; the
+// fields live in CreateOrgForm.
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -33,8 +32,8 @@ function CreateOrgDialog({ isOpen, onClose }) {
     try {
       const result = await createOrg({ name, timezone });
 
-      // Put the new org into context before navigating: OrgProvider looks the
-      // orgId up in memberships and would bounce us to /403 if it isn't there.
+      // Into context before navigating: OrgProvider resolves the orgId against
+      // memberships and would bounce us to /403 if it were not there yet.
       addMembership({
         orgId: result.id,
         orgName: result.name,
@@ -45,7 +44,7 @@ function CreateOrgDialog({ isOpen, onClose }) {
       showToast({
         type: 'success',
         title: 'Organisation created',
-        message: `Welcome to ${result.name}`,
+        message: `You are the owner of ${result.name}.`,
       });
 
       setName('');
@@ -63,10 +62,12 @@ function CreateOrgDialog({ isOpen, onClose }) {
   return (
     <Dialog isOpen={isOpen} onClose={onClose}>
       <DialogPanel>
-        <DialogTitle>Create an organisation</DialogTitle>
-        <DialogDescription>
-          You will be its owner, and can invite the rest of your team afterwards.
-        </DialogDescription>
+        <div className="border-b border-line px-5 py-4">
+          <DialogTitle>Create an organisation</DialogTitle>
+          <DialogDescription>
+            You will be its owner, and can invite the rest of your team afterwards.
+          </DialogDescription>
+        </div>
 
         <CreateOrgForm
           name={name}

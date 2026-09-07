@@ -1,8 +1,6 @@
-// DialogTitle - the heading inside a dialog.
+// DialogTitle - the dialog heading.
 import { cn } from '../../../lib/utils.js';
 
 export function DialogTitle({ children, className }) {
-  return (
-    <h2 className={cn('text-xl font-semibold tracking-tight text-ink', className)}>{children}</h2>
-  );
+  return <h2 className={cn('text-base font-semibold text-ink', className)}>{children}</h2>;
 }

@@ -8,23 +8,31 @@
       content="Relay - fair rostering and multi-party shift swaps for teams that run on coverage."
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#fbfbfa" />
 
-    <!-- Inter font, loaded from Google Fonts. -->
+    <!-- Instrument Sans for headings, Inter for UI text, Geist Mono for data. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
 
-    <meta name="theme-color" content="#04050a" />
-
-    <!-- Paint the void immediately so there is no white flash before CSS loads. -->
-    <style>
-      html {
-        background: #04050a;
-      }
-    </style>
+    <!-- Apply the saved theme before first paint, so a dark-theme user never
+         sees a flash of the light page. -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('relay-theme');
+          var theme =
+            saved ||
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
 
     <title>Relay - Fair Rostering &amp; Shift Swaps</title>
   </head>

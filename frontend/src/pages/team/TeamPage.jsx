@@ -6,7 +6,6 @@ function TeamPage() {
     <PlaceholderPage
       title="Team"
       description="The people in this organisation, and what they are qualified for."
-      milestone={1}
       capabilities={[
         'Invite new people by email and track pending invites',
         'Change someone from member to manager, or back again',

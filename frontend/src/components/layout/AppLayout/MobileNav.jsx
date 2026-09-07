@@ -1,4 +1,4 @@
-// MobileNav - on small screens the sidebar becomes a slide-out glass drawer.
+// MobileNav - below the lg breakpoint the sidebar becomes a drawer.
 import { X } from 'lucide-react';
 import { Sidebar } from './Sidebar.jsx';
 import { Logo } from '../../Logo.jsx';
@@ -7,24 +7,23 @@ export function MobileNav({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 lg:hidden">
-      {/* Blurred layer behind the drawer. */}
-      <div className="fixed inset-0 bg-void/70 backdrop-blur-md" onClick={onClose} aria-hidden="true" />
+    <div className="fixed inset-0 z-40 lg:hidden">
+      <div className="fixed inset-0 bg-ink/20" onClick={onClose} aria-hidden="true" />
 
-      <div className="glass-strong reveal relative flex h-full w-72 flex-col rounded-r-3xl">
-        <div className="flex items-center justify-between border-b border-white/8 px-5 py-4">
+      <div className="relative flex h-full w-64 flex-col border-r border-line bg-surface-raised">
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
           <Logo size="sm" />
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-ink-faint transition-colors duration-300 hover:bg-white/8 hover:text-ink"
+            className="rounded-lg p-1.5 text-ink-subtle transition-colors hover:bg-surface-sunken hover:text-ink"
             aria-label="Close navigation"
           >
-            <X className="size-5" />
+            <X className="size-4" />
           </button>
         </div>
 
-        {/* Tapping a link should close the drawer. */}
+        {/* Tapping a link closes the drawer. */}
         <Sidebar onNavigate={onClose} />
       </div>
     </div>

@@ -1,5 +1,4 @@
-// UserMenu - the avatar in the top bar. Clicking it opens a small glass menu
-// with a logout button.
+// UserMenu - the avatar in the top bar, with a small menu behind it.
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { LogOut } from 'lucide-react';
@@ -23,26 +22,27 @@ export function UserMenu() {
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Open user menu"
-        className="block rounded-full transition-transform duration-300 hover:scale-105"
+        aria-expanded={isOpen}
+        className="block rounded-full"
       >
         <Avatar name={user?.name} size="sm" />
       </button>
 
       {isOpen && (
         <>
-          {/* Invisible full-screen layer: clicking anywhere closes the menu. */}
+          {/* Invisible layer: a click anywhere closes the menu. */}
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} aria-hidden="true" />
 
-          <div className="glass-strong glass-edge reveal absolute right-0 z-20 mt-3 w-60 rounded-2xl p-1.5">
-            <div className="border-b border-white/8 px-3.5 py-3">
-              <p className="truncate text-sm font-medium text-ink">{user?.name}</p>
-              <p className="truncate text-xs text-ink-faint">{user?.email}</p>
+          <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border border-line bg-surface-raised p-1 shadow-overlay">
+            <div className="border-b border-line px-3 py-2">
+              <p className="truncate text-[13px] font-medium text-ink">{user?.name}</p>
+              <p className="truncate text-xs text-ink-subtle">{user?.email}</p>
             </div>
 
             <button
               type="button"
               onClick={handleLogout}
-              className="mt-1.5 flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm text-ink-soft transition-colors duration-300 hover:bg-white/8 hover:text-rose-300"
+              className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
             >
               <LogOut className="size-4" />
               Log out

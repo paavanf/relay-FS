@@ -1,9 +1,7 @@
-// ForgotPasswordForm.jsx
-// Asks for an email and requests a reset link.
+// ForgotPasswordForm - asks for an email and requests a reset link.
 //
-// The confirmation is deliberately the same whether or not the address is
-// registered - saying "no such account" would let anyone check which emails
-// have accounts here.
+// The confirmation is identical whether or not the address is registered.
+// Saying "no such account" would let anyone check which emails have accounts.
 
 import { useState } from 'react';
 import { MailCheck } from 'lucide-react';
@@ -39,19 +37,18 @@ export function ForgotPasswordForm() {
 
   if (isSent) {
     return (
-      <div className="text-center">
-        <div className="mx-auto mb-4 w-fit rounded-2xl border border-white/14 bg-white/7 p-3.5">
-          <MailCheck className="size-6 text-emerald-300" aria-hidden="true" />
-        </div>
-        <p className="text-sm leading-relaxed text-ink-soft">
-          If that email is registered, we&apos;ve sent a reset link. Check your inbox.
+      <div className="rounded-xl border border-line bg-surface-raised p-5">
+        <MailCheck className="size-5 text-success" aria-hidden="true" />
+        <p className="mt-3 text-sm font-medium text-ink">Check your inbox</p>
+        <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">
+          If that email is registered, we have sent a reset link. It expires in an hour.
         </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <Input
         label="Email"
         type="email"

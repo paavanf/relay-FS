@@ -1,27 +1,22 @@
 // Button - the standard action control.
-//
-// Buttons are magnetic by default: they lean toward the cursor on hover and
-// spring back on exit. Pass magnetic={false} for dense rows where that would
-// feel busy. Variants keep the glass language, with a lit primary.
+// Solid teal primary, quiet bordered secondary, ghost, and danger.
+// No gradients, no glow: the weight of the button is the only emphasis.
 
 import { cn } from '../../lib/utils.js';
 import { Spinner } from './Spinner.jsx';
-import { useMagnetic } from '../../hooks/useMagnetic.js';
 
 const variantStyles = {
-  primary:
-    'text-white border border-white/15 bg-linear-to-b from-indigo-500 to-violet-600 shadow-[0_10px_36px_-10px_rgba(124,58,237,0.85),inset_0_1px_0_0_rgba(255,255,255,0.28)] hover:from-indigo-400 hover:to-violet-500',
+  primary: 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-700',
   secondary:
-    'text-ink border border-white/12 bg-white/6 backdrop-blur-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.16)] hover:bg-white/11 hover:border-white/20',
-  ghost: 'text-ink-soft border border-transparent hover:bg-white/7 hover:text-ink',
-  danger:
-    'text-white border border-rose-300/25 bg-linear-to-b from-rose-500 to-rose-600 shadow-[0_10px_36px_-12px_rgba(244,63,94,0.8),inset_0_1px_0_0_rgba(255,255,255,0.25)] hover:from-rose-400 hover:to-rose-500',
+    'border border-line-strong bg-surface-raised text-ink hover:bg-surface-sunken active:bg-surface-sunken',
+  ghost: 'text-ink-muted hover:bg-surface-sunken hover:text-ink',
+  danger: 'bg-danger text-white hover:brightness-95 active:brightness-90',
 };
 
 const sizeStyles = {
-  sm: 'px-3.5 py-1.5 text-sm',
-  md: 'px-5 py-2.5 text-sm',
-  lg: 'px-7 py-3 text-base',
+  sm: 'h-8 gap-1.5 px-3 text-[13px]',
+  md: 'h-9 gap-2 px-4 text-sm',
+  lg: 'h-11 gap-2 px-5 text-sm',
 };
 
 export function Button({
@@ -30,27 +25,20 @@ export function Button({
   size = 'md',
   isLoading = false,
   disabled = false,
-  magnetic = true,
   className,
   ...props
 }) {
-  const { magneticRef, magneticProps } = useMagnetic(0.22);
-
-  // A loading button is also a disabled button - don't let it be clicked twice.
+  // A loading button is also disabled - it must not submit twice.
   const isDisabled = disabled || isLoading;
-  const pull = magnetic && !isDisabled;
 
   return (
     <button
-      ref={pull ? magneticRef : undefined}
-      {...(pull ? magneticProps : {})}
       disabled={isDisabled}
       className={cn(
-        'relative inline-flex items-center justify-center gap-2 rounded-xl font-medium tracking-tight',
-        'transition-colors duration-300 select-none',
-        'focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-void',
-        'disabled:cursor-not-allowed disabled:opacity-45',
-        pull && 'magnetic',
+        'inline-flex items-center justify-center rounded-lg font-medium',
+        'transition-colors duration-150 select-none',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600',
+        'disabled:cursor-not-allowed disabled:opacity-50',
         variantStyles[variant],
         sizeStyles[size],
         className,

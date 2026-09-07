@@ -6,15 +6,18 @@ import { router } from './app/router.jsx';
 import { queryClient } from './lib/queryClient.js';
 import { AuthProvider } from './features/auth/AuthProvider.jsx';
 import { ToastProvider } from './components/ui/toast/ToastProvider.jsx';
+import { ThemeProvider } from './features/theme/ThemeProvider.jsx';
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
-      </ToastProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

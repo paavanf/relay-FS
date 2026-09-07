@@ -6,7 +6,6 @@ function SettingsPage() {
     <PlaceholderPage
       title="Settings"
       description="How this organisation rosters, and the rules the scheduler follows."
-      milestone={2}
       capabilities={[
         'Set the timezone and the day the rostering week starts on',
         'Define shift templates for the patterns you run regularly',

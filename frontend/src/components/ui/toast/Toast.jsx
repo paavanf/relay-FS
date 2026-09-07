@@ -1,12 +1,12 @@
-// Toast - one single notification card, sliding in as a glass sliver.
-import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
+// Toast - one notification. Compact, with a semantic left accent so the kind
+// of message reads before the text does.
+import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import { cn } from '../../../lib/utils.js';
 
-// Each toast type gets its own icon, accent, and glow colour.
 const toastStyles = {
-  success: { icon: CheckCircle, tint: 'text-emerald-300', glow: 'bg-emerald-500/25' },
-  error: { icon: AlertCircle, tint: 'text-rose-300', glow: 'bg-rose-500/25' },
-  info: { icon: Info, tint: 'text-indigo-300', glow: 'bg-indigo-500/25' },
+  success: { icon: CheckCircle2, tint: 'text-success', accent: 'bg-success' },
+  error: { icon: AlertCircle, tint: 'text-danger', accent: 'bg-danger' },
+  info: { icon: Info, tint: 'text-info', accent: 'bg-info' },
 };
 
 export function Toast({ toast, onDismiss }) {
@@ -15,29 +15,25 @@ export function Toast({ toast, onDismiss }) {
 
   return (
     <div
-      className="glass glass-edge reveal pointer-events-auto relative flex w-84 items-start gap-3.5 overflow-hidden rounded-2xl p-4"
+      className="pointer-events-auto relative flex w-80 items-start gap-2.5 overflow-hidden rounded-lg border border-line bg-surface-raised py-3 pr-3 pl-4 shadow-overlay"
       role="alert"
     >
-      {/* Coloured bloom leaking from the left edge. */}
-      <div
-        className={cn('pointer-events-none absolute -left-8 size-24 rounded-full blur-2xl', style.glow)}
-        aria-hidden="true"
-      />
+      <span className={cn('absolute inset-y-0 left-0 w-1', style.accent)} aria-hidden="true" />
 
-      <Icon className={cn('relative mt-0.5 size-5 shrink-0', style.tint)} aria-hidden="true" />
+      <Icon className={cn('mt-px size-4 shrink-0', style.tint)} aria-hidden="true" />
 
-      <div className="relative flex-1">
-        <p className="text-sm font-semibold text-ink">{toast.title}</p>
-        {toast.message && <p className="mt-1 text-sm text-ink-soft">{toast.message}</p>}
+      <div className="flex-1">
+        <p className="text-[13px] font-medium text-ink">{toast.title}</p>
+        {toast.message && <p className="mt-0.5 text-[13px] text-ink-muted">{toast.message}</p>}
       </div>
 
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
-        className="relative text-ink-faint transition-colors hover:text-ink"
+        className="rounded p-0.5 text-ink-subtle transition-colors hover:text-ink"
         aria-label="Dismiss notification"
       >
-        <X className="size-4" />
+        <X className="size-3.5" />
       </button>
     </div>
   );

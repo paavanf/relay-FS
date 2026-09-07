@@ -1,57 +1,44 @@
-// Card and its parts - glass panels floating over the aurora.
-//
-// Pass `tilt` to turn a card into an interactive surface: it leans in 3D
-// toward the cursor and a glare highlight tracks across its face.
-
+// Card and its parts. A raised white panel: hairline border, 12px radius, and
+// one small shadow. All the parts live here because each is only a styled
+// wrapper - six files would be noise.
 import { cn } from '../../lib/utils.js';
-import { useTilt } from '../../hooks/useTilt.js';
 
-export function Card({ children, className, tilt = false }) {
-  const { tiltRef, tiltProps } = useTilt();
-
-  // A non-tilting card is just a static glass panel - no listeners attached.
-  if (!tilt) {
-    return <div className={cn('glass glass-edge rounded-2xl', className)}>{children}</div>;
-  }
-
+export function Card({ children, className }) {
   return (
     <div
-      ref={tiltRef}
-      {...tiltProps}
-      className={cn('glass glass-edge tilt overflow-hidden rounded-2xl', className)}
+      className={cn(
+        'rounded-xl border border-line bg-surface-raised shadow-raised',
+        className,
+      )}
     >
       {children}
-      <div className="tilt-glare" />
     </div>
   );
 }
 
 export function CardHeader({ children, className }) {
-  return <div className={cn('space-y-1.5 px-7 pt-7 pb-4', className)}>{children}</div>;
+  return (
+    <div className={cn('space-y-1 border-b border-line px-5 py-4', className)}>{children}</div>
+  );
 }
 
 export function CardTitle({ children, className }) {
   return (
-    <h3 className={cn('text-lg font-semibold tracking-tight text-ink', className)}>{children}</h3>
+    <h3 className={cn('text-base font-semibold text-ink', className)}>{children}</h3>
   );
 }
 
 export function CardDescription({ children, className }) {
-  return <p className={cn('text-sm leading-relaxed text-ink-soft', className)}>{children}</p>;
+  return <p className={cn('text-[13px] text-ink-muted', className)}>{children}</p>;
 }
 
 export function CardContent({ children, className }) {
-  return <div className={cn('px-7 pb-7', className)}>{children}</div>;
+  return <div className={cn('px-5 py-4', className)}>{children}</div>;
 }
 
 export function CardFooter({ children, className }) {
   return (
-    <div
-      className={cn(
-        'flex items-center gap-3 border-t border-white/8 px-7 py-5',
-        className,
-      )}
-    >
+    <div className={cn('flex items-center gap-3 border-t border-line px-5 py-3', className)}>
       {children}
     </div>
   );

@@ -1,5 +1,5 @@
-// Select - a styled native <select> with a label and error message.
-// Options are passed as children, e.g. <Select><option>...</option></Select>.
+// Select - a styled native select. Native because it behaves correctly on
+// touch devices, which is where a lot of shift workers will be.
 import { forwardRef, useId } from 'react';
 import { cn } from '../../lib/utils.js';
 
@@ -12,10 +12,7 @@ export const Select = forwardRef(function Select(
   return (
     <div className="w-full">
       {label && (
-        <label
-          htmlFor={id}
-          className="mb-2 block text-xs font-medium tracking-wider text-ink-soft uppercase"
-        >
+        <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-ink-muted">
           {label}
         </label>
       )}
@@ -23,11 +20,12 @@ export const Select = forwardRef(function Select(
       <select
         id={id}
         ref={ref}
+        aria-invalid={error ? true : undefined}
         className={cn(
-          'w-full rounded-xl border bg-white/4 px-4 py-3 text-sm text-ink backdrop-blur-xl',
-          'shadow-[inset_0_1px_0_0_rgba(255,255,255,0.07)] transition-all duration-300',
-          'hover:bg-white/6 focus:outline-none',
-          error ? 'border-rose-400/50' : 'border-white/10 focus:border-indigo-400/60',
+          'h-9 w-full rounded-lg border bg-surface-raised px-3 text-sm text-ink',
+          'transition-colors',
+          'focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-brand-600',
+          error ? 'border-danger' : 'border-line-strong hover:border-ink-subtle',
           className,
         )}
         {...props}
@@ -35,7 +33,7 @@ export const Select = forwardRef(function Select(
         {children}
       </select>
 
-      {error && <p className="mt-2 text-sm text-rose-300">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-danger">{error}</p>}
     </div>
   );
 });

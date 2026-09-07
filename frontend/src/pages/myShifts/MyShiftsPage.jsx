@@ -4,9 +4,8 @@ import PlaceholderPage from '../placeholders/index.js';
 function MyShiftsPage() {
   return (
     <PlaceholderPage
-      title="My Shifts"
+      title="My shifts"
       description="Everything you personally are rostered on for."
-      milestone={5}
       capabilities={[
         'See your upcoming shifts in date order',
         'Check start and end times, location, and role',

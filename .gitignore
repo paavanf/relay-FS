@@ -1,12 +1,23 @@
 node_modules/
-dist/
-build/
+
+# Build output. Anchored to the workspace roots for the same reason as
+# coverage/ below: a bare "dist/" or "build/" matches a directory of that
+# name at ANY depth, so a future src/features/build/ would be excluded from
+# git silently - no error, no warning, just a missing directory in the commit.
+/dist/
+/build/
+backend/dist/
+backend/build/
+frontend/dist/
+frontend/build/
+
 # Test-coverage output only. Anchored to the workspace roots on purpose:
 # a bare "coverage/" also matches source directories such as
 # backend/src/services/coverage/, and excludes them silently.
 /coverage/
 backend/coverage/
 frontend/coverage/
+
 .env
 .env.local
 *.log

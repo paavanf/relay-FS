@@ -2,6 +2,7 @@
 // A team that rosters together. Every other record in Relay is scoped to one.
 
 import mongoose from 'mongoose';
+import { DEFAULT_ROSTER_RULES } from '../config/constants.js';
 
 const organisationSchema = new mongoose.Schema(
   {
@@ -9,6 +10,26 @@ const organisationSchema = new mongoose.Schema(
 
     // IANA timezone. Rosters are generated and displayed in this zone.
     timezone: { type: String, required: true, default: 'Asia/Kolkata' },
+
+    // The working-time rules every roster for this organisation is generated
+    // against. Defaults are deliberately conservative: the constraint engine
+    // skips a limit it cannot read, so leaving these unset would silently
+    // produce rosters with no rest protection at all.
+    rosterRules: {
+      minRestHours: { type: Number, min: 0, max: 48, default: DEFAULT_ROSTER_RULES.minRestHours },
+      maxConsecutiveDays: {
+        type: Number,
+        min: 1,
+        max: 14,
+        default: DEFAULT_ROSTER_RULES.maxConsecutiveDays,
+      },
+      maxHoursPerWeek: {
+        type: Number,
+        min: 1,
+        max: 168,
+        default: DEFAULT_ROSTER_RULES.maxHoursPerWeek,
+      },
+    },
   },
   { timestamps: true },
 );

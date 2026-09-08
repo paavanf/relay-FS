@@ -10,5 +10,12 @@
 
 export { evaluate, canAssign } from './constraints/evaluate.js';
 
+// Roster generation (Milestone 4). Pure and deterministic given a seed - the
+// caller injects the clock, so the engine still reads nothing of its own.
+export { generateRoster } from './scheduling/generateRoster.js';
+export { DEFAULT_WEIGHTS, resolveWeights } from './scheduling/weights.js';
+export { expandDemand } from './scheduling/expandDemand.js';
+export { scoreRoster } from './scheduling/objective.js';
+
 // Type definitions (JSDoc only - no runtime code).
 export * from './types.js';

@@ -31,7 +31,7 @@ import { isValidInstant, isValidZone, toMillis } from '../time.js';
  *   softScore: number
  * }}
  */
-export function evaluate(assignments, context) {
+export function evaluate(assignments, context, { skipSoft = false } = {}) {
   const safeContext = normaliseContext(context);
   const { usable, malformed } = partition(Array.isArray(assignments) ? assignments : []);
 
@@ -40,9 +40,15 @@ export function evaluate(assignments, context) {
     hardViolations.push(...check(usable, safeContext));
   }
 
+  // The generator asks this question hundreds of thousands of times and only
+  // ever reads hardViolations, so computing penalties it throws away is pure
+  // waste. skipSoft cannot change legality - no soft constraint contributes a
+  // hard violation.
   const softPenalties = [];
-  for (const score of SOFT_CONSTRAINTS) {
-    softPenalties.push(...score(usable, safeContext));
+  if (!skipSoft) {
+    for (const score of SOFT_CONSTRAINTS) {
+      softPenalties.push(...score(usable, safeContext));
+    }
   }
 
   const softScore = softPenalties.reduce((total, item) => total + item.penalty, 0);
@@ -75,7 +81,7 @@ export function canAssign(candidateAssignment, existingAssignments, context) {
       : { ...candidateAssignment, id: '__candidate__' };
 
   const existing = Array.isArray(existingAssignments) ? existingAssignments : [];
-  const { hardViolations } = evaluate([...existing, candidate], context);
+  const { hardViolations } = evaluate([...existing, candidate], context, { skipSoft: true });
 
   const violations = hardViolations.filter((v) => v.assignmentIds.includes(candidate.id));
   return { allowed: violations.length === 0, violations };

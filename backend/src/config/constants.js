@@ -37,6 +37,17 @@ export const REFRESH_COOKIE_NAME = 'relay_refresh';
 // The refresh cookie is only ever sent to the auth endpoints that need it.
 export const REFRESH_COOKIE_PATH = `${API_V1_PREFIX}/auth`;
 
+// The working-time rules a roster is generated against. Stored per
+// organisation; these are the fallback for one created before the field
+// existed. They matter more than they look: the constraint engine treats an
+// unset limit as "not configured" and sits that check out entirely, so an
+// organisation with no rules would get rosters with nobody's rest protected.
+export const DEFAULT_ROSTER_RULES = Object.freeze({
+  minRestHours: 11,
+  maxConsecutiveDays: 5,
+  maxHoursPerWeek: 48,
+});
+
 export const ROLES = Object.freeze({
   OWNER: 'owner',
   MANAGER: 'manager',
@@ -78,6 +89,7 @@ export const constants = Object.freeze({
   ACCESS_TOKEN_EXPIRY,
   REFRESH_TOKEN_EXPIRY_DAYS,
   INVITE_EXPIRY_HOURS,
+  DEFAULT_ROSTER_RULES,
   MAX_FAILED_LOGIN_ATTEMPTS,
   ACCOUNT_LOCKOUT_MINUTES,
   REFRESH_COOKIE_NAME,

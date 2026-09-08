@@ -9,6 +9,8 @@ import qualificationRoutes from './qualification.routes.js';
 import shiftTemplateRoutes from './shiftTemplate.routes.js';
 import coverageRoutes from './coverage.routes.js';
 import availabilityRoutes from './availability.routes.js';
+import rosterRoutes from './roster.routes.js';
+import jobRoutes from './job.routes.js';
 
 const router = Router();
 
@@ -23,5 +25,9 @@ router.use('/orgs/:orgId/qualifications', qualificationRoutes);
 router.use('/orgs/:orgId/shift-templates', shiftTemplateRoutes);
 router.use('/orgs/:orgId/coverage', coverageRoutes);
 router.use('/orgs/:orgId/availability', availabilityRoutes);
+
+// Roster generation, and the background jobs that run it.
+router.use('/orgs/:orgId/rosters', rosterRoutes);
+router.use('/orgs/:orgId/jobs', jobRoutes);
 
 export default router;

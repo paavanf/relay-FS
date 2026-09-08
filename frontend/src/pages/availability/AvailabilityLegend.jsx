@@ -18,7 +18,7 @@ export function AvailabilityLegend() {
               {meaning.status}
             </Badge>
           </dt>
-          <dd className="text-[13px] text-ink-muted">{meaning.text}</dd>
+          <dd className="text-body-sm text-content-secondary">{meaning.text}</dd>
         </div>
       ))}
     </dl>

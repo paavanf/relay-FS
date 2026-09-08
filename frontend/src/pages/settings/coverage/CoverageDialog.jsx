@@ -54,7 +54,7 @@ export function CoverageDialog({ templates, qualifications, onClose }) {
   return (
     <Dialog isOpen onClose={onClose}>
       <DialogPanel>
-        <div className="border-b border-line px-5 py-4">
+        <div className="border-b border-line-subtle px-5 py-4">
           <DialogTitle>Add coverage rule</DialogTitle>
           <DialogDescription>
             Setting a shift and day that already has a rule replaces it.
@@ -90,7 +90,7 @@ export function CoverageDialog({ templates, qualifications, onClose }) {
             <RequirementRows rows={rows} setRows={setRows} qualifications={qualifications} />
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-line px-5 py-3">
+          <div className="flex justify-end gap-2 border-t border-line-subtle px-5 py-3">
             <Button type="button" variant="secondary" onClick={onClose} disabled={mutation.isPending}>
               Cancel
             </Button>

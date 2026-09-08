@@ -36,7 +36,7 @@ export function ShiftTemplateTable({ templates, onEdit }) {
             <TableCell numeric>
               {template.startLocal}–{template.endLocal}
               {template.crossesMidnight && (
-                <span className="ml-2 text-xs text-ink-subtle">next day</span>
+                <span className="ml-2 text-xs text-content-tertiary">next day</span>
               )}
             </TableCell>
 
@@ -53,7 +53,7 @@ export function ShiftTemplateTable({ templates, onEdit }) {
                 <button
                   type="button"
                   onClick={() => onEdit(template)}
-                  className="rounded-md p-1.5 text-ink-subtle transition-colors hover:bg-surface-sunken hover:text-ink"
+                  className="rounded-sm p-1.5 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-content-primary"
                   aria-label={`Edit ${template.name}`}
                 >
                   <Pencil className="size-4" />

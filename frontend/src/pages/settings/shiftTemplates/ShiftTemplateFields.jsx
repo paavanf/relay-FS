@@ -38,7 +38,7 @@ export function ShiftTemplateFields({ form, setForm }) {
         />
       </div>
 
-      <p className="-mt-1 text-xs text-ink-subtle">
+      <p className="-mt-1 text-xs text-content-tertiary">
         If the end time is earlier than the start, the shift is treated as crossing midnight.
       </p>
 

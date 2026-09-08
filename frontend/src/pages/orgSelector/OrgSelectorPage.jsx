@@ -20,7 +20,7 @@ function OrgSelectorPage() {
   const hasOrgs = memberships.length > 0;
 
   return (
-    <div className="min-h-full bg-surface-page">
+    <div className="min-h-full bg-surface-base">
       <div className="mx-auto max-w-3xl px-6 py-8">
         <OrgSelectorHeader />
 

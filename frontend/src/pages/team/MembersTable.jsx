@@ -38,7 +38,7 @@ export function MembersTable({ members }) {
               </div>
             </TableCell>
 
-            <TableCell className="text-ink-muted">{member.email}</TableCell>
+            <TableCell className="text-content-secondary">{member.email}</TableCell>
 
             <TableCell>
               <Badge variant={roleVariant[member.role] ?? 'neutral'} className="capitalize">
@@ -46,7 +46,7 @@ export function MembersTable({ members }) {
               </Badge>
             </TableCell>
 
-            <TableCell className="text-ink-muted capitalize">
+            <TableCell className="text-content-secondary capitalize">
               {member.employmentType ?? '—'}
             </TableCell>
 

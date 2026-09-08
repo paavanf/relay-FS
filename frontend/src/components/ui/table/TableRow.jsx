@@ -3,7 +3,7 @@ import { cn } from '../../../lib/utils.js';
 
 export function TableRow({ children, className, ...props }) {
   return (
-    <tr className={cn('transition-colors hover:bg-surface-sunken', className)} {...props}>
+    <tr className={cn('transition-colors hover:bg-surface-hover', className)} {...props}>
       {children}
     </tr>
   );

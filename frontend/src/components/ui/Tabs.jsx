@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils.js';
 
 export function Tabs({ tabs, activeTab, onChange }) {
   return (
-    <div className="border-b border-line">
+    <div className="border-b border-line-subtle">
       <nav className="-mb-px flex gap-6" role="tablist">
         {tabs.map((tab) => {
           const isActive = tab.value === activeTab;
@@ -18,8 +18,8 @@ export function Tabs({ tabs, activeTab, onChange }) {
               className={cn(
                 'border-b-2 px-0.5 py-2.5 text-sm transition-colors',
                 isActive
-                  ? 'border-brand-600 font-medium text-ink'
-                  : 'border-transparent text-ink-muted hover:border-line-strong hover:text-ink',
+                  ? 'border-brand-solid font-medium text-content-primary'
+                  : 'border-transparent text-content-secondary hover:border-line-strong hover:text-content-primary',
               )}
             >
               {tab.label}

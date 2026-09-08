@@ -12,7 +12,7 @@ export const Select = forwardRef(function Select(
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-ink-muted">
+        <label htmlFor={id} className="mb-1.5 block text-label text-content-secondary">
           {label}
         </label>
       )}
@@ -22,10 +22,10 @@ export const Select = forwardRef(function Select(
         ref={ref}
         aria-invalid={error ? true : undefined}
         className={cn(
-          'h-9 w-full rounded-lg border bg-surface-raised px-3 text-sm text-ink',
+          'h-9 w-full rounded-md border bg-surface-raised px-3 text-sm text-content-primary',
           'transition-colors',
-          'focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-brand-600',
-          error ? 'border-danger' : 'border-line-strong hover:border-ink-subtle',
+          'focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-line-focus',
+          error ? 'border-danger-content' : 'border-line-strong hover:border-content-tertiary',
           className,
         )}
         {...props}
@@ -33,7 +33,7 @@ export const Select = forwardRef(function Select(
         {children}
       </select>
 
-      {error && <p className="mt-1.5 text-xs text-danger">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-danger-content">{error}</p>}
     </div>
   );
 });

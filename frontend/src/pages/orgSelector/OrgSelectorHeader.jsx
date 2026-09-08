@@ -21,15 +21,15 @@ export function OrgSelectorHeader() {
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line-subtle pb-4">
       <Logo size="md" />
 
       <div className="flex items-center gap-2">
         <div className="hidden items-center gap-2 sm:flex">
           <Avatar name={user?.name} size="sm" />
           <div className="min-w-0">
-            <p className="truncate text-[13px] font-medium text-ink">{user?.name}</p>
-            <p className="truncate text-xs text-ink-subtle">{user?.email}</p>
+            <p className="truncate text-body-sm font-medium text-content-primary">{user?.name}</p>
+            <p className="truncate text-xs text-content-tertiary">{user?.email}</p>
           </div>
         </div>
 

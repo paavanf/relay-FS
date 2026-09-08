@@ -10,10 +10,10 @@ export function SidebarLink({ to, icon: Icon, label, onNavigate }) {
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
-          'relative flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[13px] transition-colors',
+          'relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-body-sm transition-colors',
           isActive
-            ? 'bg-brand-50 font-medium text-brand-700'
-            : 'text-ink-muted hover:bg-surface-sunken hover:text-ink',
+            ? 'bg-brand-subtle font-medium text-brand-content'
+            : 'text-content-secondary hover:bg-surface-hover hover:text-content-primary',
         )
       }
     >
@@ -21,13 +21,13 @@ export function SidebarLink({ to, icon: Icon, label, onNavigate }) {
         <>
           {isActive && (
             <span
-              className="absolute top-1.5 bottom-1.5 -left-2 w-0.5 rounded-full bg-brand-600"
+              className="absolute top-1.5 bottom-1.5 -left-2 w-0.5 rounded-full bg-brand-solid"
               aria-hidden="true"
             />
           )}
 
           <Icon
-            className={cn('size-[18px] shrink-0', isActive ? 'text-brand-600' : 'text-ink-subtle')}
+            className={cn('size-[18px] shrink-0', isActive ? 'text-brand-solid' : 'text-content-tertiary')}
             aria-hidden="true"
           />
           {label}

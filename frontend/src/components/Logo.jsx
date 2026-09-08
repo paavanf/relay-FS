@@ -18,18 +18,18 @@ export function Logo({ size = 'md', showText = true, className }) {
           stroke="currentColor"
           strokeWidth="1.75"
           strokeLinejoin="round"
-          className="text-brand-600/35"
+          className="text-brand-solid/35"
         />
         {/* The three people in it */}
-        <circle cx="16" cy="6.5" r="3.2" className="fill-brand-600" />
-        <circle cx="25" cy="22" r="3.2" className="fill-brand-600" />
-        <circle cx="7" cy="22" r="3.2" className="fill-brand-600" />
+        <circle cx="16" cy="6.5" r="3.2" className="fill-brand-solid" />
+        <circle cx="25" cy="22" r="3.2" className="fill-brand-solid" />
+        <circle cx="7" cy="22" r="3.2" className="fill-brand-solid" />
       </svg>
 
       {showText && (
         <span
           className={cn(
-            'font-display font-semibold tracking-[-0.01em] text-ink',
+            'font-display font-semibold tracking-[-0.01em] text-content-primary',
             textSizes[size],
           )}
         >

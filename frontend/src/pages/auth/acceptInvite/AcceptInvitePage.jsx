@@ -12,12 +12,12 @@ function AcceptInvitePage() {
 
   return (
     <div>
-      <MailCheck className="size-5 text-brand-600" aria-hidden="true" />
+      <MailCheck className="size-5 text-brand-solid" aria-hidden="true" />
 
-      <h1 className="mt-3 text-2xl font-semibold tracking-[-0.01em] text-ink">
+      <h1 className="mt-3 text-h1 tracking-[-0.01em] text-content-primary">
         You have an invite
       </h1>
-      <p className="mt-1.5 text-sm text-ink-muted">
+      <p className="mt-1.5 text-sm text-content-secondary">
         We found your invite link, but joining an organisation is not wired up yet.
       </p>
 
@@ -26,12 +26,12 @@ function AcceptInvitePage() {
       </div>
 
       {/* Showing the token confirms the route param is being read correctly. */}
-      <p className="data mt-5 truncate rounded-lg border border-line bg-surface-sunken px-3 py-2 text-xs text-ink-subtle">
+      <p className="data mt-5 truncate rounded-md border border-line-subtle bg-surface-sunken px-3 py-2 text-xs text-content-tertiary">
         {token}
       </p>
 
-      <p className="mt-6 border-t border-line pt-3 text-[13px] text-ink-muted">
-        <Link to="/login" className="font-medium text-brand-600 hover:text-brand-700">
+      <p className="mt-6 border-t border-line-subtle pt-3 text-body-sm text-content-secondary">
+        <Link to="/login" className="font-medium text-brand-solid hover:text-brand-content">
           Back to sign in
         </Link>
       </p>

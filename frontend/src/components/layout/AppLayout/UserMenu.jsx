@@ -33,16 +33,16 @@ export function UserMenu() {
           {/* Invisible layer: a click anywhere closes the menu. */}
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} aria-hidden="true" />
 
-          <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border border-line bg-surface-raised p-1 shadow-overlay">
-            <div className="border-b border-line px-3 py-2">
-              <p className="truncate text-[13px] font-medium text-ink">{user?.name}</p>
-              <p className="truncate text-xs text-ink-subtle">{user?.email}</p>
+          <div className="absolute right-0 z-20 mt-2 w-56 rounded-lg border border-line-subtle bg-surface-overlay p-1 elevation-md">
+            <div className="border-b border-line-subtle px-3 py-2">
+              <p className="truncate text-body-sm font-medium text-content-primary">{user?.name}</p>
+              <p className="truncate text-xs text-content-tertiary">{user?.email}</p>
             </div>
 
             <button
               type="button"
               onClick={handleLogout}
-              className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
+              className="mt-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-body-sm text-content-secondary transition-colors hover:bg-surface-hover hover:text-content-primary"
             >
               <LogOut className="size-4" />
               Log out

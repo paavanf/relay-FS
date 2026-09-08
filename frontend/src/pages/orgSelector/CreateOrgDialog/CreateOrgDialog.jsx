@@ -62,7 +62,7 @@ function CreateOrgDialog({ isOpen, onClose }) {
   return (
     <Dialog isOpen={isOpen} onClose={onClose}>
       <DialogPanel>
-        <div className="border-b border-line px-5 py-4">
+        <div className="border-b border-line-subtle px-5 py-4">
           <DialogTitle>Create an organisation</DialogTitle>
           <DialogDescription>
             You will be its owner, and can invite the rest of your team afterwards.

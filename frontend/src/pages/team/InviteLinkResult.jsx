@@ -20,14 +20,14 @@ export function InviteLinkResult({ invite }) {
   }
 
   return (
-    <div className="rounded-lg border border-line bg-surface-sunken p-4">
-      <p className="text-[13px] font-medium text-ink">Invite created for {invite.email}</p>
-      <p className="mt-1 text-xs text-ink-muted">
+    <div className="rounded-md border border-line-subtle bg-surface-sunken p-4">
+      <p className="text-body-sm font-medium text-content-primary">Invite created for {invite.email}</p>
+      <p className="mt-1 text-xs text-content-secondary">
         Send them this link. It expires in 72 hours and can be used once.
       </p>
 
       <div className="mt-3 flex items-center gap-2">
-        <code className="data flex-1 truncate rounded-md border border-line bg-surface-raised px-2.5 py-1.5 text-xs text-ink-muted">
+        <code className="data flex-1 truncate rounded-sm border border-line-subtle bg-surface-raised px-2.5 py-1.5 text-xs text-content-secondary">
           {invite.inviteLink}
         </code>
 

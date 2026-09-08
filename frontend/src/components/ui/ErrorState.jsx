@@ -8,15 +8,15 @@ export function ErrorState({ title = 'Something went wrong', message, onRetry, c
   return (
     <div
       className={cn(
-        'flex flex-col items-center rounded-xl border border-danger/25 bg-danger-tint px-6 py-8 text-center',
+        'flex flex-col items-center rounded-lg border border-danger-border bg-danger-surface px-6 py-8 text-center',
         className,
       )}
     >
-      <AlertTriangle className="size-5 text-danger" aria-hidden="true" />
+      <AlertTriangle className="size-5 text-danger-content" aria-hidden="true" />
 
-      <h3 className="mt-3 text-sm font-semibold text-ink">{title}</h3>
+      <h3 className="mt-3 text-sm font-semibold text-content-primary">{title}</h3>
 
-      {message && <p className="mt-1 max-w-sm text-[13px] text-ink-muted">{message}</p>}
+      {message && <p className="mt-1 max-w-sm text-body-sm text-content-secondary">{message}</p>}
 
       {onRetry && (
         <Button variant="secondary" size="sm" className="mt-4" onClick={onRetry}>

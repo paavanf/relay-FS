@@ -6,8 +6,8 @@ export function DialogPanel({ children, className }) {
   return (
     <div
       className={cn(
-        'relative w-full max-w-md rounded-xl border border-line bg-surface-raised',
-        'shadow-overlay',
+        'relative w-full max-w-md rounded-xl border border-line-subtle bg-surface-overlay',
+        'elevation-lg',
         className,
       )}
     >

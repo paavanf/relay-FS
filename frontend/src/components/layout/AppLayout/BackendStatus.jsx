@@ -21,18 +21,18 @@ export function BackendStatus() {
   const health = data ?? degraded;
 
   let label = 'API offline';
-  let dot = 'bg-danger';
+  let dot = 'bg-danger-content';
 
   if (isPending) {
     label = 'Checking';
-    dot = 'bg-ink-subtle';
+    dot = 'bg-content-tertiary';
   } else if (health) {
     label = health.status === 'ok' ? 'Connected' : 'Database unavailable';
-    dot = health.status === 'ok' ? 'bg-success' : 'bg-warning';
+    dot = health.status === 'ok' ? 'bg-success-content' : 'bg-warning-content';
   }
 
   return (
-    <div className="flex items-center gap-2 px-0.5 py-1.5 text-xs text-ink-subtle">
+    <div className="flex items-center gap-2 px-0.5 py-1.5 text-xs text-content-tertiary">
       <span className={cn('size-1.5 shrink-0 rounded-full', dot)} aria-hidden="true" />
       <span className="truncate">{label}</span>
     </div>

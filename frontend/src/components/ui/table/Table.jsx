@@ -7,7 +7,7 @@ import { cn } from '../../../lib/utils.js';
 
 export function Table({ children, className }) {
   return (
-    <div className="w-full overflow-x-auto rounded-xl border border-line bg-surface-raised">
+    <div className="w-full overflow-x-auto rounded-lg border border-line-subtle bg-surface-raised">
       <table
         className={cn('w-full border-collapse text-left text-sm tabular-nums', className)}
       >

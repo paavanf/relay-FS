@@ -11,17 +11,17 @@ export function ResetLinkSent({ email, secondsLeft, isSending, onResend }) {
   const isCoolingDown = secondsLeft > 0;
 
   return (
-    <div className="rounded-xl border border-line bg-surface-raised p-5">
-      <MailCheck className="size-5 text-success" aria-hidden="true" />
+    <div className="rounded-lg border border-line-subtle bg-surface-raised p-5">
+      <MailCheck className="size-5 text-success-content" aria-hidden="true" />
 
-      <p className="mt-3 text-sm font-medium text-ink">Check your inbox</p>
+      <p className="mt-3 text-sm font-medium text-content-primary">Check your inbox</p>
 
-      <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">
-        If <span className="font-medium text-ink">{email}</span> is registered, we have sent a reset
+      <p className="mt-1 text-body-sm leading-relaxed text-content-secondary">
+        If <span className="font-medium text-content-primary">{email}</span> is registered, we have sent a reset
         link. It expires in an hour, and only the newest link works.
       </p>
 
-      <div className="mt-4 flex items-center gap-3 border-t border-line pt-4">
+      <div className="mt-4 flex items-center gap-3 border-t border-line-subtle pt-4">
         <Button
           variant="secondary"
           size="sm"
@@ -32,7 +32,7 @@ export function ResetLinkSent({ email, secondsLeft, isSending, onResend }) {
           {isCoolingDown ? `Resend in ${secondsLeft}s` : 'Resend email'}
         </Button>
 
-        <p className="text-[13px] text-ink-subtle">
+        <p className="text-body-sm text-content-tertiary">
           {isCoolingDown ? 'Give it a moment to arrive.' : "Didn't get it?"}
         </p>
       </div>

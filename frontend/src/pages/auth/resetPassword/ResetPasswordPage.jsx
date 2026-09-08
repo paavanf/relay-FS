@@ -11,18 +11,18 @@ function ResetPasswordPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-[-0.01em] text-ink">
+        <h1 className="text-h1 tracking-[-0.01em] text-content-primary">
           Choose a new password
         </h1>
-        <p className="mt-1.5 text-sm text-ink-muted">
+        <p className="mt-1.5 text-sm text-content-secondary">
           This link works once, and expires an hour after it was sent.
         </p>
       </div>
 
       <ResetPasswordForm token={token} />
 
-      <p className="mt-6 border-t border-line pt-3 text-[13px] text-ink-muted">
-        <Link to="/login" className="font-medium text-brand-600 hover:text-brand-700">
+      <p className="mt-6 border-t border-line-subtle pt-3 text-body-sm text-content-secondary">
+        <Link to="/login" className="font-medium text-brand-solid hover:text-brand-content">
           Back to sign in
         </Link>
       </p>

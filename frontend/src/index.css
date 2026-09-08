@@ -1,91 +1,200 @@
 /* Relay design system. See frontend/DESIGN.md for the reasoning.
-   Colours live as CSS variables so switching theme swaps values on
-   <html data-theme> and no component has to know which theme is active. */
+
+   Every colour is a role, not a hue: surface / content / line / brand, plus
+   the four semantic families. Components never name a colour, so switching
+   theme is only a matter of swapping values on <html data-theme>.
+
+   The dark set is designed rather than inverted. Its two rules:
+     - a raised surface is LIGHTER than the one behind it, never darker
+     - the brand is LIGHTER in dark mode than in light mode
+   Shadows barely register on a dark ground, so depth there comes from surface
+   lightness and borders instead. */
 
 @import 'tailwindcss';
 
 @theme {
-  /* Typefaces: Instrument Sans for headings, Inter for dense UI text,
-     Geist Mono for data cells only. */
+  /* ------------------------------------------------------------------ *
+   * Typefaces: Instrument Sans for headings, Inter for dense UI text,
+   * Geist Mono for data cells only.
+   * ------------------------------------------------------------------ */
   --font-display: 'Instrument Sans', 'Inter', system-ui, sans-serif;
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', monospace;
 
-  /* Surfaces */
-  --color-surface-page: #fbfbfa;
+  /* Type scale. Named for the job, so a heading cannot drift a step. */
+  --text-display: 2rem; /* 32px */
+  --text-display--line-height: 1.15;
+  --text-display--font-weight: 600;
+
+  --text-h1: 1.5rem; /* 24px */
+  --text-h1--line-height: 1.25;
+  --text-h1--font-weight: 600;
+
+  --text-h2: 1.1875rem; /* 19px */
+  --text-h2--line-height: 1.3;
+  --text-h2--font-weight: 600;
+
+  --text-h3: 1rem; /* 16px */
+  --text-h3--line-height: 1.4;
+  --text-h3--font-weight: 600;
+
+  --text-body: 0.875rem; /* 14px */
+  --text-body--line-height: 1.5;
+
+  --text-body-sm: 0.8125rem; /* 13px */
+  --text-body-sm--line-height: 1.5;
+
+  --text-label: 0.75rem; /* 12px */
+  --text-label--line-height: 1.4;
+  --text-label--font-weight: 500;
+
+  /* ------------------------------------------------------------------ *
+   * LIGHT THEME
+   * ------------------------------------------------------------------ */
+
+  /* Surfaces: a four-step ramp, warm rather than clinical. Raised is
+     lighter than the page, and carries a shadow to sit above it. */
+  --color-surface-base: #f7f7f5;
   --color-surface-raised: #ffffff;
-  --color-surface-sunken: #f4f4f2;
+  --color-surface-overlay: #ffffff;
+  --color-surface-sunken: #efefec;
+  --color-surface-hover: #f1f1ee;
+  --color-surface-active: #e8e8e4;
 
-  /* Borders */
-  --color-line: #e8e8e4;
-  --color-line-strong: #d4d4ce;
+  /* Content: a contrast ladder, not three shades of the same grey. */
+  --color-content-primary: #17170f;
+  --color-content-secondary: #55554c;
+  --color-content-tertiary: #6c6c61;
+  --color-content-inverse: #ffffff;
 
-  /* Text */
-  --color-ink: #1a1a17;
-  --color-ink-muted: #5c5c55;
-  --color-ink-subtle: #8a8a80;
+  /* Lines */
+  --color-line-subtle: #e5e5e0;
+  /* Raised from the 1.57:1 this started at: an input border is a UI
+     component boundary, which WCAG 1.4.11 puts at 3:1. */
+  --color-line-strong: #84847b;
+  --color-line-focus: #0f766e;
 
-  /* Brand - deep teal */
-  --color-brand-50: #ecfdf5;
-  --color-brand-600: #0f766e;
-  --color-brand-700: #0d5f58;
+  /* Brand: deep teal. */
+  --color-brand-subtle: #ecfdf5;
+  --color-brand-border: #99e6d5;
+  --color-brand-solid: #0f766e;
+  --color-brand-solid-hover: #0d5f58;
+  --color-brand-content: #0b4f49;
 
-  /* Semantic. Each of these means one specific thing; see DESIGN.md. */
-  --color-success: #15803d;
-  --color-warning: #b45309;
-  --color-danger: #b91c1c;
-  --color-info: #1d4ed8;
+  /* Semantic families. Three tokens each: -surface is only ever a
+     background, -content is only ever text or an icon. Pairing two tints
+     is what made the old "Log in instead" link invisible. */
+  --color-success-surface: #ecfdf3;
+  --color-success-border: #a6e9c1;
+  --color-success-content: #15803d;
 
-  /* Tints for semantic backgrounds */
-  --color-success-tint: #f0fdf4;
-  --color-warning-tint: #fffbeb;
-  --color-danger-tint: #fef2f2;
-  --color-info-tint: #eff6ff;
+  --color-warning-surface: #fef6e7;
+  --color-warning-border: #f5d08a;
+  --color-warning-content: #92400e;
 
-  /* Fairness ledger - a diverging scale */
+  --color-danger-surface: #fef0f0;
+  --color-danger-border: #f5b5b5;
+  --color-danger-content: #b91c1c;
+
+  --color-info-surface: #eff4ff;
+  --color-info-border: #b9ccf7;
+  --color-info-content: #1d4ed8;
+
+  /* Fairness ledger: a diverging scale, under - balanced - over. */
   --color-fair-under: #0369a1;
   --color-fair-balanced: #15803d;
   --color-fair-over: #b45309;
 
-  /* One shadow, used sparingly. Borders do most of the separating. */
-  --shadow-raised: 0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
-  --shadow-overlay: 0 12px 32px -8px rgb(0 0 0 / 0.16), 0 2px 8px rgb(0 0 0 / 0.06);
+  /* The veil behind a dialog. Deliberately its own token: it must darken
+     the page in BOTH themes, so it can never be the content colour. */
+  --color-scrim: #17170f;
+
+  /* ------------------------------------------------------------------ *
+   * Radius. Deliberate steps, not one value everywhere:
+   * chips 6 - controls 8 - cards 12 - dialogs 16.
+   * ------------------------------------------------------------------ */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 }
 
-/* Dark theme: warm near-blacks, not blue-greys. Same teal. Semantic colours
-   lifted just enough to hold contrast on a dark ground. */
+/* ---------------------------------------------------------------------- *
+ * Elevation. Deliberately NOT in @theme: Tailwind resolves --shadow-* at
+ * build time and inlines the value into .shadow-*, so a [data-theme]
+ * override of it would silently do nothing. These are plain custom
+ * properties read at runtime by the .elevation-* classes below, which is
+ * what lets the two themes carry genuinely different shadows.
+ *
+ * Light leans on shadow for depth. Dark barely can, so its shadows are
+ * only there to seat an edge - the surface ramp does the real work.
+ * ---------------------------------------------------------------------- */
+:root {
+  --elevation-sm: 0 1px 2px rgb(23 23 15 / 0.06);
+  --elevation-md: 0 2px 8px rgb(23 23 15 / 0.08), 0 1px 2px rgb(23 23 15 / 0.04);
+  --elevation-lg: 0 8px 24px rgb(23 23 15 / 0.12), 0 2px 6px rgb(23 23 15 / 0.06);
+}
+
+/* ---------------------------------------------------------------------- *
+ * DARK THEME - a designed ramp, not an inversion.
+ * ---------------------------------------------------------------------- */
 :root[data-theme='dark'] {
-  --color-surface-page: #161614;
-  --color-surface-raised: #1e1e1b;
-  --color-surface-sunken: #121210;
+  /* Raised is LIGHTER than base, and an overlay lighter still, so a dialog
+     reads as floating above a card that floats above the page. */
+  --color-surface-base: #141413;
+  --color-surface-raised: #1c1c1a;
+  --color-surface-overlay: #232320;
+  --color-surface-sunken: #101010;
+  --color-surface-hover: #242422;
+  --color-surface-active: #2c2c29;
 
-  --color-line: #2e2e2a;
-  --color-line-strong: #3d3d38;
+  --color-content-primary: #f2f2ee;
+  --color-content-secondary: #a8a89e;
+  --color-content-tertiary: #8c8c83;
+  /* Text that sits on a solid brand or semantic fill. Those fills are
+     light in dark mode, so what goes on them is dark. */
+  --color-content-inverse: #141413;
 
-  --color-ink: #f2f2ee;
-  --color-ink-muted: #a3a39a;
-  --color-ink-subtle: #7a7a71;
+  --color-line-subtle: #2a2a27;
+  --color-line-strong: #76766d;
+  --color-line-focus: #2dd4bf;
 
-  --color-brand-50: #0c2f2b;
-  --color-brand-600: #2dd4bf;
-  --color-brand-700: #5eead4;
+  /* Lighter and slightly desaturated: the light-mode teal is far too dark
+     to read against a near-black page. */
+  --color-brand-subtle: #0c2925;
+  --color-brand-border: #1b5a52;
+  --color-brand-solid: #14b8a6;
+  --color-brand-solid-hover: #2dd4bf;
+  --color-brand-content: #5eead4;
 
-  --color-success: #4ade80;
-  --color-warning: #fbbf24;
-  --color-danger: #f87171;
-  --color-info: #60a5fa;
+  --color-success-surface: #0d2818;
+  --color-success-border: #1f5637;
+  --color-success-content: #4ade80;
 
-  --color-success-tint: #0d2818;
-  --color-warning-tint: #2a1f08;
-  --color-danger-tint: #2a1414;
-  --color-info-tint: #10203a;
+  --color-warning-surface: #2a1f0a;
+  --color-warning-border: #5c4415;
+  --color-warning-content: #fbbf24;
+
+  --color-danger-surface: #2a1213;
+  --color-danger-border: #5c2427;
+  --color-danger-content: #f87171;
+
+  --color-info-surface: #111c33;
+  --color-info-border: #223a66;
+  --color-info-content: #7ca5fb;
 
   --color-fair-under: #38bdf8;
   --color-fair-balanced: #4ade80;
   --color-fair-over: #fbbf24;
 
-  --shadow-raised: 0 1px 3px rgb(0 0 0 / 0.4), 0 1px 2px rgb(0 0 0 / 0.3);
-  --shadow-overlay: 0 12px 32px -8px rgb(0 0 0 / 0.6), 0 2px 8px rgb(0 0 0 / 0.4);
+  /* Near-black, so the veil still dims rather than washes out. */
+  --color-scrim: #000000;
+
+  /* Much subtler: a big soft shadow on a dark ground reads as mud. The
+     surface ramp above is what actually conveys height here. */
+  --elevation-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --elevation-md: 0 2px 8px rgb(0 0 0 / 0.5);
+  --elevation-lg: 0 8px 24px rgb(0 0 0 / 0.6);
 }
 
 @layer base {
@@ -104,10 +213,10 @@
   }
 
   body {
-    background-color: var(--color-surface-page);
-    color: var(--color-ink);
+    background-color: var(--color-surface-base);
+    color: var(--color-content-primary);
     font-family: var(--font-sans);
-    font-size: 14px;
+    font-size: var(--text-body);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
@@ -118,26 +227,29 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    color: var(--color-ink);
+    color: var(--color-content-primary);
   }
 
-  /* Figures line up down a column - the thing that makes a roster scannable. */
+  /* Figures line up down a column - the thing that makes a roster scannable.
+     Applied to every table cell, not only the ones marked up as data. */
   table,
+  th,
+  td,
   time,
   [data-numeric] {
     font-variant-numeric: tabular-nums;
   }
 
-  /* One focus treatment everywhere, always visible. */
+  /* One focus treatment everywhere, always visible, in both themes. */
   :focus-visible {
-    outline: 2px solid var(--color-brand-600);
+    outline: 2px solid var(--color-line-focus);
     outline-offset: 2px;
     border-radius: 4px;
   }
 
   ::selection {
-    background: var(--color-brand-50);
-    color: var(--color-brand-700);
+    background: var(--color-brand-subtle);
+    color: var(--color-brand-content);
   }
 
   ::-webkit-scrollbar {
@@ -156,6 +268,18 @@
 }
 
 @layer components {
+  /* The three elevation steps. Cards get sm, popovers and toasts md, and
+     only a dialog gets lg. */
+  .elevation-sm {
+    box-shadow: var(--elevation-sm);
+  }
+  .elevation-md {
+    box-shadow: var(--elevation-md);
+  }
+  .elevation-lg {
+    box-shadow: var(--elevation-lg);
+  }
+
   /* Data cells: mono, tabular, slightly tightened. Never used for labels. */
   .data {
     font-family: var(--font-mono);
@@ -163,11 +287,18 @@
     letter-spacing: -0.01em;
   }
 
-  /* A quiet moving stripe for loading placeholders. */
+  /* A quiet moving stripe for loading placeholders. The sweep is white at
+     low alpha in dark mode, because a black sweep on a dark surface is
+     invisible. */
   .skeleton {
     position: relative;
     overflow: hidden;
     background: var(--color-surface-sunken);
+    --skeleton-sweep: rgb(0 0 0 / 0.04);
+  }
+
+  :root[data-theme='dark'] .skeleton {
+    --skeleton-sweep: rgb(255 255 255 / 0.05);
   }
 
   .skeleton::after {
@@ -175,7 +306,7 @@
     position: absolute;
     inset: 0;
     transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, rgb(0 0 0 / 0.04), transparent);
+    background: linear-gradient(90deg, transparent, var(--skeleton-sweep), transparent);
     animation: skeleton-sweep 1.6s infinite;
   }
 }

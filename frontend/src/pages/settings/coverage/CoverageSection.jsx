@@ -58,7 +58,7 @@ export function CoverageSection() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <p className="text-[13px] text-ink-muted">
+        <p className="text-body-sm text-content-secondary">
           How many people each shift needs, per day of the week.
         </p>
 

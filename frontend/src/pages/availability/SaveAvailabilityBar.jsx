@@ -35,7 +35,7 @@ export function SaveAvailabilityBar({ statusByDay, isDirty, onSaved }) {
 
   return (
     <div className="flex items-center justify-end gap-3">
-      {isDirty && <p className="text-[13px] text-ink-subtle">You have unsaved changes.</p>}
+      {isDirty && <p className="text-body-sm text-content-tertiary">You have unsaved changes.</p>}
 
       <Button onClick={() => mutation.mutate()} disabled={!isDirty} isLoading={mutation.isPending}>
         Save availability

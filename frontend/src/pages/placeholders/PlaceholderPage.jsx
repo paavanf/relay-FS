@@ -20,20 +20,20 @@ function PlaceholderPage({ title, description, capabilities = [] }) {
         <CardContent className="py-6">
           <Badge variant="warning">In development</Badge>
 
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-ink-muted">
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-content-secondary">
             The layout, routing and permissions around this page already work. The feature itself
             is still being built.
           </p>
 
           {capabilities.length > 0 && (
-            <div className="mt-6 border-t border-line pt-5">
-              <h2 className="text-[13px] font-medium text-ink">What it will do</h2>
+            <div className="mt-6 border-t border-line-subtle pt-5">
+              <h2 className="text-body-sm font-medium text-content-primary">What it will do</h2>
 
               <ul className="mt-3 space-y-2">
                 {capabilities.map((capability) => (
-                  <li key={capability} className="flex gap-2.5 text-[13px] text-ink-muted">
+                  <li key={capability} className="flex gap-2.5 text-body-sm text-content-secondary">
                     <span
-                      className="mt-[7px] size-1 shrink-0 rounded-full bg-ink-subtle"
+                      className="mt-[7px] size-1 shrink-0 rounded-full bg-content-tertiary"
                       aria-hidden="true"
                     />
                     {capability}

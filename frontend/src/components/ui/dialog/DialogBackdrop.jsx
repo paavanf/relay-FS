@@ -3,7 +3,7 @@
 export function DialogBackdrop({ onClose }) {
   return (
     <div
-      className="fixed inset-0 bg-ink/20 backdrop-blur-[2px]"
+      className="fixed inset-0 bg-scrim/40 backdrop-blur-[2px]"
       onClick={onClose}
       aria-hidden="true"
     />

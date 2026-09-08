@@ -12,9 +12,9 @@ function AppLayout() {
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   return (
-    <div className="flex h-full bg-surface-page">
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-line bg-surface-raised lg:flex">
-        <div className="flex h-14 shrink-0 items-center border-b border-line px-4">
+    <div className="flex h-full bg-surface-base">
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-line-subtle bg-surface-raised lg:flex">
+        <div className="flex h-14 shrink-0 items-center border-b border-line-subtle px-4">
           <Logo size="sm" />
         </div>
         <Sidebar />

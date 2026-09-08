@@ -39,7 +39,7 @@ export function Sidebar({ onNavigate }) {
 
         {isManager && (
           <>
-            <hr className="my-2.5 border-line" />
+            <hr className="my-2.5 border-line-subtle" />
             {managerLinks.map((link) => (
               <SidebarLink
                 key={link.to}

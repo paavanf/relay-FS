@@ -20,7 +20,7 @@ export function RequirementRows({ rows, setRows, qualifications }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-ink-muted">People needed</p>
+      <p className="text-label text-content-secondary">People needed</p>
 
       {rows.map((row, index) => (
         <div key={index} className="flex items-end gap-2">
@@ -54,7 +54,7 @@ export function RequirementRows({ rows, setRows, qualifications }) {
             type="button"
             onClick={() => removeRow(index)}
             disabled={rows.length === 1}
-            className="mb-0.5 rounded-md p-2 text-ink-subtle transition-colors hover:bg-surface-sunken hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
+            className="mb-0.5 rounded-sm p-2 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-danger-content disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Remove this requirement"
           >
             <X className="size-4" />

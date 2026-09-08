@@ -54,7 +54,7 @@ export function InviteMemberDialog({ onClose }) {
   return (
     <Dialog isOpen onClose={onClose}>
       <DialogPanel>
-        <div className="border-b border-line px-5 py-4">
+        <div className="border-b border-line-subtle px-5 py-4">
           <DialogTitle>Invite a member</DialogTitle>
           <DialogDescription>
             They will join once they open the link and sign in with this email.
@@ -90,7 +90,7 @@ export function InviteMemberDialog({ onClose }) {
               />
             </div>
 
-            <div className="flex justify-end gap-2 border-t border-line px-5 py-3">
+            <div className="flex justify-end gap-2 border-t border-line-subtle px-5 py-3">
               <Button type="button" variant="secondary" onClick={onClose} disabled={mutation.isPending}>
                 Cancel
               </Button>
@@ -102,7 +102,7 @@ export function InviteMemberDialog({ onClose }) {
         )}
 
         {invite && (
-          <div className="flex justify-end border-t border-line px-5 py-3">
+          <div className="flex justify-end border-t border-line-subtle px-5 py-3">
             <Button onClick={onClose}>Done</Button>
           </div>
         )}

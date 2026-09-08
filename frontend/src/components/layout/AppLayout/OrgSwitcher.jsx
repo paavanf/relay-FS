@@ -17,13 +17,13 @@ export function OrgSwitcher() {
   }
 
   return (
-    <div className="relative flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-surface-sunken">
+    <div className="relative flex items-center gap-2 rounded-md px-2 py-1 hover:bg-surface-hover">
       <div className="min-w-0">
-        <p className="truncate text-[13px] font-medium text-ink">{orgName}</p>
-        <p className="truncate text-xs text-ink-subtle capitalize">{role}</p>
+        <p className="truncate text-body-sm font-medium text-content-primary">{orgName}</p>
+        <p className="truncate text-xs text-content-tertiary capitalize">{role}</p>
       </div>
 
-      <ChevronsUpDown className="size-3.5 shrink-0 text-ink-subtle" aria-hidden="true" />
+      <ChevronsUpDown className="size-3.5 shrink-0 text-content-tertiary" aria-hidden="true" />
 
       {/* The real control sits invisibly on top so the native picker opens. */}
       <select

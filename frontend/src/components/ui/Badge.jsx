@@ -5,12 +5,12 @@
 import { cn } from '../../lib/utils.js';
 
 const variantStyles = {
-  neutral: 'bg-surface-sunken text-ink-muted border-line',
-  brand: 'bg-brand-50 text-brand-700 border-brand-600/20',
-  success: 'bg-success-tint text-success border-success/20',
-  warning: 'bg-warning-tint text-warning border-warning/20',
-  danger: 'bg-danger-tint text-danger border-danger/20',
-  info: 'bg-info-tint text-info border-info/20',
+  neutral: 'bg-surface-sunken text-content-secondary border-line-subtle',
+  brand: 'bg-brand-subtle text-brand-content border-brand-border',
+  success: 'bg-success-surface text-success-content border-success-border',
+  warning: 'bg-warning-surface text-warning-content border-warning-border',
+  danger: 'bg-danger-surface text-danger-content border-danger-border',
+  info: 'bg-info-surface text-info-content border-info-border',
 };
 
 const sizeStyles = {
@@ -22,7 +22,7 @@ export function Badge({ children, variant = 'neutral', size = 'md', className })
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-md border font-medium',
+        'inline-flex items-center gap-1 rounded-sm border font-medium',
         variantStyles[variant],
         sizeStyles[size],
         className,

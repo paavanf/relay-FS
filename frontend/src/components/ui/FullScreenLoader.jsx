@@ -3,10 +3,10 @@ import { Spinner } from './Spinner.jsx';
 
 export function FullScreenLoader({ label = 'Loading' }) {
   return (
-    <div className="flex h-full items-center justify-center bg-surface-page p-12">
+    <div className="flex h-full items-center justify-center bg-surface-base p-12">
       <div className="flex flex-col items-center gap-3">
-        <Spinner size="lg" className="text-brand-600" />
-        <p className="text-[13px] text-ink-muted">{label}</p>
+        <Spinner size="lg" className="text-brand-solid" />
+        <p className="text-body-sm text-content-secondary">{label}</p>
       </div>
     </div>
   );

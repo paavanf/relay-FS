@@ -11,8 +11,8 @@ export function QualificationPicker({ qualifications, selected, onChange }) {
   if (qualifications.length === 0) {
     return (
       <div>
-        <p className="mb-1.5 text-xs font-medium text-ink-muted">Qualifications</p>
-        <p className="text-[13px] text-ink-subtle">
+        <p className="mb-1.5 text-label text-content-secondary">Qualifications</p>
+        <p className="text-body-sm text-content-tertiary">
           None set up yet. You can add them in Settings and assign them later.
         </p>
       </div>
@@ -21,9 +21,9 @@ export function QualificationPicker({ qualifications, selected, onChange }) {
 
   return (
     <div>
-      <p className="mb-2 text-xs font-medium text-ink-muted">Qualifications</p>
+      <p className="mb-2 text-label text-content-secondary">Qualifications</p>
 
-      <div className="space-y-2 rounded-lg border border-line p-3">
+      <div className="space-y-2 rounded-md border border-line-subtle p-3">
         {qualifications.map((qualification) => (
           <Checkbox
             key={qualification._id}

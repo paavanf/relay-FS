@@ -50,7 +50,7 @@ export function QualificationDialog({ qualification, onClose }) {
   return (
     <Dialog isOpen onClose={onClose}>
       <DialogPanel>
-        <div className="border-b border-line px-5 py-4">
+        <div className="border-b border-line-subtle px-5 py-4">
           <DialogTitle>{isEdit ? 'Edit qualification' : 'Add qualification'}</DialogTitle>
           <DialogDescription>
             The code is shown on the roster grid, where space is tight.
@@ -89,7 +89,7 @@ export function QualificationDialog({ qualification, onClose }) {
             />
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-line px-5 py-3">
+          <div className="flex justify-end gap-2 border-t border-line-subtle px-5 py-3">
             <Button type="button" variant="secondary" onClick={onClose} disabled={mutation.isPending}>
               Cancel
             </Button>

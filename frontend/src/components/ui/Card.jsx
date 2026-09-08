@@ -7,7 +7,7 @@ export function Card({ children, className }) {
   return (
     <div
       className={cn(
-        'rounded-xl border border-line bg-surface-raised shadow-raised',
+        'rounded-lg border border-line-subtle bg-surface-raised elevation-sm',
         className,
       )}
     >
@@ -18,18 +18,18 @@ export function Card({ children, className }) {
 
 export function CardHeader({ children, className }) {
   return (
-    <div className={cn('space-y-1 border-b border-line px-5 py-4', className)}>{children}</div>
+    <div className={cn('space-y-1 border-b border-line-subtle px-5 py-4', className)}>{children}</div>
   );
 }
 
 export function CardTitle({ children, className }) {
   return (
-    <h3 className={cn('text-base font-semibold text-ink', className)}>{children}</h3>
+    <h3 className={cn('text-h3 text-content-primary', className)}>{children}</h3>
   );
 }
 
 export function CardDescription({ children, className }) {
-  return <p className={cn('text-[13px] text-ink-muted', className)}>{children}</p>;
+  return <p className={cn('text-body-sm text-content-secondary', className)}>{children}</p>;
 }
 
 export function CardContent({ children, className }) {
@@ -38,7 +38,7 @@ export function CardContent({ children, className }) {
 
 export function CardFooter({ children, className }) {
   return (
-    <div className={cn('flex items-center gap-3 border-t border-line px-5 py-3', className)}>
+    <div className={cn('flex items-center gap-3 border-t border-line-subtle px-5 py-3', className)}>
       {children}
     </div>
   );

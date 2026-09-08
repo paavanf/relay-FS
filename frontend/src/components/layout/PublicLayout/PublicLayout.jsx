@@ -12,7 +12,7 @@ import { ThemeToggle } from '../../ui/ThemeToggle.jsx';
 
 function PublicLayout() {
   return (
-    <div className="flex min-h-full bg-surface-page">
+    <div className="flex min-h-full bg-surface-base">
       <div className="flex w-full flex-col lg:w-1/2">
         <div className="flex items-center justify-between px-6 py-5 lg:px-10">
           <Logo size="md" />
@@ -27,35 +27,35 @@ function PublicLayout() {
       </div>
 
       {/* Brand panel. Hidden on small screens, where the form is the point. */}
-      <aside className="hidden w-1/2 flex-col justify-center border-l border-line bg-surface-sunken px-12 lg:flex">
+      <aside className="hidden w-1/2 flex-col justify-center border-l border-line-subtle bg-surface-sunken px-12 lg:flex">
         <div className="max-w-md">
           <SwapCycleGraphic />
 
-          <h2 className="mt-10 text-xl font-semibold tracking-[-0.01em] text-ink">
+          <h2 className="mt-10 text-h2 tracking-[-0.01em] text-content-primary">
             Rosters that share the load
           </h2>
 
-          <p className="mt-2.5 text-sm leading-relaxed text-ink-muted">
+          <p className="mt-2.5 text-sm leading-relaxed text-content-secondary">
             Relay builds coverage that respects every constraint, then finds the swaps that keep it
             fair — including the three-way trades no one would spot by hand.
           </p>
 
-          <dl className="mt-8 space-y-3 border-t border-line pt-6">
+          <dl className="mt-8 space-y-3 border-t border-line-subtle pt-6">
             <div className="flex gap-3">
-              <dt className="w-28 shrink-0 text-[13px] text-ink-subtle">Coverage</dt>
-              <dd className="text-[13px] text-ink-muted">
+              <dt className="w-28 shrink-0 text-body-sm text-content-tertiary">Coverage</dt>
+              <dd className="text-body-sm text-content-secondary">
                 Every shift staffed by someone qualified to work it.
               </dd>
             </div>
             <div className="flex gap-3">
-              <dt className="w-28 shrink-0 text-[13px] text-ink-subtle">Fairness</dt>
-              <dd className="text-[13px] text-ink-muted">
+              <dt className="w-28 shrink-0 text-body-sm text-content-tertiary">Fairness</dt>
+              <dd className="text-body-sm text-content-secondary">
                 Nights and weekends tracked over time, not per week.
               </dd>
             </div>
             <div className="flex gap-3">
-              <dt className="w-28 shrink-0 text-[13px] text-ink-subtle">Swaps</dt>
-              <dd className="text-[13px] text-ink-muted">
+              <dt className="w-28 shrink-0 text-body-sm text-content-tertiary">Swaps</dt>
+              <dd className="text-body-sm text-content-secondary">
                 Chains that clear without breaking a single rule.
               </dd>
             </div>

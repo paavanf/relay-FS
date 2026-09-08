@@ -24,16 +24,16 @@ export function CoverageMatrix({ coverage, templates, qualifications }) {
           <Card key={template._id}>
             <CardHeader>
               <CardTitle>{template.name}</CardTitle>
-              <p className="data text-[13px] text-ink-muted">
+              <p className="data text-body-sm text-content-secondary">
                 {template.startLocal}–{template.endLocal}
               </p>
             </CardHeader>
 
-            <ul className="divide-y divide-line">
+            <ul className="divide-y divide-line-subtle">
               {rules.map((rule) => (
                 <li key={rule._id} className="flex items-center justify-between gap-3 px-5 py-3">
                   <div className="min-w-0">
-                    <p className="text-[13px] font-medium text-ink">{dayName(rule.dayOfWeek)}</p>
+                    <p className="text-body-sm font-medium text-content-primary">{dayName(rule.dayOfWeek)}</p>
 
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {rule.requirements.map((requirement) => (
@@ -55,7 +55,7 @@ export function CoverageMatrix({ coverage, templates, qualifications }) {
 
       {/* A rule can outlive the template it points at if that was retired. */}
       {coverage.some((c) => !templateById[c.shiftTemplateId]) && (
-        <p className="text-[13px] text-ink-subtle">
+        <p className="text-body-sm text-content-tertiary">
           Some rules refer to a retired shift template and are no longer applied.
         </p>
       )}

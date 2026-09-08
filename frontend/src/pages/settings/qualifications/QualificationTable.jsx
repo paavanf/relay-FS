@@ -32,14 +32,14 @@ export function QualificationTable({ qualifications, onEdit }) {
               <Badge variant="brand">{qualification.code}</Badge>
             </TableCell>
 
-            <TableCell className="text-ink-muted">{qualification.description || '—'}</TableCell>
+            <TableCell className="text-content-secondary">{qualification.description || '—'}</TableCell>
 
             <TableCell>
               <div className="flex items-center justify-end gap-1">
                 <button
                   type="button"
                   onClick={() => onEdit(qualification)}
-                  className="rounded-md p-1.5 text-ink-subtle transition-colors hover:bg-surface-sunken hover:text-ink"
+                  className="rounded-sm p-1.5 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-content-primary"
                   aria-label={`Edit ${qualification.name}`}
                 >
                   <Pencil className="size-4" />

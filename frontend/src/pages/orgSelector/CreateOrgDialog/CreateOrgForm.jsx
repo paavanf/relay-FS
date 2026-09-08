@@ -33,13 +33,13 @@ export function CreateOrgForm({
         <TimezoneSelect value={timezone} onChange={setTimezone} disabled={loading} />
 
         {error && (
-          <p className="rounded-lg border border-danger/25 bg-danger-tint px-3 py-2 text-[13px] text-danger">
+          <p className="rounded-md border border-danger-border bg-danger-surface px-3 py-2 text-body-sm text-danger-content">
             {error}
           </p>
         )}
       </div>
 
-      <div className="flex justify-end gap-2 border-t border-line px-5 py-3">
+      <div className="flex justify-end gap-2 border-t border-line-subtle px-5 py-3">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={loading}>
           Cancel
         </Button>

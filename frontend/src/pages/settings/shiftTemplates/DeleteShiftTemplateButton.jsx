@@ -33,7 +33,7 @@ export function DeleteShiftTemplateButton({ template }) {
       <button
         type="button"
         onClick={() => setIsConfirming(true)}
-        className="rounded-md p-1.5 text-ink-subtle transition-colors hover:bg-surface-sunken hover:text-danger"
+        className="rounded-sm p-1.5 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-danger-content"
         aria-label={`Remove ${template.name}`}
       >
         <Trash2 className="size-4" />
@@ -49,7 +49,7 @@ export function DeleteShiftTemplateButton({ template }) {
             </DialogDescription>
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-line px-5 py-3">
+          <div className="flex justify-end gap-2 border-t border-line-subtle px-5 py-3">
             <Button variant="secondary" onClick={() => setIsConfirming(false)}>
               Cancel
             </Button>

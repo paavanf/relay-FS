@@ -13,7 +13,7 @@ export function Avatar({ name, src, size = 'md', className }) {
       <img
         src={src}
         alt={name}
-        className={cn('rounded-full border border-line object-cover', sizeStyles[size], className)}
+        className={cn('rounded-full border border-line-subtle object-cover', sizeStyles[size], className)}
       />
     );
   }
@@ -22,7 +22,7 @@ export function Avatar({ name, src, size = 'md', className }) {
     <div
       className={cn(
         'flex shrink-0 items-center justify-center rounded-full',
-        'bg-brand-50 font-semibold text-brand-700',
+        'bg-brand-subtle font-semibold text-brand-content',
         sizeStyles[size],
         className,
       )}

@@ -24,7 +24,7 @@ export function ShiftTemplatesSection() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <p className="text-[13px] text-ink-muted">
+        <p className="text-body-sm text-content-secondary">
           Reusable shift patterns, such as Night 23:00 to 07:00.
         </p>
 

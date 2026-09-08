@@ -51,7 +51,7 @@ export function SwapCycleGraphic({ className }) {
     <svg
       viewBox="0 0 220 200"
       fill="none"
-      className={className ?? 'w-full max-w-[260px] text-brand-600'}
+      className={className ?? 'w-full max-w-[260px] text-brand-solid'}
       role="img"
       aria-label="Three shifts covering each other in a cycle: Monday to Wednesday to Friday and back"
     >
@@ -89,7 +89,7 @@ export function SwapCycleGraphic({ className }) {
 
       {nodes.map((node) => (
         <g key={node.label}>
-          <circle cx={node.cx} cy={node.cy} r={NODE_RADIUS} className="fill-brand-50" />
+          <circle cx={node.cx} cy={node.cy} r={NODE_RADIUS} className="fill-brand-subtle" />
           <circle
             cx={node.cx}
             cy={node.cy}
@@ -102,7 +102,7 @@ export function SwapCycleGraphic({ className }) {
             x={node.cx}
             y={node.cy + 4}
             textAnchor="middle"
-            className="fill-ink-muted text-[11px] font-medium"
+            className="fill-content-secondary text-[11px] font-medium"
           >
             {node.label}
           </text>

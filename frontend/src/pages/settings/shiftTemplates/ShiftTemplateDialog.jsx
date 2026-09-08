@@ -53,7 +53,7 @@ export function ShiftTemplateDialog({ template, onClose }) {
   return (
     <Dialog isOpen onClose={onClose}>
       <DialogPanel>
-        <div className="border-b border-line px-5 py-4">
+        <div className="border-b border-line-subtle px-5 py-4">
           <DialogTitle>{isEdit ? 'Edit shift template' : 'Add shift template'}</DialogTitle>
           <DialogDescription>Times are local to this organisation.</DialogDescription>
         </div>
@@ -61,7 +61,7 @@ export function ShiftTemplateDialog({ template, onClose }) {
         <form onSubmit={handleSubmit}>
           <ShiftTemplateFields form={form} setForm={setForm} />
 
-          <div className="flex justify-end gap-2 border-t border-line px-5 py-3">
+          <div className="flex justify-end gap-2 border-t border-line-subtle px-5 py-3">
             <Button type="button" variant="secondary" onClick={onClose} disabled={mutation.isPending}>
               Cancel
             </Button>

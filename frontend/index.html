@@ -8,7 +8,12 @@
       content="Relay - fair rostering and multi-party shift swaps for teams that run on coverage."
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="theme-color" content="#fbfbfa" />
+
+    <!-- Tells the browser we support both, so native controls, form widgets
+         and scrollbars are drawn to match instead of always light. -->
+    <meta name="color-scheme" content="light dark" />
+    <!-- Kept in sync with the resolved theme by themeStorage.applyTheme. -->
+    <meta name="theme-color" content="#f7f7f5" />
 
     <!-- Instrument Sans for headings, Inter for UI text, Geist Mono for data. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,19 +23,28 @@
       rel="stylesheet"
     />
 
-    <!-- Apply the saved theme before first paint, so a dark-theme user never
-         sees a flash of the light page. -->
+    <!-- Apply the theme before first paint, so a dark-theme user never sees a
+         flash of the light page. This runs before React mounts and must stay
+         in step with src/features/theme/themeStorage.js - same storage key,
+         same three states, same fallback. -->
     <script>
       (function () {
+        var theme = 'light';
         try {
           var saved = localStorage.getItem('relay-theme');
-          var theme =
-            saved ||
-            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-          document.documentElement.dataset.theme = theme;
+          // Anything other than an explicit choice means "follow the OS",
+          // which is also what a first-time visitor gets.
+          if (saved === 'light' || saved === 'dark') {
+            theme = saved;
+          } else {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
         } catch (e) {
-          document.documentElement.dataset.theme = 'light';
+          // Storage unavailable: fall back to light rather than failing.
         }
+        document.documentElement.dataset.theme = theme;
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme === 'dark' ? '#141413' : '#f7f7f5');
       })();
     </script>
 

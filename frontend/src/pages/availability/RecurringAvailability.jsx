@@ -7,10 +7,10 @@ import { DAY_NAMES } from '../settings/coverage/days.js';
 
 export function RecurringAvailability({ statusByDay, onChange }) {
   return (
-    <div className="divide-y divide-line">
+    <div className="divide-y divide-line-subtle">
       {DAY_NAMES.map((name, dayOfWeek) => (
         <div key={name} className="flex items-center justify-between gap-4 py-2.5">
-          <span className="text-[13px] font-medium text-ink">{name}</span>
+          <span className="text-body-sm font-medium text-content-primary">{name}</span>
 
           <div className="w-44">
             <Select

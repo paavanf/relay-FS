@@ -7,18 +7,18 @@ function NotFoundPage() {
   useDocumentTitle('Page not found');
 
   return (
-    <div className="flex h-full flex-col items-center justify-center bg-surface-page px-6 text-center">
+    <div className="flex h-full flex-col items-center justify-center bg-surface-base px-6 text-center">
       <Logo size="md" />
 
-      <p className="data mt-8 text-[13px] text-ink-subtle">404</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-[-0.01em] text-ink">Page not found</h1>
-      <p className="mt-1.5 max-w-sm text-sm text-ink-muted">
+      <p className="data mt-8 text-body-sm text-content-tertiary">404</p>
+      <h1 className="mt-2 text-h1 tracking-[-0.01em] text-content-primary">Page not found</h1>
+      <p className="mt-1.5 max-w-sm text-sm text-content-secondary">
         That link does not point anywhere in Relay. It may have moved, or never existed.
       </p>
 
       <Link
         to="/"
-        className="mt-6 inline-flex h-9 items-center rounded-lg border border-line-strong bg-surface-raised px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-sunken"
+        className="mt-6 inline-flex h-9 items-center rounded-md border border-line-strong bg-surface-raised px-4 text-sm font-medium text-content-primary transition-colors hover:bg-surface-hover"
       >
         Back to Relay
       </Link>

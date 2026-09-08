@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Input } from '../../../components/ui/Input.jsx';
+import { PasswordInput } from '../../../components/ui/PasswordInput.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { Callout, calloutLinkStyles } from '../../../components/ui/Callout.jsx';
 import { useAuth } from '../../../features/auth/useAuth.js';
@@ -85,9 +86,8 @@ export function RegisterForm() {
         </Callout>
       )}
 
-      <Input
+      <PasswordInput
         label="Password"
-        type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="At least 8 characters, with a letter and a number"

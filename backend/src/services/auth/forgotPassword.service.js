@@ -32,5 +32,8 @@ export async function requestPasswordReset(email) {
 
   // Only the raw token goes in the link; the database holds just its hash.
   const resetLink = `${env.FRONTEND_URL}/reset-password/${rawToken}`;
+
+  // Best-effort: the token is already saved, so the reset works from a link
+  // read out of the console even if delivery fails. This call never throws.
   await sendPasswordResetEmail(user.email, resetLink);
 }

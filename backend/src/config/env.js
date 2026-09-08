@@ -16,6 +16,15 @@ const baseSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default('onboarding@resend.dev'),
 
+  // SMTP, checked before Resend. Resend's default sender is a sandbox address
+  // that only delivers to the account owner, so plain SMTP (a Gmail app
+  // password, say) is the practical way to reach real recipients without
+  // owning a domain. All optional: unset simply means "not this transport".
+  SMTP_HOST: z.string().default('smtp.gmail.com'),
+  SMTP_PORT: z.coerce.number().int().positive().max(65535).default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+
   // Where links in emails should point (the frontend, not the API).
   FRONTEND_URL: z.string().default('http://localhost:5173'),
 });

@@ -1,44 +1,60 @@
 // email.service.js
-// Sends transactional emails via Resend.
-// If no API key is configured, logs the email to the console (dev fallback).
+// The two emails Relay sends, and the rule that governs both: email is
+// best-effort. A delivery failure is logged loudly and reported back to the
+// caller, but it never throws, because neither a password reset nor an invite
+// should fail just because a message did not go out.
+//
+// Outside production the link is ALWAYS logged as well, whatever the transport
+// is doing. That way local testing never depends on delivery working.
 
-import { Resend } from 'resend';
 import { env } from '../../config/env.js';
 import { logger } from '../../utils/logger.js';
+import { deliver } from './transport.js';
+import { passwordResetEmail, inviteEmail } from './templates.js';
 
-const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
+// Deliberately not logged in production - a reset link in a log file is a
+// password reset anyone with log access can perform.
+function logLink(label, toEmail, link) {
+  if (env.isProduction) return;
+  logger.warn(`[EMAIL DEV MODE] ${label} for ${toEmail}: ${link}`);
+}
 
-export async function sendPasswordResetEmail(toEmail, resetLink) {
-  // Dev fallback: no API key means just log the link so the flow is still
-  // testable before any email setup is done.
-  if (!resend) {
-    logger.warn(`[EMAIL DEV MODE] Password reset link for ${toEmail}: ${resetLink}`);
-    return;
+// The one place the best-effort promise is kept. deliver() already guards
+// itself, but the guarantee belongs here too: a caller reading
+// sendPasswordResetEmail should not have to go and check the transport to know
+// whether awaiting it can blow up their request.
+async function trySend(message) {
+  try {
+    const { delivered } = await deliver(message);
+    return delivered;
+  } catch (err) {
+    logger.error({ to: message.to, err: err.message }, 'Email send threw unexpectedly');
+    return false;
   }
+}
 
-  await resend.emails.send({
-    from: env.EMAIL_FROM,
+/**
+ * @returns {Promise<boolean>} whether the message actually went out
+ */
+export async function sendPasswordResetEmail(toEmail, resetLink) {
+  logLink('Password reset link', toEmail, resetLink);
+
+  return trySend({
     to: toEmail,
     subject: 'Reset your Relay password',
-    html: buildResetEmailHtml(resetLink),
+    html: passwordResetEmail(resetLink),
   });
 }
 
-function buildResetEmailHtml(resetLink) {
-  // Inline styles only - email clients strip <style> blocks.
-  return `
-    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-      <h2 style="color: #4f46e5;">Reset your password</h2>
-      <p>We received a request to reset your Relay password.</p>
-      <p>Click the button below to choose a new one. This link expires in 1 hour.</p>
-      <a href="${resetLink}"
-         style="display: inline-block; background: #4f46e5; color: white;
-                padding: 12px 24px; border-radius: 8px; text-decoration: none;">
-        Reset password
-      </a>
-      <p style="color: #64748b; font-size: 14px; margin-top: 24px;">
-        If you didn't request this, you can safely ignore this email.
-      </p>
-    </div>
-  `;
+/**
+ * @returns {Promise<boolean>} whether the message actually went out
+ */
+export async function sendInviteEmail(toEmail, inviteLink, orgName, inviterName) {
+  logLink('Invite link', toEmail, inviteLink);
+
+  return trySend({
+    to: toEmail,
+    subject: `${inviterName || 'Someone'} invited you to join ${orgName} on Relay`,
+    html: inviteEmail({ inviteLink, orgName, inviterName }),
+  });
 }

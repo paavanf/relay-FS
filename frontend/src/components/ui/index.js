@@ -2,6 +2,7 @@
 
 export { Button } from './Button.jsx';
 export { Input } from './Input.jsx';
+export { PasswordInput } from './PasswordInput.jsx';
 export { Textarea } from './Textarea.jsx';
 export { Select } from './Select.jsx';
 export { Checkbox } from './Checkbox.jsx';

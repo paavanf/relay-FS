@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Input } from '../../../components/ui/Input.jsx';
+import { PasswordInput } from '../../../components/ui/PasswordInput.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { Callout } from '../../../components/ui/Callout.jsx';
 import { submitNewPassword } from '../../../features/auth/api/passwordReset.js';
@@ -54,9 +55,8 @@ export function ResetPasswordForm({ token }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <Input
+      <PasswordInput
         label="New password"
-        type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="At least 8 characters, with a letter and a number"
@@ -65,9 +65,8 @@ export function ResetPasswordForm({ token }) {
         required
       />
 
-      <Input
+      <PasswordInput
         label="Confirm new password"
-        type="password"
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
         placeholder="Type it again"

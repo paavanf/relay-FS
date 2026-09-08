@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { Input } from '../../../components/ui/Input.jsx';
+import { PasswordInput } from '../../../components/ui/PasswordInput.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { LoginError } from './LoginError.jsx';
 import { useAuth } from '../../../features/auth/useAuth.js';
@@ -70,9 +71,8 @@ export function LoginForm() {
         required
       />
 
-      <Input
+      <PasswordInput
         label="Password"
-        type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Your password"

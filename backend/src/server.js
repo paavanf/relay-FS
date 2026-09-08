@@ -2,6 +2,7 @@ import { createApp } from './app.js';
 import { connectDb, disconnectDb } from './config/db.js';
 import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
+import { logEmailConfiguration } from './services/email/startupLog.js';
 
 const app = createApp();
 let server;
@@ -36,6 +37,10 @@ async function start() {
     logger.warn({ err }, 'Starting without a database connection; retrying in the background');
     retryConnectInBackground();
   }
+
+  // Said once, at boot: which email transport is active, and whether it can
+  // actually reach anyone.
+  logEmailConfiguration();
 
   server = app.listen(env.PORT, () => {
     logger.info(`Relay API listening on http://localhost:${env.PORT}`);

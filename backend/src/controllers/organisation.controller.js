@@ -6,6 +6,8 @@ import {
   getOrgMembers,
   createInvite,
   acceptInvite,
+  getRosterRules,
+  updateRosterRules,
 } from '../services/organisation/index.js';
 
 export async function createOrg(req, res) {
@@ -60,4 +62,14 @@ export async function acceptInviteHandler(req, res) {
     role: membership.role,
     message: 'Successfully joined organisation',
   });
+}
+
+export async function showRosterRules(req, res) {
+  res.json({ rosterRules: await getRosterRules(req.orgId) });
+}
+
+export async function saveRosterRules(req, res) {
+  // The validator guarantees all three rules are present, so this can never
+  // leave one unset - see the note in rosterRules.service.js.
+  res.json({ rosterRules: await updateRosterRules(req.orgId, req.valid.body) });
 }

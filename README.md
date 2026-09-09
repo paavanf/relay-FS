@@ -30,13 +30,13 @@ Add `-w backend` / `-w frontend` to target a single workspace.
 
 ## Status
 
-Implemented:
+Milestones 0 to 4 are complete:
 
-- Infrastructure - config, logging, error handling, request context, validation, `GET /api/health`
-- Authentication and multi-tenancy - argon2id, access/refresh tokens, invites, password reset, account lockout
-- Milestone 2 - qualifications, shift templates, coverage requirements, availability, with the frontend pages for each
-- Milestone 3 - the pure constraint engine in `backend/src/engine/`, with unit and property-based tests
-- Frontend design system - see [frontend/DESIGN.md](frontend/DESIGN.md)
+- **M0 - Foundations** - config, logging, error handling, request context, validation, `GET /api/health`, and the frontend design system (see [frontend/DESIGN.md](frontend/DESIGN.md))
+- **M1 - Auth and multi-tenancy** - argon2id, access/refresh tokens, invites, password reset, account lockout
+- **M2 - Configuration and team** - qualifications, shift templates, coverage requirements, availability, and the scheduling rules each organisation is rostered against, with the frontend pages for each
+- **M3 - Constraint engine** - the pure engine in `backend/src/engine/`, with unit and property-based tests
+- **M4 - Roster generation** - greedy construction plus time-boxed local search, run off the main thread as an async job. `npm run evaluate` prints the benchmark table.
 
-Not started: roster generation (M4), manual roster editing (M5), the fairness
-ledger (M6), and swap chains (M7).
+Not started: manual roster editing (M5), the fairness ledger (M6), and swap
+chains (M7).

@@ -17,6 +17,9 @@ function OrgProvider({ children }) {
   const value = {
     orgId,
     orgName: membership.orgName,
+    // Shift times are shown in the organisation's zone, not the browser's -
+    // a nurse checking their roster from an airport must not see it shift.
+    orgTimezone: membership.orgTimezone ?? 'UTC',
     role: membership.role,
     isManager: membership.role === 'manager' || membership.role === 'owner',
     isOwner: membership.role === 'owner',

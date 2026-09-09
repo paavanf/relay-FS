@@ -1,18 +1,69 @@
-// SchedulePage - the published roster for the whole team.
-import PlaceholderPage from '../placeholders/index.js';
+// SchedulePage - the roster: pick one, look at it, and if you manage the
+// team, build and publish it.
+//
+// The data loading lives in useScheduleData.js so this file is layout.
+import { useState } from 'react';
+import { PageHeader } from '../../components/ui/PageHeader.jsx';
+import { Skeleton } from '../../components/ui/Skeleton.jsx';
+import { ErrorState } from '../../components/ui/ErrorState.jsx';
+import { RosterPicker } from './RosterPicker.jsx';
+import { NoRostersState } from './NoRostersState.jsx';
+import { CreateRosterDialog } from './CreateRosterDialog.jsx';
+import { RosterWorkspace } from './RosterWorkspace.jsx';
+import { useScheduleData } from './useScheduleData.js';
+import { useOrg } from '../../features/organisation/useOrg.js';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
+import { Button } from '../../components/ui/Button.jsx';
 
 function SchedulePage() {
+  const { isManager } = useOrg();
+  const [isCreating, setIsCreating] = useState(false);
+  useDocumentTitle('Schedule');
+
+  const { rosters, selectedId, setSelectedId, detail, isLoading, error, refetch } =
+    useScheduleData();
+
   return (
-    <PlaceholderPage
-      title="Schedule"
-      description="The published roster for your whole team, week by week."
-      capabilities={[
-        'See every shift for the week in one grid, grouped by day',
-        'Filter by role, qualification, or team member',
-        'Spot uncovered shifts and coverage gaps at a glance',
-        'Publish a draft roster so the team can see it',
-      ]}
-    />
+    <div className="mx-auto max-w-[1400px]">
+      <PageHeader
+        title="Schedule"
+        description="Who is working when, and what is still uncovered."
+        actions={
+          isManager && rosters.length > 0 ? (
+            <Button variant="secondary" size="sm" onClick={() => setIsCreating(true)}>
+              New roster
+            </Button>
+          ) : null
+        }
+      />
+
+      {isLoading && <Skeleton className="mt-6 h-96 w-full" />}
+      {error && <ErrorState className="mt-6" message={error.message} onRetry={refetch} />}
+
+      {!isLoading && !error && rosters.length === 0 && (
+        <div className="mt-6">
+          <NoRostersState isManager={isManager} onCreate={() => setIsCreating(true)} />
+        </div>
+      )}
+
+      {!isLoading && rosters.length > 0 && (
+        <div className="mt-6 space-y-4">
+          <RosterPicker rosters={rosters} selectedId={selectedId} onSelect={setSelectedId} />
+
+          {detail && <RosterWorkspace detail={detail} />}
+        </div>
+      )}
+
+      {isCreating && (
+        <CreateRosterDialog
+          onCreated={(roster) => {
+            setSelectedId(roster.id);
+            setIsCreating(false);
+          }}
+          onClose={() => setIsCreating(false)}
+        />
+      )}
+    </div>
   );
 }
 

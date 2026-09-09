@@ -41,7 +41,7 @@ export function expandDemand({
       const template = templatesById.get(rule.shiftTemplateId);
       if (!template) continue;
 
-      const times = instantsFor(template, date, timezone);
+      const times = shiftInstants(template, date, timezone);
       if (!times) continue;
 
       for (const requirement of rule.requirements ?? []) {
@@ -71,7 +71,14 @@ export function expandDemand({
   return slots;
 }
 
-function instantsFor(template, date, timezone) {
+/**
+ * The real UTC instants a shift occupies on a given local date.
+ *
+ * Exported because manual assignment needs exactly this calculation. If the
+ * grid computed its own, a hand-placed night shift could land an hour away
+ * from a generated one and every rest check between them would be wrong.
+ */
+export function shiftInstants(template, date, timezone) {
   const startsAt = DateTime.fromISO(`${date}T${template.startLocal}`, { zone: timezone });
   let endsAt = DateTime.fromISO(`${date}T${template.endLocal}`, { zone: timezone });
   if (!startsAt.isValid || !endsAt.isValid) return null;

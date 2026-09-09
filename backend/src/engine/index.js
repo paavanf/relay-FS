@@ -14,7 +14,7 @@ export { evaluate, canAssign } from './constraints/evaluate.js';
 // caller injects the clock, so the engine still reads nothing of its own.
 export { generateRoster } from './scheduling/generateRoster.js';
 export { DEFAULT_WEIGHTS, resolveWeights } from './scheduling/weights.js';
-export { expandDemand } from './scheduling/expandDemand.js';
+export { expandDemand, shiftInstants } from './scheduling/expandDemand.js';
 export { scoreRoster } from './scheduling/objective.js';
 
 // Type definitions (JSDoc only - no runtime code).

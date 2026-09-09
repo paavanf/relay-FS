@@ -11,6 +11,7 @@ import coverageRoutes from './coverage.routes.js';
 import availabilityRoutes from './availability.routes.js';
 import rosterRoutes from './roster.routes.js';
 import jobRoutes from './job.routes.js';
+import assignmentRoutes from './assignment.routes.js';
 
 const router = Router();
 
@@ -29,5 +30,6 @@ router.use('/orgs/:orgId/availability', availabilityRoutes);
 // Roster generation, and the background jobs that run it.
 router.use('/orgs/:orgId/rosters', rosterRoutes);
 router.use('/orgs/:orgId/jobs', jobRoutes);
+router.use('/orgs/:orgId/assignments', assignmentRoutes);
 
 export default router;

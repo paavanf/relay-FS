@@ -25,11 +25,13 @@ export async function getCurrentUser(userId) {
     orgMap[o._id.toString()] = o;
   });
 
-  // Attach the org name to each membership so the frontend can render a
-  // switcher without a second round trip.
+  // Attach the org name and timezone to each membership so the frontend can
+  // render a switcher, and show shift times in the organisation's zone rather
+  // than the browser's, without a second round trip.
   const enrichedMemberships = memberships.map((m) => ({
     orgId: m.orgId.toString(),
     orgName: orgMap[m.orgId.toString()]?.name || 'Unknown',
+    orgTimezone: orgMap[m.orgId.toString()]?.timezone || 'UTC',
     role: m.role,
     qualificationIds: (m.qualificationIds ?? []).map((id) => id.toString()),
   }));

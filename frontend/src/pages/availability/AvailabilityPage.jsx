@@ -5,26 +5,14 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card.jsx';
 import { Skeleton } from '../../components/ui/Skeleton.jsx';
 import { ErrorState } from '../../components/ui/ErrorState.jsx';
-import { RecurringAvailability } from './RecurringAvailability.jsx';
-import { AvailabilityLegend } from './AvailabilityLegend.jsx';
-import { SaveAvailabilityBar } from './SaveAvailabilityBar.jsx';
+import { AvailabilityEditor } from './AvailabilityEditor.jsx';
+import { SchedulingRulesCard } from './SchedulingRulesCard.jsx';
 import { getMyAvailability } from '../../features/availability/api/availability.js';
+import { toStatusByDay } from '../../features/availability/toStatusByDay.js';
 import { useOrg } from '../../features/organisation/useOrg.js';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
-
-// Saved entries -> a status per weekday, for the selects to read.
-function toStatusByDay(entries) {
-  const byDay = {};
-  for (const entry of entries) {
-    if (entry.type === 'recurring' && entry.dayOfWeek !== null) {
-      byDay[entry.dayOfWeek] = entry.status;
-    }
-  }
-  return byDay;
-}
 
 function AvailabilityPage() {
   const { orgId } = useOrg();
@@ -57,34 +45,25 @@ function AvailabilityPage() {
         description="Tell Relay when you can work, so the roster respects it."
       />
 
-      {isPending && <Skeleton className="mt-6 h-64 w-full" />}
-      {isError && <ErrorState className="mt-6" message={error.message} onRetry={refetch} />}
+      {/* Above the editor on purpose: the limits should be read before the
+          declarations are made, not after. Rendered outside the availability
+          loading branch so the context is there even if availability itself
+          fails to load. */}
+      <div className="mt-6">
+        <SchedulingRulesCard />
+      </div>
+
+      {isPending && <Skeleton className="mt-4 h-64 w-full" />}
+      {isError && <ErrorState className="mt-4" message={error.message} onRetry={refetch} />}
 
       {data && (
-        <div className="mt-6 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Every week</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <RecurringAvailability statusByDay={statusByDay} onChange={handleChange} />
-            </CardContent>
-          </Card>
-
-          <SaveAvailabilityBar
+        <div className="mt-4">
+          <AvailabilityEditor
             statusByDay={statusByDay}
             isDirty={isDirty}
+            onChange={handleChange}
             onSaved={() => setIsDirty(false)}
           />
-
-          <Card>
-            <CardHeader>
-              <CardTitle>What these mean</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AvailabilityLegend />
-            </CardContent>
-          </Card>
         </div>
       )}
     </div>

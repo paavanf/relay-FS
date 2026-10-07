@@ -1,13 +1,15 @@
 // RootRedirect - what you get when you visit "/".
-// Sends you into the app if you're logged in, or to the login page if not.
+// Logged in: straight into the app, exactly as before. Logged out: the
+// landing page, which explains what Relay is and links to sign up or log in.
 import { Navigate } from 'react-router';
 import { useAuth } from '../../features/auth/useAuth.js';
 import { FullScreenLoader } from '../../components/ui/FullScreenLoader.jsx';
+import LandingPage from '../landing/index.js';
 
 function RootRedirect() {
   const { user, isLoading } = useAuth();
 
-  // Wait for the session check to finish before deciding where to go.
+  // Only a tab with a session to restore waits here; see AuthProvider.
   if (isLoading) {
     return <FullScreenLoader />;
   }
@@ -16,7 +18,7 @@ function RootRedirect() {
     return <Navigate to="/app" replace />;
   }
 
-  return <Navigate to="/login" replace />;
+  return <LandingPage />;
 }
 
 export default RootRedirect;

@@ -8,7 +8,10 @@ import { api } from '../../lib/apiClient.js';
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [memberships, setMemberships] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // "Loading" only in a tab that may have a session to restore. A first-time
+  // visitor has nothing to wait for, so the landing page renders at once
+  // instead of flashing a full-screen spinner for a frame.
+  const [isLoading, setIsLoading] = useState(hasTabSession);
 
   // On mount: restore the session, but only for a tab that already had one.
   // A tab opened after the last one was closed carries no marker, so we skip

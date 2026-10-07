@@ -1,6 +1,7 @@
 // Re-exports every UI component, so a page can import several in one line.
 
 export { Button } from './Button.jsx';
+export { ButtonLink } from './ButtonLink.jsx';
 export { Input } from './Input.jsx';
 export { PasswordInput } from './PasswordInput.jsx';
 export { Textarea } from './Textarea.jsx';

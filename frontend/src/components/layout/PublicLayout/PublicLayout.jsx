@@ -32,31 +32,31 @@ function PublicLayout() {
           <SwapCycleGraphic />
 
           <h2 className="mt-10 text-h2 tracking-[-0.01em] text-content-primary">
-            Rosters that share the load
+            Rosters that follow your rules
           </h2>
 
           <p className="mt-2.5 text-sm leading-relaxed text-content-secondary">
-            Relay builds coverage that respects every constraint, then finds the swaps that keep it
-            fair — including the three-way trades no one would spot by hand.
+            Relay fills each shift with someone qualified and available, inside your rest and
+            working-time limits — and when it cannot, it tells you which rule stopped it.
           </p>
 
           <dl className="mt-8 space-y-3 border-t border-line-subtle pt-6">
             <div className="flex gap-3">
               <dt className="w-28 shrink-0 text-body-sm text-content-tertiary">Coverage</dt>
               <dd className="text-body-sm text-content-secondary">
-                Every shift staffed by someone qualified to work it.
+                Each shift goes to someone qualified to work it.
               </dd>
             </div>
             <div className="flex gap-3">
-              <dt className="w-28 shrink-0 text-body-sm text-content-tertiary">Fairness</dt>
+              <dt className="w-28 shrink-0 text-body-sm text-content-tertiary">Rules</dt>
               <dd className="text-body-sm text-content-secondary">
-                Nights and weekends tracked over time, not per week.
+                Rest, days in a row and weekly hours kept as hard limits.
               </dd>
             </div>
             <div className="flex gap-3">
-              <dt className="w-28 shrink-0 text-body-sm text-content-tertiary">Swaps</dt>
+              <dt className="w-28 shrink-0 text-body-sm text-content-tertiary">Gaps</dt>
               <dd className="text-body-sm text-content-secondary">
-                Chains that clear without breaking a single rule.
+                A shift it cannot fill comes back with the reason.
               </dd>
             </div>
           </dl>

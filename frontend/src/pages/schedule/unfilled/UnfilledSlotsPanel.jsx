@@ -4,12 +4,16 @@
 // back an incomplete roster is worse than one that refuses, so the holes get
 // their own panel directly under the grid rather than a tab somebody has to
 // think to open.
+//
+// `visibleCount` shows only the first rows, for a page that wants to keep a
+// long list short (the landing page does). The count in the header is always
+// the full total, so a shortened list never understates the problem.
 import { CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card.jsx';
 import { Badge } from '../../../components/ui/Badge.jsx';
 import { UnfilledSlotRow } from './UnfilledSlotRow.jsx';
 
-export function UnfilledSlotsPanel({ unfilledSlots, onJumpTo }) {
+export function UnfilledSlotsPanel({ unfilledSlots, onJumpTo, visibleCount = unfilledSlots.length }) {
   if (unfilledSlots.length === 0) {
     return (
       <Card>
@@ -34,7 +38,7 @@ export function UnfilledSlotsPanel({ unfilledSlots, onJumpTo }) {
         </p>
 
         <ul className="divide-y divide-line-subtle">
-          {unfilledSlots.map((slot) => (
+          {unfilledSlots.slice(0, visibleCount).map((slot) => (
             <UnfilledSlotRow key={slot.slotId} slot={slot} onJumpTo={onJumpTo} />
           ))}
         </ul>

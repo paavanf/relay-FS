@@ -11,7 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '../../components/ui/Card.jsx';
 import { Skeleton } from '../../components/ui/Skeleton.jsx';
 import { getRosterRules } from '../../features/organisation/api/rosterRules.js';
-import { describeRules } from '../../features/organisation/rosterRuleSentences.js';
+import { RuleSentenceList } from './RuleSentenceList.jsx';
 import { useOrg } from '../../features/organisation/useOrg.js';
 
 export function SchedulingRulesCard() {
@@ -42,15 +42,7 @@ export function SchedulingRulesCard() {
           automatically - a shift is left unfilled rather than break one.
         </p>
 
-        <ul className="mt-3 space-y-1.5">
-          {describeRules(data).map((rule) => (
-            <li key={rule.key} className="text-body-sm text-content-secondary">
-              {rule.lead}{' '}
-              <span className="font-medium text-content-primary tabular-nums">{rule.amount}</span>{' '}
-              {rule.tail}
-            </li>
-          ))}
-        </ul>
+        <RuleSentenceList rules={data} className="mt-3 space-y-1.5" />
       </CardContent>
     </Card>
   );

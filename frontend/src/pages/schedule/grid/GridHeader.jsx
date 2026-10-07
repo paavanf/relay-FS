@@ -2,6 +2,11 @@
 //
 // Weekends get a different ground so the week structure is readable without
 // counting columns.
+//
+// Every day column has the same fixed width, wide enough for a shift label
+// and its times. Without it the table sizes each column by its content, so
+// columns jump whenever a shift is added or removed - after a generate, a
+// hand edit, or while the landing page's demo roster fills.
 import { cn } from '../../../lib/utils.js';
 
 export function GridHeader({ columns }) {
@@ -20,7 +25,7 @@ export function GridHeader({ columns }) {
             key={column.date}
             scope="col"
             className={cn(
-              'min-w-24 border-b border-l border-line-subtle px-2 py-2 text-center',
+              'w-36 min-w-36 border-b border-l border-line-subtle px-2 py-2 text-center',
               column.isWeekend ? 'bg-surface-active' : 'bg-surface-sunken',
             )}
           >

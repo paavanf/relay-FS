@@ -9,6 +9,7 @@
     "start": "node --env-file-if-exists=.env src/server.js",
     "lint": "eslint src/ tests/",
     "evaluate": "node scripts/evaluate-generation.js",
+    "db:check": "node scripts/check-db.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },

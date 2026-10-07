@@ -5,6 +5,12 @@
 // the numbers are comparable between runs, so the data cannot be allowed to
 // drift. Nothing here touches a database or the network.
 
+// Shared by evaluate-generation.js and export-landing-fixture.js, so the
+// numbers printed by `npm run evaluate` and the landing-page demo come from
+// identical runs. Change them here and both move together.
+export const SEED = 20260309;
+export const MAX_ITERATIONS = 4000;
+
 const DAY = { id: 't-day', name: 'Day', startLocal: '07:00', endLocal: '15:00', crossesMidnight: false, category: 'day', burdenWeight: 1 };
 const EVE = { id: 't-eve', name: 'Evening', startLocal: '15:00', endLocal: '23:00', crossesMidnight: false, category: 'evening', burdenWeight: 1.3 };
 const NIGHT = { id: 't-night', name: 'Night', startLocal: '23:00', endLocal: '07:00', crossesMidnight: true, category: 'night', burdenWeight: 1.8 };

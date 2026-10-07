@@ -11,11 +11,11 @@
 //   npm run evaluate                 baseline numbers
 //   npm run evaluate -- --compare    baseline against a variant, side by side
 
-import { generateRoster, evaluate, DEFAULT_WEIGHTS } from '../src/engine/index.js';
-import { SCENARIOS } from './scenarios.js';
+/* eslint-disable no-console -- a command-line report: printing is the point */
 
-const SEED = 20260309;
-const MAX_ITERATIONS = 4000;
+import { generateRoster, evaluate, DEFAULT_WEIGHTS } from '../src/engine/index.js';
+import { SCENARIOS, SEED, MAX_ITERATIONS } from './scenarios.js';
+
 const DEADLINE_MS = 5000;
 
 // The variant --compare measures against. Change this to whatever you are

@@ -1,0 +1,643 @@
+{
+  "meta": {
+    "producedBy": "backend/scripts/export-landing-fixture.js",
+    "regenerate": "cd backend && node scripts/export-landing-fixture.js",
+    "seed": 20260309,
+    "maxIterations": 4000,
+    "note": "Generated scenarios from backend/scripts/scenarios.js. Cafe member names are display labels; every assignment, verdict and reason is unmodified engine output."
+  },
+  "cafe": {
+    "scenario": "Small cafe (8 staff, 7 days)",
+    "timezone": "Asia/Kolkata",
+    "roster": {
+      "id": "demo-cafe",
+      "name": "Sample cafe",
+      "startDate": "2026-03-02",
+      "endDate": "2026-03-08",
+      "status": "draft"
+    },
+    "rules": {
+      "minRestHours": 10,
+      "maxConsecutiveDays": 6,
+      "maxHoursPerWeek": 40
+    },
+    "templates": [
+      {
+        "id": "t-day",
+        "name": "Day",
+        "startLocal": "07:00",
+        "endLocal": "15:00",
+        "category": "day"
+      },
+      {
+        "id": "t-eve",
+        "name": "Evening",
+        "startLocal": "15:00",
+        "endLocal": "23:00",
+        "category": "evening"
+      }
+    ],
+    "members": [
+      {
+        "id": "c0",
+        "name": "Asha"
+      },
+      {
+        "id": "c1",
+        "name": "Ben"
+      },
+      {
+        "id": "c2",
+        "name": "Chen"
+      },
+      {
+        "id": "c3",
+        "name": "Divya"
+      },
+      {
+        "id": "c4",
+        "name": "Elena"
+      },
+      {
+        "id": "c5",
+        "name": "Femi"
+      },
+      {
+        "id": "c6",
+        "name": "Grace"
+      },
+      {
+        "id": "c7",
+        "name": "Hugo"
+      }
+    ],
+    "assignments": [
+      {
+        "id": "2026-03-02|t-day|RN|0",
+        "membershipId": "c7",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-02",
+        "startsAt": "2026-03-02T01:30:00.000Z",
+        "endsAt": "2026-03-02T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-02|t-day|RN|1",
+        "membershipId": "c4",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-02",
+        "startsAt": "2026-03-02T01:30:00.000Z",
+        "endsAt": "2026-03-02T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-02|t-eve|RN|0",
+        "membershipId": "c3",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-02",
+        "startsAt": "2026-03-02T09:30:00.000Z",
+        "endsAt": "2026-03-02T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-02|t-eve|RN|1",
+        "membershipId": "c1",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-02",
+        "startsAt": "2026-03-02T09:30:00.000Z",
+        "endsAt": "2026-03-02T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-03|t-day|RN|0",
+        "membershipId": "c5",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-03",
+        "startsAt": "2026-03-03T01:30:00.000Z",
+        "endsAt": "2026-03-03T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-03|t-day|RN|1",
+        "membershipId": "c7",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-03",
+        "startsAt": "2026-03-03T01:30:00.000Z",
+        "endsAt": "2026-03-03T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-03|t-eve|RN|0",
+        "membershipId": "c2",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-03",
+        "startsAt": "2026-03-03T09:30:00.000Z",
+        "endsAt": "2026-03-03T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-03|t-eve|RN|1",
+        "membershipId": "c3",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-03",
+        "startsAt": "2026-03-03T09:30:00.000Z",
+        "endsAt": "2026-03-03T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-04|t-day|RN|0",
+        "membershipId": "c0",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-04",
+        "startsAt": "2026-03-04T01:30:00.000Z",
+        "endsAt": "2026-03-04T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-04|t-day|RN|1",
+        "membershipId": "c4",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-04",
+        "startsAt": "2026-03-04T01:30:00.000Z",
+        "endsAt": "2026-03-04T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-04|t-eve|RN|0",
+        "membershipId": "c2",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-04",
+        "startsAt": "2026-03-04T09:30:00.000Z",
+        "endsAt": "2026-03-04T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-04|t-eve|RN|1",
+        "membershipId": "c1",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-04",
+        "startsAt": "2026-03-04T09:30:00.000Z",
+        "endsAt": "2026-03-04T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-05|t-day|RN|0",
+        "membershipId": "c0",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-05",
+        "startsAt": "2026-03-05T01:30:00.000Z",
+        "endsAt": "2026-03-05T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-05|t-day|RN|1",
+        "membershipId": "c5",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-05",
+        "startsAt": "2026-03-05T01:30:00.000Z",
+        "endsAt": "2026-03-05T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-05|t-eve|RN|0",
+        "membershipId": "c2",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-05",
+        "startsAt": "2026-03-05T09:30:00.000Z",
+        "endsAt": "2026-03-05T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-05|t-eve|RN|1",
+        "membershipId": "c6",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-05",
+        "startsAt": "2026-03-05T09:30:00.000Z",
+        "endsAt": "2026-03-05T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-06|t-day|RN|0",
+        "membershipId": "c4",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-06",
+        "startsAt": "2026-03-06T01:30:00.000Z",
+        "endsAt": "2026-03-06T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-06|t-day|RN|1",
+        "membershipId": "c0",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-06",
+        "startsAt": "2026-03-06T01:30:00.000Z",
+        "endsAt": "2026-03-06T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-06|t-eve|RN|0",
+        "membershipId": "c7",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-06",
+        "startsAt": "2026-03-06T09:30:00.000Z",
+        "endsAt": "2026-03-06T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-06|t-eve|RN|1",
+        "membershipId": "c3",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-06",
+        "startsAt": "2026-03-06T09:30:00.000Z",
+        "endsAt": "2026-03-06T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-07|t-day|RN|0",
+        "membershipId": "c4",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-07",
+        "startsAt": "2026-03-07T01:30:00.000Z",
+        "endsAt": "2026-03-07T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-07|t-day|RN|1",
+        "membershipId": "c5",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-07",
+        "startsAt": "2026-03-07T01:30:00.000Z",
+        "endsAt": "2026-03-07T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-07|t-eve|RN|0",
+        "membershipId": "c6",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-07",
+        "startsAt": "2026-03-07T09:30:00.000Z",
+        "endsAt": "2026-03-07T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-07|t-eve|RN|1",
+        "membershipId": "c1",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-07",
+        "startsAt": "2026-03-07T09:30:00.000Z",
+        "endsAt": "2026-03-07T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-08|t-day|RN|0",
+        "membershipId": "c7",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-08",
+        "startsAt": "2026-03-08T01:30:00.000Z",
+        "endsAt": "2026-03-08T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-08|t-day|RN|1",
+        "membershipId": "c5",
+        "shiftTemplateId": "t-day",
+        "date": "2026-03-08",
+        "startsAt": "2026-03-08T01:30:00.000Z",
+        "endsAt": "2026-03-08T09:30:00.000Z"
+      },
+      {
+        "id": "2026-03-08|t-eve|RN|0",
+        "membershipId": "c6",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-08",
+        "startsAt": "2026-03-08T09:30:00.000Z",
+        "endsAt": "2026-03-08T17:30:00.000Z"
+      },
+      {
+        "id": "2026-03-08|t-eve|RN|1",
+        "membershipId": "c0",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-08",
+        "startsAt": "2026-03-08T09:30:00.000Z",
+        "endsAt": "2026-03-08T17:30:00.000Z"
+      }
+    ],
+    "unfilledSlots": [],
+    "totals": {
+      "people": 8,
+      "days": 7,
+      "shifts": 28,
+      "filled": 28,
+      "unfilled": 0
+    },
+    "editExample": {
+      "membershipId": "c1",
+      "date": "2026-03-03",
+      "previous": {
+        "id": "2026-03-02|t-eve|RN|1",
+        "membershipId": "c1",
+        "shiftTemplateId": "t-eve",
+        "date": "2026-03-02",
+        "startsAt": "2026-03-02T09:30:00.000Z",
+        "endsAt": "2026-03-02T17:30:00.000Z"
+      },
+      "choices": [
+        {
+          "templateId": "t-day",
+          "verdict": {
+            "allowed": false,
+            "violations": [
+              {
+                "code": "MIN_REST",
+                "severity": "hard",
+                "message": "Only 8h rest between shifts, minimum is 10h.",
+                "assignmentIds": [
+                  "2026-03-02|t-eve|RN|1",
+                  "demo-candidate"
+                ],
+                "details": {
+                  "restHours": 8,
+                  "minRestHours": 10,
+                  "previousEndsAt": "2026-03-02T17:30:00.000Z",
+                  "nextStartsAt": "2026-03-03T01:30:00.000Z"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "templateId": "t-eve",
+          "verdict": {
+            "allowed": true,
+            "violations": []
+          }
+        }
+      ]
+    }
+  },
+  "ward": {
+    "scenario": "Hospital ward (40 staff, 14 days)",
+    "totals": {
+      "people": 40,
+      "days": 14,
+      "shifts": 168,
+      "filled": 168,
+      "unfilled": 0
+    }
+  },
+  "understaffed": {
+    "scenario": "Understaffed ward (infeasible on purpose)",
+    "totals": {
+      "people": 12,
+      "days": 14,
+      "shifts": 168,
+      "filled": 144,
+      "unfilled": 24
+    },
+    "blockedBy": {
+      "MAX_CONSECUTIVE_DAYS": 234,
+      "MIN_REST": 94,
+      "MAX_WEEKLY_HOURS": 83
+    },
+    "unfilledSlots": [
+      {
+        "slotId": "2026-03-07|t-day|CN|0",
+        "date": "2026-03-07",
+        "qualificationId": "CN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 3,
+          "MIN_REST": 2
+        },
+        "reason": "Saturday 7 March, Day: needs a Charge Nurse. 3 hold this qualification - 3 would work too many days in a row, 2 would breach minimum rest."
+      },
+      {
+        "slotId": "2026-03-07|t-eve|CN|0",
+        "date": "2026-03-07",
+        "qualificationId": "CN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 3,
+          "MIN_REST": 1
+        },
+        "reason": "Saturday 7 March, Evening: needs a Charge Nurse. 3 hold this qualification - 3 would work too many days in a row, 1 would breach minimum rest."
+      },
+      {
+        "slotId": "2026-03-07|t-night|CN|0",
+        "date": "2026-03-07",
+        "qualificationId": "CN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 3
+        },
+        "reason": "Saturday 7 March, Night: needs a Charge Nurse. 3 hold this qualification - 3 would work too many days in a row."
+      },
+      {
+        "slotId": "2026-03-13|t-day|CN|0",
+        "date": "2026-03-13",
+        "qualificationId": "CN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 3,
+          "MIN_REST": 2,
+          "MAX_WEEKLY_HOURS": 2
+        },
+        "reason": "Friday 13 March, Day: needs a Charge Nurse. 3 hold this qualification - 3 would work too many days in a row, 2 would breach minimum rest, 2 would exceed weekly hours."
+      },
+      {
+        "slotId": "2026-03-13|t-eve|CN|0",
+        "date": "2026-03-13",
+        "qualificationId": "CN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 3,
+          "MIN_REST": 1,
+          "MAX_WEEKLY_HOURS": 1
+        },
+        "reason": "Friday 13 March, Evening: needs a Charge Nurse. 3 hold this qualification - 3 would work too many days in a row, 1 would breach minimum rest, 1 would exceed weekly hours."
+      },
+      {
+        "slotId": "2026-03-13|t-night|CN|0",
+        "date": "2026-03-13",
+        "qualificationId": "CN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 3
+        },
+        "reason": "Friday 13 March, Night: needs a Charge Nurse. 3 hold this qualification - 3 would work too many days in a row."
+      },
+      {
+        "slotId": "2026-03-07|t-day|RN|0",
+        "date": "2026-03-07",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 3,
+          "MIN_REST": 7
+        },
+        "reason": "Saturday 7 March, Day: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 7 would breach minimum rest, 3 would exceed weekly hours."
+      },
+      {
+        "slotId": "2026-03-07|t-day|RN|1",
+        "date": "2026-03-07",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 3,
+          "MIN_REST": 7
+        },
+        "reason": "Saturday 7 March, Day: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 7 would breach minimum rest, 3 would exceed weekly hours."
+      },
+      {
+        "slotId": "2026-03-07|t-day|RN|2",
+        "date": "2026-03-07",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 3,
+          "MIN_REST": 7
+        },
+        "reason": "Saturday 7 March, Day: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 7 would breach minimum rest, 3 would exceed weekly hours."
+      },
+      {
+        "slotId": "2026-03-07|t-day|RN|3",
+        "date": "2026-03-07",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 3,
+          "MIN_REST": 7
+        },
+        "reason": "Saturday 7 March, Day: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 7 would breach minimum rest, 3 would exceed weekly hours."
+      },
+      {
+        "slotId": "2026-03-07|t-eve|RN|0",
+        "date": "2026-03-07",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MIN_REST": 4,
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 3
+        },
+        "reason": "Saturday 7 March, Evening: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 4 would breach minimum rest, 3 would exceed weekly hours."
+      },
+      {
+        "slotId": "2026-03-07|t-eve|RN|1",
+        "date": "2026-03-07",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MIN_REST": 4,
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 3
+        },
+        "reason": "Saturday 7 March, Evening: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 4 would breach minimum rest, 3 would exceed weekly hours."
+      },
+      {
+        "slotId": "2026-03-07|t-eve|RN|2",
+        "date": "2026-03-07",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MIN_REST": 4,
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 3
+        },
+        "reason": "Saturday 7 March, Evening: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 4 would breach minimum rest, 3 would exceed weekly hours."
+      },
+      {
+        "slotId": "2026-03-07|t-night|RN|0",
+        "date": "2026-03-07",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MIN_REST": 2,
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 3
+        },
+        "reason": "Saturday 7 March, Night: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 3 would exceed weekly hours, 2 would breach minimum rest."
+      },
+      {
+        "slotId": "2026-03-07|t-night|RN|1",
+        "date": "2026-03-07",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MIN_REST": 2,
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 3
+        },
+        "reason": "Saturday 7 March, Night: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 3 would exceed weekly hours, 2 would breach minimum rest."
+      },
+      {
+        "slotId": "2026-03-13|t-day|RN|0",
+        "date": "2026-03-13",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 8,
+          "MIN_REST": 7
+        },
+        "reason": "Friday 13 March, Day: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 8 would exceed weekly hours, 7 would breach minimum rest."
+      },
+      {
+        "slotId": "2026-03-13|t-day|RN|1",
+        "date": "2026-03-13",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 8,
+          "MIN_REST": 7
+        },
+        "reason": "Friday 13 March, Day: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 8 would exceed weekly hours, 7 would breach minimum rest."
+      },
+      {
+        "slotId": "2026-03-13|t-day|RN|2",
+        "date": "2026-03-13",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 8,
+          "MIN_REST": 7
+        },
+        "reason": "Friday 13 March, Day: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 8 would exceed weekly hours, 7 would breach minimum rest."
+      },
+      {
+        "slotId": "2026-03-13|t-day|RN|3",
+        "date": "2026-03-13",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 8,
+          "MIN_REST": 7
+        },
+        "reason": "Friday 13 March, Day: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 8 would exceed weekly hours, 7 would breach minimum rest."
+      },
+      {
+        "slotId": "2026-03-13|t-eve|RN|0",
+        "date": "2026-03-13",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MIN_REST": 4,
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 5
+        },
+        "reason": "Friday 13 March, Evening: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 5 would exceed weekly hours, 4 would breach minimum rest."
+      },
+      {
+        "slotId": "2026-03-13|t-eve|RN|1",
+        "date": "2026-03-13",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MIN_REST": 4,
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 5
+        },
+        "reason": "Friday 13 March, Evening: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 5 would exceed weekly hours, 4 would breach minimum rest."
+      },
+      {
+        "slotId": "2026-03-13|t-eve|RN|2",
+        "date": "2026-03-13",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MIN_REST": 4,
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 5
+        },
+        "reason": "Friday 13 March, Evening: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 5 would exceed weekly hours, 4 would breach minimum rest."
+      },
+      {
+        "slotId": "2026-03-13|t-night|RN|0",
+        "date": "2026-03-13",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MIN_REST": 2,
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 3
+        },
+        "reason": "Friday 13 March, Night: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 3 would exceed weekly hours, 2 would breach minimum rest."
+      },
+      {
+        "slotId": "2026-03-13|t-night|RN|1",
+        "date": "2026-03-13",
+        "qualificationId": "RN",
+        "blockedBy": {
+          "MIN_REST": 2,
+          "MAX_CONSECUTIVE_DAYS": 12,
+          "MAX_WEEKLY_HOURS": 3
+        },
+        "reason": "Friday 13 March, Night: needs a Registered Nurse. 12 hold this qualification - 12 would work too many days in a row, 3 would exceed weekly hours, 2 would breach minimum rest."
+      }
+    ]
+  },
+  "defaultRosterRules": {
+    "minRestHours": 11,
+    "maxConsecutiveDays": 5,
+    "maxHoursPerWeek": 48
+  }
+}

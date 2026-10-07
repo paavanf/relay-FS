@@ -23,6 +23,16 @@ export function useGenerationJob(jobId, onFinished) {
   const [job, setJob] = useState(null);
   const finishedRef = useRef(false);
 
+  // Callers usually pass an inline function, which is a new function on every
+  // render. If the polling effect depended on it, every render - including the
+  // one each poll result causes - would restart the effect and poll again at
+  // once, skipping the interval entirely. So the latest callback lives in a
+  // ref, and the effect below depends only on which job it is polling.
+  const onFinishedRef = useRef(onFinished);
+  useEffect(() => {
+    onFinishedRef.current = onFinished;
+  }, [onFinished]);
+
   useEffect(() => {
     if (!jobId) return undefined;
 
@@ -39,7 +49,7 @@ export function useGenerationJob(jobId, onFinished) {
         if (isFinished(next.status)) {
           finishedRef.current = true;
           clearInterval(timer);
-          onFinished?.(next);
+          onFinishedRef.current?.(next);
         }
       } catch {
         // A failed poll is not fatal; the next tick tries again. A job that
@@ -54,7 +64,7 @@ export function useGenerationJob(jobId, onFinished) {
       alive = false;
       clearInterval(timer);
     };
-  }, [orgId, jobId, onFinished]);
+  }, [orgId, jobId]);
 
   return job;
 }

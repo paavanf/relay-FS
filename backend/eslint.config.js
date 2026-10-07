@@ -65,4 +65,11 @@ export default [
     files: ['tests/**/*.js'],
     languageOptions: { globals: { ...globals.node } },
   },
+  // Command-line scripts. Printing to the console is their whole job, and the
+  // .mjs ones need the same Node globals as the .js files above.
+  {
+    files: ['scripts/**/*.{js,mjs}'],
+    languageOptions: { globals: { ...globals.node } },
+    rules: { 'no-console': 'off' },
+  },
 ];

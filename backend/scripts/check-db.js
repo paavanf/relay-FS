@@ -13,8 +13,6 @@
 //
 //   npm run db:check        exit code 0 = reachable, 1 = not
 
-/* eslint-disable no-console -- a command-line check: printing is the point */
-
 import mongoose from 'mongoose';
 
 // The same timeout the app uses (src/config/db.js), so this fails exactly as

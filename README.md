@@ -30,7 +30,7 @@ Add `-w backend` / `-w frontend` to target a single workspace.
 
 ## Status
 
-Milestones 0 to 5 are complete:
+Milestones 0 to 5, plus the landing page, are complete:
 
 - **M0 - Foundations** - config, logging, error handling, request context, validation, `GET /api/health`, and the frontend design system (see [frontend/DESIGN.md](frontend/DESIGN.md))
 - **M1 - Auth and multi-tenancy** - argon2id, access/refresh tokens, invites, password reset, account lockout
@@ -38,5 +38,8 @@ Milestones 0 to 5 are complete:
 - **M3 - Constraint engine** - the pure engine in `backend/src/engine/`, with unit and property-based tests
 - **M4 - Roster generation** - greedy construction plus time-boxed local search, run off the main thread as an async job. `npm run evaluate` prints the benchmark table.
 - **M5 - Roster UI** - roster CRUD and assignment endpoints, the roster grid with per-day coverage, manual assignment validated against the same constraint engine the generator uses, the unfilled-slots panel, the publish flow, and My Shifts.
+- **Landing page** - the logged-out home page at `/`, built from the real roster grid, unfilled-slots panel and rule check, fed by real engine output (`cd backend && node scripts/export-landing-fixture.js` regenerates it). It makes no API calls.
+
+Known gap: accepting an invite inside the app is not wired up yet. The backend endpoint exists (`POST /api/v1/orgs/invites/:token/accept`), but the `/invite/:token` page is still a placeholder, so an invited person cannot join from the link.
 
 Not started: the fairness ledger (M6) and swap chains (M7).

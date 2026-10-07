@@ -52,8 +52,10 @@ function toUnfilledDto(slot) {
     shiftTemplateId: slot.shiftTemplateId ? String(slot.shiftTemplateId) : null,
     qualificationId: slot.qualificationId ? String(slot.qualificationId) : null,
     qualifiedCount: slot.qualifiedCount,
-    // Stored as a Map, which does not survive JSON on its own.
-    blockedBy: slot.blockedBy ? Object.fromEntries(slot.blockedBy) : {},
+    // Declared as a Map in the schema, but .lean() above hands it back as a
+    // plain object - and Object.fromEntries() throws on a plain object. Accept
+    // either shape so the reply is always a plain, JSON-safe object.
+    blockedBy: slot.blockedBy instanceof Map ? Object.fromEntries(slot.blockedBy) : { ...slot.blockedBy },
     reason: slot.reason,
   };
 }

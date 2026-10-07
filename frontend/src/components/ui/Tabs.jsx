@@ -4,7 +4,8 @@ import { cn } from '../../lib/utils.js';
 export function Tabs({ tabs, activeTab, onChange }) {
   return (
     <div className="border-b border-line-subtle">
-      <nav className="-mb-px flex gap-6" role="tablist">
+      {/* A tighter gap on phones, so four tabs fit a 375px screen. */}
+      <nav className="-mb-px flex gap-4 sm:gap-6" role="tablist">
         {tabs.map((tab) => {
           const isActive = tab.value === activeTab;
 

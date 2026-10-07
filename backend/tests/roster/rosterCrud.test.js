@@ -141,6 +141,38 @@ describe('rosters', () => {
     expect(res.body).toHaveProperty('unfilledSlots');
   });
 
+  it('returns unfilled slots with the counts of who each rule stopped', async () => {
+    const created = await makeRoster();
+    const rosterId = created.body.roster.id;
+
+    // What the generator writes when it cannot cover a slot. An empty roster
+    // has no unfilled slots, so without this the conversion is never run.
+    await Roster.updateOne(
+      { _id: rosterId },
+      {
+        $set: {
+          unfilledSlots: [
+            {
+              slotId: 'slot-1',
+              date: '2026-03-02',
+              qualifiedCount: 3,
+              blockedBy: { MIN_REST: 2, MAX_WEEKLY_HOURS: 1 },
+              reason: '3 hold this qualification - 2 would breach minimum rest',
+            },
+          ],
+        },
+      },
+    );
+
+    const res = await request(app)
+      .get(`/api/v1/orgs/${orgId}/rosters/${rosterId}`)
+      .set(auth(ownerToken));
+
+    expect(res.status).toBe(200);
+    expect(res.body.unfilledSlots).toHaveLength(1);
+    expect(res.body.unfilledSlots[0].blockedBy).toEqual({ MIN_REST: 2, MAX_WEEKLY_HOURS: 1 });
+  });
+
   it('publishes a draft, and shows it to workers afterwards', async () => {
     const created = await makeRoster();
 

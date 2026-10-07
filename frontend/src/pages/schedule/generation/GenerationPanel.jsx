@@ -27,6 +27,9 @@ export function GenerationPanel({ rosterId, assignmentCount }) {
   const job = useGenerationJob(jobId, (finished) => {
     if (finished.status === 'completed') {
       queryClient.invalidateQueries({ queryKey: ['roster', orgId, rosterId] });
+      // The generator rosters the team as it is now. Someone who joined after
+      // the member list was loaded would get shifts but no row to show them in.
+      queryClient.invalidateQueries({ queryKey: ['members', orgId] });
     }
   });
 

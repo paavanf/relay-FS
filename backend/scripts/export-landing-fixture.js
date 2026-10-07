@@ -13,8 +13,6 @@
 // Deterministic: a fixed seed and an iteration cap, with no wall-clock
 // deadline, so running it twice writes an identical file.
 
-/* eslint-disable no-console -- a command-line tool: printing is the point */
-
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { DEFAULT_ROSTER_RULES } from '../src/config/constants.js';

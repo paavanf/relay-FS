@@ -7,7 +7,7 @@
     "predev": "node scripts/free-port.mjs",
     "dev": "nodemon --watch src --exec \"node --env-file-if-exists=.env src/server.js\"",
     "start": "node --env-file-if-exists=.env src/server.js",
-    "lint": "eslint src/ tests/",
+    "lint": "eslint src/ tests/ scripts/",
     "evaluate": "node scripts/evaluate-generation.js",
     "db:check": "node scripts/check-db.js",
     "test": "vitest run",

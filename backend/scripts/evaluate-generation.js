@@ -11,8 +11,6 @@
 //   npm run evaluate                 baseline numbers
 //   npm run evaluate -- --compare    baseline against a variant, side by side
 
-/* eslint-disable no-console -- a command-line report: printing is the point */
-
 import { generateRoster, evaluate, DEFAULT_WEIGHTS } from '../src/engine/index.js';
 import { SCENARIOS, SEED, MAX_ITERATIONS } from './scenarios.js';
 

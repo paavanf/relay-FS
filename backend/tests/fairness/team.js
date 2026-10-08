@@ -25,7 +25,7 @@ async function join(app, { orgId, ownerToken, name, email }) {
     .set(auth(ownerToken))
     .send({ email, role: 'member' });
   await request(app)
-    .post(`/api/v1/orgs/invites/${invite.body.inviteLink.split('/invite/')[1]}/accept`)
+    .post(`/api/v1/invites/${invite.body.inviteLink.split('/invite/')[1]}/accept`)
     .set(auth(token));
   return token;
 }

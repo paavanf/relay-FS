@@ -1,0 +1,49 @@
+// writeWard.js
+// Stores the demo ward: the organisation, its people, qualifications, shift
+// templates, coverage and availability. The rosters come after, from
+// writeRosters.js, because generating them reads all of this back.
+
+import argon2 from 'argon2';
+import {
+  Organisation,
+  User,
+  Membership,
+  Qualification,
+  ShiftTemplate,
+  CoverageRequirement,
+  Availability,
+} from '../../src/models/index.js';
+import { DEMO_PASSWORD } from './ward.js';
+import {
+  organisationDoc,
+  userDocs,
+  membershipDocs,
+  qualificationDocs,
+  templateDocs,
+  coverageDocs,
+  availabilityDocs,
+} from './wardDocs.js';
+
+export async function writeWard({ anchor }) {
+  await Organisation.create(organisationDoc());
+
+  // Hashed exactly as registration hashes, so logging in cannot tell these
+  // accounts from real ones. One hash serves everyone: the password is shared
+  // and printed anyway, and argon2 is slow on purpose.
+  const passwordHash = await argon2.hash(DEMO_PASSWORD, { type: argon2.argon2id });
+
+  const users = await User.insertMany(userDocs(passwordHash));
+  await Membership.insertMany(membershipDocs(anchor));
+  const qualifications = await Qualification.insertMany(qualificationDocs());
+  const templates = await ShiftTemplate.insertMany(templateDocs());
+  const coverage = await CoverageRequirement.insertMany(coverageDocs(anchor));
+  const availability = await Availability.insertMany(availabilityDocs(anchor));
+
+  return {
+    people: users.length,
+    qualifications: qualifications.length,
+    templates: templates.length,
+    coverage: coverage.length,
+    availability: availability.length,
+  };
+}

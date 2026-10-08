@@ -49,7 +49,7 @@ async function seedOrgWithMember() {
 
   const rawToken = invite.body.inviteLink.split('/invite/')[1];
   memberToken = await signUp('nurse@example.com');
-  await request(app).post(`/api/v1/orgs/invites/${rawToken}/accept`).set(auth(memberToken));
+  await request(app).post(`/api/v1/invites/${rawToken}/accept`).set(auth(memberToken));
 
   const members = await request(app)
     .get(`/api/v1/orgs/${orgId}/members`)

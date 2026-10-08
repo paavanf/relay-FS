@@ -11,6 +11,7 @@
     "evaluate": "node scripts/evaluate-generation.js",
     "evaluate:fairness": "node scripts/evaluate-fairness.js",
     "db:check": "node scripts/check-db.js",
+    "seed:demo": "node scripts/seed-demo.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },

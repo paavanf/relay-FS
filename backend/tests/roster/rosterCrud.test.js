@@ -70,7 +70,7 @@ beforeEach(async () => {
     .set(auth(ownerToken))
     .send({ email: 'nurse@example.com', role: 'member' });
   const token = invite.body.inviteLink.split('/invite/')[1];
-  await request(app).post(`/api/v1/orgs/invites/${token}/accept`).set(auth(workerToken));
+  await request(app).post(`/api/v1/invites/${token}/accept`).set(auth(workerToken));
 
   const members = await request(app)
     .get(`/api/v1/orgs/${orgId}/members`)

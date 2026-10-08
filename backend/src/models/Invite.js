@@ -17,7 +17,8 @@ const inviteSchema = new mongoose.Schema(
     // Who the invite is for. The accepting user's email must match this.
     email: { type: String, required: true, lowercase: true, trim: true, index: true },
 
-    // Owners are never created by invite - an org has exactly one, its creator.
+    // Owners are never created by invite. Ownership is only ever handed on by
+    // an existing owner, from the Team page.
     role: { type: String, enum: [ROLES.MANAGER, ROLES.MEMBER], required: true },
 
     qualificationIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Qualification' }],
@@ -26,6 +27,9 @@ const inviteSchema = new mongoose.Schema(
 
     expiresAt: { type: Date, required: true },
     acceptedAt: { type: Date, default: null },
+    // Set when a manager withdraws it. A revoked invite is as dead as an
+    // expired one, but the record stays so there is a trail.
+    revokedAt: { type: Date, default: null },
 
     // The Membership of whoever sent the invite.
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Membership', required: true },

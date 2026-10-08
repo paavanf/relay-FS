@@ -109,11 +109,11 @@ describe('organisations', () => {
 
     const nurseToken = await signUp('nurse@example.com', 'Nurse');
     const accepted = await request(app)
-      .post(`/api/v1/orgs/invites/${rawToken}/accept`)
+      .post(`/api/v1/invites/${rawToken}/accept`)
       .set(auth(nurseToken));
 
     expect(accepted.status).toBe(201);
-    expect(accepted.body.role).toBe('member');
+    expect(accepted.body.membership.role).toBe('member');
 
     const me = await request(app).get('/api/v1/auth/me').set(auth(nurseToken));
     expect(me.body.memberships[0].orgName).toBe('Ward A');
@@ -135,7 +135,7 @@ describe('organisations', () => {
     const wrongToken = await signUp('someone.else@example.com', 'Interloper');
 
     const res = await request(app)
-      .post(`/api/v1/orgs/invites/${rawToken}/accept`)
+      .post(`/api/v1/invites/${rawToken}/accept`)
       .set(auth(wrongToken));
 
     expect(res.status).toBe(403);
@@ -155,7 +155,7 @@ describe('organisations', () => {
 
     const rawToken = invited.body.inviteLink.split('/invite/')[1];
     const nurseToken = await signUp('nurse@example.com', 'Nurse');
-    await request(app).post(`/api/v1/orgs/invites/${rawToken}/accept`).set(auth(nurseToken));
+    await request(app).post(`/api/v1/invites/${rawToken}/accept`).set(auth(nurseToken));
 
     // Now a member of the org, but only a 'member' - inviting is manager-only.
     const res = await request(app)
@@ -181,11 +181,13 @@ describe('organisations', () => {
     const rawToken = invited.body.inviteLink.split('/invite/')[1];
     const nurseToken = await signUp('nurse@example.com', 'Nurse');
 
-    await request(app).post(`/api/v1/orgs/invites/${rawToken}/accept`).set(auth(nurseToken));
+    await request(app).post(`/api/v1/invites/${rawToken}/accept`).set(auth(nurseToken));
     const second = await request(app)
-      .post(`/api/v1/orgs/invites/${rawToken}/accept`)
+      .post(`/api/v1/invites/${rawToken}/accept`)
       .set(auth(nurseToken));
 
-    expect(second.status).toBe(409);
+    // A used invite answers exactly like any other dead one.
+    expect(second.status).toBe(404);
+    expect(second.body.error.code).toBe('INVITE_INVALID');
   });
 });

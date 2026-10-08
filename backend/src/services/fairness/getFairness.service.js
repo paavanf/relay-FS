@@ -15,6 +15,7 @@ import { FairnessLedger, Membership, User } from '../../models/index.js';
 import { MEMBERSHIP_STATUS } from '../../config/constants.js';
 import { isManagerRole } from '../../utils/roles.js';
 import { sharedFigures, personalFigures } from './fairnessView.js';
+import { MIN_COMPARED_TEAM } from '../../config/fairness.js';
 
 // Org-wide fields only. -_id: not even another row's document id comes back.
 const SHARED_FIELDS = 'windowStart windowEnd teamAverage computedAt -_id';
@@ -23,13 +24,32 @@ export async function getFairness({ orgId, membership }) {
   return isManagerRole(membership.role) ? teamView(orgId) : selfView(orgId, membership._id);
 }
 
+// In a team too small to compare safely (see MIN_COMPARED_TEAM), the average
+// and the worker's deviation from it are left out of the response entirely.
 async function selfView(orgId, membershipId) {
-  const [meta, own] = await Promise.all([
+  const [meta, own, measured] = await Promise.all([
     FairnessLedger.findOne({ orgId }).select(SHARED_FIELDS).lean(),
     FairnessLedger.findOne({ orgId, membershipId }).lean(),
+    FairnessLedger.countDocuments({ orgId, measured: true }),
   ]);
 
-  return { view: 'self', ...sharedFigures(meta), you: own ? personalFigures(own) : null };
+  const comparable = measured >= MIN_COMPARED_TEAM;
+  const { window, computedAt, policy, teamAverage } = sharedFigures(meta);
+  const figures = own ? personalFigures(own) : null;
+
+  return {
+    view: 'self',
+    window,
+    computedAt,
+    policy,
+    comparison: { available: comparable, minimumMeasured: MIN_COMPARED_TEAM },
+    ...(comparable ? { teamAverage } : {}),
+    you: figures && !comparable ? withoutDeviation(figures) : figures,
+  };
+}
+
+function withoutDeviation(figures) {
+  return Object.fromEntries(Object.entries(figures).filter(([key]) => key !== 'deviationPercent'));
 }
 
 async function teamView(orgId) {

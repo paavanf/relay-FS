@@ -5,6 +5,9 @@ import { Router } from 'express';
 import healthRoutes from './health.routes.js';
 import authRoutes from './auth.routes.js';
 import organisationRoutes from './organisation.routes.js';
+import inviteRoutes from './invite.routes.js';
+import orgInviteRoutes from './orgInvite.routes.js';
+import memberRoutes from './member.routes.js';
 import qualificationRoutes from './qualification.routes.js';
 import shiftTemplateRoutes from './shiftTemplate.routes.js';
 import coverageRoutes from './coverage.routes.js';
@@ -19,6 +22,13 @@ const router = Router();
 router.use('/health', healthRoutes);
 router.use('/auth', authRoutes);
 router.use('/orgs', organisationRoutes);
+
+// Invites are found by token, before the person belongs to any organisation.
+router.use('/invites', inviteRoutes);
+
+// The people in an organisation, and the invitations still waiting.
+router.use('/orgs/:orgId/members', memberRoutes);
+router.use('/orgs/:orgId/invites', orgInviteRoutes);
 
 // Rostering configuration, all scoped to one organisation. Each of these
 // routers is created with mergeParams so :orgId from the mount path reaches

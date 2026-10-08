@@ -61,6 +61,8 @@ export const MANAGER_ROLES = Object.freeze([ROLES.OWNER, ROLES.MANAGER]);
 
 export const MEMBERSHIP_STATUS = Object.freeze({
   ACTIVE: 'active',
+  // Deactivated by a manager: kept for history, shut out of everything new.
+  INACTIVE: 'inactive',
   INVITED: 'invited',
   SUSPENDED: 'suspended',
   REMOVED: 'removed',

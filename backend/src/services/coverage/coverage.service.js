@@ -4,6 +4,7 @@
 
 import { CoverageRequirement, ShiftTemplate } from '../../models/index.js';
 import { AppError } from '../../errors/AppError.js';
+import { assertOwnQualifications } from '../qualification/assertOwnQualifications.js';
 
 export async function listCoverage(orgId) {
   return CoverageRequirement.find({ orgId }).sort({ dayOfWeek: 1 }).lean();
@@ -16,6 +17,10 @@ export async function upsertCoverage(orgId, data) {
   // caller could attach a rule to another organisation's shift.
   const template = await ShiftTemplate.findOne({ _id: shiftTemplateId, orgId, active: true });
   if (!template) throw AppError.notFound('Shift template not found');
+
+  // So must every qualification it asks for: a requirement nobody here could
+  // ever hold would leave its slot unfillable for good.
+  await assertOwnQualifications(orgId, requirements.map((r) => r.qualificationId));
 
   // One rule per (template, weekday): replace the requirements if a rule is
   // already there, otherwise create it.

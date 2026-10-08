@@ -8,6 +8,11 @@
 // The ledger looks back over this many days, both ends inclusive: 12 weeks.
 export const FAIRNESS_WINDOW_DAYS = 84;
 
+// Below this many measured people, a worker is not shown the team average. With
+// two, knowing your own figure and the average gives away the other person's
+// exactly; with three or more it no longer pins anyone down.
+export const MIN_COMPARED_TEAM = 3;
+
 export const DEFAULT_FAIRNESS_POLICY = Object.freeze({
   // A shift that starts on a Saturday or Sunday counts this much heavier. Night
   // shifts are not multiplied here: their template's burdenWeight already says

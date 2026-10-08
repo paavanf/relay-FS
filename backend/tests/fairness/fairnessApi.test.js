@@ -64,14 +64,16 @@ describe('fairness API', () => {
     expect(res.body.rows.map((row) => row.name).sort()).toEqual(Object.values(team.names).sort());
   });
 
-  it('gives a worker only their own figures, the average and the window', async () => {
+  it('gives a worker only their own figures and the window', async () => {
     await publishedWeek();
     const res = await fairness(team.tokens.nadia);
 
     expect(res.body.view).toBe('self');
     expect(res.body.you).toMatchObject({ shiftsWorked: 5, shiftCounts: { night: 5 } });
-    expect(res.body.teamAverage.normalisedBurden).toBeGreaterThan(0);
+    expect(res.body.window).toMatchObject({ startDate: '2026-03-02', endDate: '2026-03-08' });
     expect(res.body).not.toHaveProperty('rows');
+    // Only two people are measured here, so the average is withheld too -
+    // smallTeamPrivacy.test.js covers that rule on its own.
 
     // The raw JSON, not the parsed object: nothing about anyone else, anywhere.
     for (const other of ['owner', 'desmond']) {

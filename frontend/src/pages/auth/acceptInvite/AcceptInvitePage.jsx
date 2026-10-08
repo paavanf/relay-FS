@@ -1,42 +1,57 @@
 // AcceptInvitePage - where an invite link lands.
-// Joining an organisation needs endpoints that arrive in a later milestone, so
-// for now this confirms the link was read and says what happens next.
-import { Link, useParams } from 'react-router';
-import { MailCheck } from 'lucide-react';
-import { Badge } from '../../../components/ui/Badge.jsx';
+//
+// Five states, decided in this order:
+//   loading       the invite, and any saved session, are still being looked up
+//   invalid       expired, used, withdrawn or unknown (InviteUnavailable)
+//   signed out    who invited them to what, then Log in or Create account
+//   right person  signed in with the invited address: one button to join
+//   wrong person  signed in as someone else: whose invite it is, and a switch
+//
+// The route sits outside RequireGuest on purpose, so someone already signed
+// in on this browser can still open an invite from their email.
+import { useParams } from 'react-router';
+import { useQuery } from '@tanstack/react-query';
+import { Spinner } from '../../../components/ui/Spinner.jsx';
+import { useAuth } from '../../../features/auth/useAuth.js';
+import { previewInvite } from '../../../features/organisation/api/invites.js';
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle.js';
+import { InviteUnavailable } from './InviteUnavailable.jsx';
+import { InviteSignedOut } from './InviteSignedOut.jsx';
+import { InviteJoin } from './InviteJoin.jsx';
+import { InviteWrongAccount } from './InviteWrongAccount.jsx';
 
 function AcceptInvitePage() {
   const { token } = useParams();
-  useDocumentTitle('Accept invite');
+  const { user, isLoading } = useAuth();
+  useDocumentTitle('Invite');
 
-  return (
-    <div>
-      <MailCheck className="size-5 text-brand-solid" aria-hidden="true" />
+  const preview = useQuery({
+    queryKey: ['invite', token],
+    queryFn: () => previewInvite(token),
+    // A dead link stays dead; asking again would only delay saying so.
+    retry: false,
+  });
 
-      <h1 className="mt-3 text-h1 tracking-[-0.01em] text-content-primary">
-        You have an invite
-      </h1>
-      <p className="mt-1.5 text-sm text-content-secondary">
-        We found your invite link, but joining an organisation is not wired up yet.
+  if (isLoading || preview.isPending) {
+    return (
+      <p role="status" className="flex items-center gap-2 text-body-sm text-content-secondary">
+        <Spinner size="sm" />
+        Checking your invite…
       </p>
+    );
+  }
 
-      <div className="mt-4">
-        <Badge variant="warning">In development</Badge>
-      </div>
+  if (preview.isError) return <InviteUnavailable error={preview.error} onRetry={preview.refetch} />;
 
-      {/* Showing the token confirms the route param is being read correctly. */}
-      <p className="data mt-5 truncate rounded-md border border-line-subtle bg-surface-sunken px-3 py-2 text-xs text-content-tertiary">
-        {token}
-      </p>
+  const invite = preview.data;
 
-      <p className="mt-6 border-t border-line-subtle pt-3 text-body-sm text-content-secondary">
-        <Link to="/login" className="font-medium text-brand-solid hover:text-brand-content">
-          Back to sign in
-        </Link>
-      </p>
-    </div>
-  );
+  if (!user) return <InviteSignedOut invite={invite} token={token} />;
+
+  if (user.email.toLowerCase() === invite.email.toLowerCase()) {
+    return <InviteJoin invite={invite} token={token} onGone={preview.refetch} />;
+  }
+
+  return <InviteWrongAccount invite={invite} userEmail={user.email} />;
 }
 
 export default AcceptInvitePage;

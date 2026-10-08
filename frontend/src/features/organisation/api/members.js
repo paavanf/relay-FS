@@ -1,5 +1,5 @@
 // members.js
-// API calls for an organisation's members and invitations.
+// API calls for an organisation's members. Invitations are in invites.js.
 
 import { api } from '../../../lib/apiClient.js';
 
@@ -8,8 +8,17 @@ export async function listMembers(orgId) {
   return result.members;
 }
 
-// Returns the whole invite, including inviteLink - invites are not emailed
-// yet, so the link is shown in the UI to be shared by hand.
-export async function createInvite(orgId, data) {
-  return api.post(`/orgs/${orgId}/invites`, data);
+/**
+ * changes may hold role, qualificationIds, employmentType and
+ * contractedHoursPerWeek. The server decides who may change what: only an
+ * owner can change a role, and the last owner can never stop being one.
+ */
+export async function updateMember(orgId, membershipId, changes) {
+  const result = await api.patch(`/orgs/${orgId}/members/${membershipId}`, changes);
+  return result.member;
+}
+
+/** A soft deactivation. Returns { member, removedDraftShifts }. */
+export async function deactivateMember(orgId, membershipId) {
+  return api.delete(`/orgs/${orgId}/members/${membershipId}`);
 }

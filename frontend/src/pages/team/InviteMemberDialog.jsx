@@ -1,30 +1,22 @@
 // InviteMemberDialog - invites someone by email, with a role and the
 // qualifications they hold.
 //
-// On success the dialog stays open to show the link, since it is not emailed
-// and this is the only chance to copy it.
+// On success the dialog stays open to show the link: it may not have been
+// emailed, and this is the only time the server ever sends it. It is also
+// kept for this tab (inviteLinks.js), so Pending invites can copy it again.
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  DialogDescription,
-} from '../../components/ui/dialog/index.js';
-import { Input } from '../../components/ui/Input.jsx';
-import { Select } from '../../components/ui/Select.jsx';
+import { Dialog, DialogPanel, DialogTitle, DialogDescription } from '../../components/ui/dialog/index.js';
 import { Button } from '../../components/ui/Button.jsx';
-import { QualificationPicker } from './QualificationPicker.jsx';
+import { InviteMemberForm } from './InviteMemberForm.jsx';
 import { InviteLinkResult } from './InviteLinkResult.jsx';
-import { createInvite } from '../../features/organisation/api/members.js';
+import { createInvite } from '../../features/organisation/api/invites.js';
+import { rememberInviteLink } from '../../features/organisation/inviteLinks.js';
 import { listQualifications } from '../../features/catalog/api/qualifications.js';
 import { useOrg } from '../../features/organisation/useOrg.js';
 import { useToast } from '../../components/ui/toast/useToast.js';
 
 export function InviteMemberDialog({ onClose }) {
-  const [email, setEmail] = useState('');
-  const [role, setRole] = useState('member');
-  const [qualificationIds, setQualificationIds] = useState([]);
   const [invite, setInvite] = useState(null);
 
   const { orgId } = useOrg();
@@ -39,21 +31,17 @@ export function InviteMemberDialog({ onClose }) {
   const mutation = useMutation({
     mutationFn: (data) => createInvite(orgId, data),
     onSuccess: (result) => {
+      rememberInviteLink(result.inviteId, result.inviteLink);
       setInvite(result);
-      queryClient.invalidateQueries({ queryKey: ['members', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['invites', orgId] });
       showToast({ type: 'success', title: 'Invite created' });
     },
     onError: (err) => showToast({ type: 'error', title: 'Could not invite', message: err.message }),
   });
 
-  function handleSubmit(event) {
-    event.preventDefault();
-    mutation.mutate({ email, role, qualificationIds });
-  }
-
   return (
     <Dialog isOpen onClose={onClose}>
-      <DialogPanel>
+      <DialogPanel className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <div className="border-b border-line-subtle px-5 py-4">
           <DialogTitle>Invite a member</DialogTitle>
           <DialogDescription>
@@ -62,49 +50,21 @@ export function InviteMemberDialog({ onClose }) {
         </div>
 
         {invite ? (
-          <div className="px-5 py-4">
-            <InviteLinkResult invite={invite} />
-          </div>
+          <>
+            <div className="px-5 py-4">
+              <InviteLinkResult invite={invite} />
+            </div>
+            <div className="flex justify-end border-t border-line-subtle px-5 py-3">
+              <Button onClick={onClose}>Done</Button>
+            </div>
+          </>
         ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-4 px-5 py-4">
-              <Input
-                label="Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="nurse@example.com"
-                autoFocus
-                required
-              />
-
-              <Select label="Role" value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="member">Member</option>
-                <option value="manager">Manager</option>
-              </Select>
-
-              <QualificationPicker
-                qualifications={qualifications.data ?? []}
-                selected={qualificationIds}
-                onChange={setQualificationIds}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 border-t border-line-subtle px-5 py-3">
-              <Button type="button" variant="secondary" onClick={onClose} disabled={mutation.isPending}>
-                Cancel
-              </Button>
-              <Button type="submit" isLoading={mutation.isPending}>
-                Create invite
-              </Button>
-            </div>
-          </form>
-        )}
-
-        {invite && (
-          <div className="flex justify-end border-t border-line-subtle px-5 py-3">
-            <Button onClick={onClose}>Done</Button>
-          </div>
+          <InviteMemberForm
+            qualifications={qualifications.data ?? []}
+            isSending={mutation.isPending}
+            onSubmit={mutation.mutate}
+            onCancel={onClose}
+          />
         )}
       </DialogPanel>
     </Dialog>

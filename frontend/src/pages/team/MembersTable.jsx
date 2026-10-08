@@ -1,57 +1,40 @@
-// MembersTable - who is in the organisation.
-// No edit actions yet; changing roles comes in a later milestone.
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '../../components/ui/table/index.js';
-import { Avatar } from '../../components/ui/Avatar.jsx';
-import { Badge } from '../../components/ui/Badge.jsx';
-import { formatDate } from '../../lib/formatDate.js';
+// MembersTable - who is in the organisation, what each person is qualified
+// for and contracted to work, with Edit and Deactivate per row.
+//
+// canDeactivate only decides which buttons appear. The server checks every
+// change again, whatever the page shows.
+import { Table, TableHeader, TableBody, TableRow, TableHead } from '../../components/ui/table/index.js';
+import { MemberRow } from './MemberRow.jsx';
 
-// Owner is highlighted because there is exactly one and it matters.
-const roleVariant = { owner: 'brand', manager: 'info', member: 'neutral' };
+export function MembersTable({ members, qualifications, canDeactivate, onEdit, onDeactivate }) {
+  const codes = new Map(qualifications.map((q) => [q._id, q.code]));
+  const codeOf = (id) => codes.get(id);
 
-export function MembersTable({ members }) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
-          <TableHead>Email</TableHead>
           <TableHead>Role</TableHead>
-          <TableHead>Employment</TableHead>
+          <TableHead>Qualifications</TableHead>
+          <TableHead>Contract</TableHead>
           <TableHead>Joined</TableHead>
+          <TableHead>
+            <span className="sr-only">Actions</span>
+          </TableHead>
         </TableRow>
       </TableHeader>
 
       <TableBody>
         {members.map((member) => (
-          <TableRow key={member.id}>
-            <TableCell>
-              <div className="flex items-center gap-2.5">
-                <Avatar name={member.name} size="sm" />
-                <span className="font-medium">{member.name}</span>
-              </div>
-            </TableCell>
-
-            <TableCell className="text-content-secondary">{member.email}</TableCell>
-
-            <TableCell>
-              <Badge variant={roleVariant[member.role] ?? 'neutral'} className="capitalize">
-                {member.role}
-              </Badge>
-            </TableCell>
-
-            <TableCell className="text-content-secondary capitalize">
-              {member.employmentType ?? '—'}
-            </TableCell>
-
-            <TableCell numeric>{formatDate(member.joinedAt) || '—'}</TableCell>
-          </TableRow>
+          <MemberRow
+            key={member.id}
+            member={member}
+            codeOf={codeOf}
+            canDeactivate={canDeactivate(member)}
+            onEdit={onEdit}
+            onDeactivate={onDeactivate}
+          />
         ))}
       </TableBody>
     </Table>

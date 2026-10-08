@@ -3,12 +3,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  DialogDescription,
-} from '../../../components/ui/dialog/index.js';
+import { Dialog, DialogPanel, DialogTitle, DialogDescription } from '../../../components/ui/dialog/index.js';
 import { CreateOrgForm } from './CreateOrgForm.jsx';
 import { createOrg } from '../../../features/organisation/api/createOrg.js';
 import { useAuth } from '../../../features/auth/useAuth.js';
@@ -37,15 +32,12 @@ function CreateOrgDialog({ isOpen, onClose }) {
       addMembership({
         orgId: result.id,
         orgName: result.name,
+        orgTimezone: result.timezone,
         role: 'owner',
         qualificationIds: [],
       });
 
-      showToast({
-        type: 'success',
-        title: 'Organisation created',
-        message: `You are the owner of ${result.name}.`,
-      });
+      showToast({ type: 'success', title: 'Organisation created', message: `You are the owner of ${result.name}.` });
 
       setName('');
       onClose();

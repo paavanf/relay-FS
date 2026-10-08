@@ -2,59 +2,36 @@
 // Plain useState, no form library: easier to read while learning.
 //
 // Failures are shown inline rather than as a toast, because the thing that
-// went wrong is a property of this form. A 429 gets special treatment: after
-// too many wrong passwords the account itself is locked, so the button stays
-// disabled until the wait named in the message has elapsed.
+// went wrong is a property of this form. useLoginAttempt does the signing in
+// and sends the user on - to a safe ?next= such as an invite, or the app.
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation } from 'react-router';
 import { Input } from '../../../components/ui/Input.jsx';
 import { PasswordInput } from '../../../components/ui/PasswordInput.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { LoginError } from './LoginError.jsx';
-import { useAuth } from '../../../features/auth/useAuth.js';
-import { useCountdown } from '../../../hooks/useCountdown.js';
-import { parseLockoutSeconds, formatWait } from './lockoutWait.js';
-
-const GENERIC_FAILURE = 'Invalid email or password.';
+import { useLoginAttempt } from './useLoginAttempt.js';
+import { useReturnPath } from '../../../features/auth/useReturnPath.js';
+import { formatWait } from './lockoutWait.js';
 
 export function LoginForm() {
   const location = useLocation();
+  const { next, email: invitedEmail } = useReturnPath();
 
-  // Someone arriving straight from the register page brings their email with
-  // them, so they don't have to type it twice.
-  const prefillEmail = location.state?.prefillEmail || '';
+  // Someone arriving from the register page brings their email with them,
+  // and an invite link brings the address it was sent to, so neither has to
+  // type it again.
+  const prefillEmail = location.state?.prefillEmail || invitedEmail;
 
   const [email, setEmail] = useState(prefillEmail);
   const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
-
-  const { login } = useAuth();
-  const { secondsLeft, start } = useCountdown();
-  const navigate = useNavigate();
+  const { attempt, isSubmitting, errorMessage, secondsLeft } = useLoginAttempt(next);
 
   const isLockedOut = secondsLeft > 0;
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage(null);
-
-    try {
-      await login(email, password);
-      navigate('/app');
-    } catch (err) {
-      const isRateLimited = err.status === 429;
-
-      // Only a rate-limited response carries a real reason worth repeating.
-      // Anything else stays generic, so a failed login never hints at
-      // whether the email exists.
-      setErrorMessage(isRateLimited ? err.message : GENERIC_FAILURE);
-
-      if (isRateLimited) start(parseLockoutSeconds(err.message));
-    } finally {
-      setIsSubmitting(false);
-    }
+    attempt(email, password);
   }
 
   return (
@@ -77,7 +54,7 @@ export function LoginForm() {
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Your password"
         autoComplete="current-password"
-        // A pre-filled email means they just registered - focus the password.
+        // A pre-filled email means the password is all that is left to type.
         autoFocus={Boolean(prefillEmail)}
         required
       />

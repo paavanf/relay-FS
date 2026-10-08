@@ -47,9 +47,14 @@ export function formatWindow(window) {
   return `${start.toFormat(sameYear ? 'd LLL' : 'd LLL yyyy')} – ${end.toFormat(sameYear ? 'd LLL' : 'd LLL yyyy')}`;
 }
 
+/** "the 4 weeks to 11 Oct" */
+function spanOf(window) {
+  return `the ${windowLength(window)} to ${DateTime.fromISO(window.endDate, { zone: 'utc' }).toFormat('d LLL')}`;
+}
+
 /** The one sentence a worker reads first. */
 export function summarySentence(you, window) {
-  const span = `the ${windowLength(window)} to ${DateTime.fromISO(window.endDate, { zone: 'utc' }).toFormat('d LLL')}`;
+  const span = spanOf(window);
   if (!you?.measured) return `You have no shifts in ${span}, so there is nothing to compare yet.`;
 
   const standing = standingOf(you.deviationPercent);
@@ -57,4 +62,13 @@ export function summarySentence(you, window) {
 
   const amount = Math.abs(Math.round(you.deviationPercent));
   return `Over ${span}, you have carried ${amount}% ${standing === 'over' ? 'more' : 'less'} than the team average.`;
+}
+
+/** The sentence a worker reads first when the team is too small to compare with. */
+export function ownShiftsSentence(you, window) {
+  const span = spanOf(window);
+  if (!you?.measured) return `You have no shifts in ${span}.`;
+
+  const shifts = `${you.shiftsWorked} ${you.shiftsWorked === 1 ? 'shift' : 'shifts'}`;
+  return `Over ${span}, you have worked ${shifts}, ${formatHours(you.hoursWorked)} hours in all.`;
 }

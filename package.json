@@ -11,7 +11,7 @@
     "dev": "concurrently -n backend,frontend -c blue,magenta \"npm run dev -w backend\" \"npm run dev -w frontend\"",
     "lint": "npm run lint -w backend && npm run lint -w frontend",
     "build": "npm run build -w frontend",
-    "test": "npm run test -w backend"
+    "test": "npm run test -w backend && npm run test -w frontend"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

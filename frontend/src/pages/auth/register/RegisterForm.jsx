@@ -1,58 +1,27 @@
 // RegisterForm.jsx - name, email, and password form.
-// Creating an account does not sign you in: on success we send the user to
-// the login page, passing their email along so it can be pre-filled there.
+// useRegistration creates the account and moves on to the login page. An
+// invite link arrives with the address it was sent to, pre-filled here.
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { Input } from '../../../components/ui/Input.jsx';
 import { PasswordInput } from '../../../components/ui/PasswordInput.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { Callout, calloutLinkStyles } from '../../../components/ui/Callout.jsx';
-import { useAuth } from '../../../features/auth/useAuth.js';
-import { useToast } from '../../../components/ui/toast/useToast.js';
-
-const DUPLICATE_MESSAGE = 'This email is already registered. Try logging in instead.';
+import { useRegistration, DUPLICATE_MESSAGE } from './useRegistration.js';
+import { useReturnPath } from '../../../features/auth/useReturnPath.js';
+import { authPath } from '../../../lib/returnPath.js';
 
 export function RegisterForm() {
+  const { next, email: invitedEmail } = useReturnPath();
+
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(invitedEmail);
   const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { submit, isSubmitting, isDuplicate } = useRegistration(next);
 
-  // Set when the API reports the email is taken (409), so we can offer a
-  // route out instead of just an error.
-  const [isDuplicate, setIsDuplicate] = useState(false);
-
-  const { register } = useAuth();
-  const { showToast } = useToast();
-  const navigate = useNavigate();
-
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault();
-    setIsSubmitting(true);
-    setIsDuplicate(false);
-
-    try {
-      await register(name, email, password);
-
-      showToast({
-        type: 'success',
-        title: 'Account created',
-        message: 'Please log in with your new account',
-      });
-
-      navigate('/login', { state: { prefillEmail: email } });
-    } catch (err) {
-      const duplicate = err.status === 409;
-      setIsDuplicate(duplicate);
-
-      showToast({
-        type: 'error',
-        title: duplicate ? 'Email already registered' : 'Signup failed',
-        message: duplicate ? DUPLICATE_MESSAGE : err.message || 'Something went wrong',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    submit({ name, email, password });
   }
 
   return (
@@ -63,6 +32,7 @@ export function RegisterForm() {
         onChange={(e) => setName(e.target.value)}
         placeholder="Ana Ramirez"
         autoComplete="name"
+        autoFocus={Boolean(invitedEmail)}
         required
       />
 
@@ -80,7 +50,7 @@ export function RegisterForm() {
       {isDuplicate && (
         <Callout variant="warning">
           Already have an account?{' '}
-          <Link to="/login" state={{ prefillEmail: email }} className={calloutLinkStyles}>
+          <Link to={authPath('/login', { next })} state={{ prefillEmail: email }} className={calloutLinkStyles}>
             Log in instead
           </Link>
         </Callout>

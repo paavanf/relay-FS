@@ -24,8 +24,13 @@ export function useAssignMutations({ rosterId, onDone }) {
     onDone?.();
   }
 
-  const onError = (err) =>
+  // A refused save usually means this grid is out of date - another manager
+  // filled the cell a moment ago. Refetching shows what is really there, so
+  // the reason in the toast points at a shift the manager can now see.
+  const onError = (err) => {
+    queryClient.invalidateQueries({ queryKey: ['roster', orgId, rosterId] });
     showToast({ type: 'error', title: 'Could not save', message: err.message });
+  };
 
   const saving = useMutation({
     mutationFn: ({ assignment, membershipId, shiftTemplateId, date }) =>

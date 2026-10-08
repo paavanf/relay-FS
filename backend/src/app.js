@@ -43,6 +43,11 @@ export function createApp() {
     max: RATE_LIMIT.max,
     standardHeaders: true,
     legacyHeaders: false,
+    // Off in test mode, like the auth limiter: an automated run drives the
+    // whole API from one address, and the end-to-end suite makes more than
+    // 300 requests in a run, so it would fail on 429s that say nothing about
+    // the code under test.
+    skip: () => env.isTest,
   });
 
   // Unversioned liveness probe. Kept at /api/health so uptime checks and the

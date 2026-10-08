@@ -22,6 +22,8 @@ export function PublishButton({ roster, assignmentCount, unfilledCount }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rosters', orgId] });
       queryClient.invalidateQueries({ queryKey: ['roster', orgId, roster.id] });
+      // Publishing recomputes the fairness ledger on the server.
+      queryClient.invalidateQueries({ queryKey: ['fairness', orgId] });
       setIsOpen(false);
       showToast({ type: 'success', title: 'Roster published' });
     },

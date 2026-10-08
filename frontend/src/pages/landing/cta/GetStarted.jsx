@@ -1,8 +1,9 @@
-// GetStarted - the closing call to action, and the one honest line about
-// what is not built yet.
+// GetStarted - the closing call to action, and the honest line about what is
+// built and what is not.
 //
-// Swaps and the fairness ledger are named here, clearly labelled, and
-// nowhere else on the page: they are planned, not shipped.
+// Fairness shipped in Milestone 6 and is described by exactly what it does.
+// Swaps are named here as in development, and nowhere else on the page: they
+// are planned, not shipped.
 import { ButtonLink } from '../../../components/ui/ButtonLink.jsx';
 import { LandingSection } from '../LandingSection.jsx';
 
@@ -22,10 +23,16 @@ export function GetStarted() {
         </ButtonLink>
       </div>
 
-      <p className="mt-12 max-w-2xl border-t border-line-subtle pt-4 text-body-sm text-content-tertiary">
-        <span className="font-medium text-content-secondary">In development:</span> shift swaps,
-        and a fairness ledger that tracks who has worked the nights and weekends over time.
-      </p>
+      <div className="mt-12 max-w-2xl space-y-2 border-t border-line-subtle pt-4 text-body-sm text-content-tertiary">
+        <p>
+          <span className="font-medium text-content-secondary">Fairness:</span> everyone can see how their share of
+          the nights, evenings and weekends over the last 12 weeks compares with the team average, and the
+          generator steers the heaviest shifts away from anyone above it.
+        </p>
+        <p>
+          <span className="font-medium text-content-secondary">In development:</span> shift swaps.
+        </p>
+      </div>
     </LandingSection>
   );
 }

@@ -21,7 +21,9 @@ export function TopBar({ onOpenNav }) {
         <OrgSwitcher />
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* Never squeezed: on a phone it is the organisation name that gives
+          way, truncating, rather than these controls sliding over it. */}
+      <div className="flex shrink-0 items-center gap-2">
         <ThemeToggle />
         <UserMenu />
       </div>

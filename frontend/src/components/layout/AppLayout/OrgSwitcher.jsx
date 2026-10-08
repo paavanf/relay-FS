@@ -17,7 +17,9 @@ export function OrgSwitcher() {
   }
 
   return (
-    <div className="relative flex items-center gap-2 rounded-md px-2 py-1 hover:bg-surface-hover">
+    // min-w-0 lets this shrink inside the top bar, so a long name truncates
+    // instead of running underneath the buttons beside it.
+    <div className="relative flex min-w-0 items-center gap-2 rounded-md px-2 py-1 hover:bg-surface-hover">
       <div className="min-w-0">
         <p className="truncate text-body-sm font-medium text-content-primary">{orgName}</p>
         <p className="truncate text-xs text-content-tertiary capitalize">{role}</p>

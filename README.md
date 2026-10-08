@@ -30,7 +30,7 @@ Add `-w backend` / `-w frontend` to target a single workspace.
 
 ## Status
 
-Milestones 0 to 5, plus the landing page, are complete:
+Milestones 0 to 6, plus the landing page, are complete:
 
 - **M0 - Foundations** - config, logging, error handling, request context, validation, `GET /api/health`, and the frontend design system (see [frontend/DESIGN.md](frontend/DESIGN.md))
 - **M1 - Auth and multi-tenancy** - argon2id, access/refresh tokens, invites, password reset, account lockout
@@ -38,8 +38,25 @@ Milestones 0 to 5, plus the landing page, are complete:
 - **M3 - Constraint engine** - the pure engine in `backend/src/engine/`, with unit and property-based tests
 - **M4 - Roster generation** - greedy construction plus time-boxed local search, run off the main thread as an async job. `npm run evaluate` prints the benchmark table.
 - **M5 - Roster UI** - roster CRUD and assignment endpoints, the roster grid with per-day coverage, manual assignment validated against the same constraint engine the generator uses, the unfilled-slots panel, the publish flow, and My Shifts.
+- **M6 - Fairness ledger** - the pure ledger in `backend/src/engine/fairness/`: each member's burden over the last 12 weeks of published rosters (weekend shifts weighted 1.5x, compared per full-time week so a part-timer is not measured against a full-timer's total), recomputed from scratch whenever a roster is published, and fed back into the generator as fairness debt. The Fairness page shows managers every member, and everyone else only themselves against the team average - enforced on the server. `npm run evaluate:fairness` prints the table below.
 - **Landing page** - the logged-out home page at `/`, built from the real roster grid, unfilled-slots panel and rule check, fed by real engine output (`cd backend && node scripts/export-landing-fixture.js` regenerates it). It makes no API calls.
 
-Known gap: accepting an invite inside the app is not wired up yet. The backend endpoint exists (`POST /api/v1/orgs/invites/:token/accept`), but the `/invite/:token` page is still a placeholder, so an invited person cannot join from the link.
+Known gaps:
 
-Not started: the fairness ledger (M6) and swap chains (M7).
+- Accepting an invite inside the app is not wired up yet. The backend endpoint exists (`POST /api/v1/orgs/invites/:token/accept`), but the `/invite/:token` page is still a placeholder, so an invited person cannot join from the link.
+- Contracted hours are not captured anywhere yet, so the fairness ledger measures everyone against a 40-hour week. Fair comparison of part-timers needs that field to be editable.
+
+Not started: swap chains (M7).
+
+### Fairness convergence (generated scenario)
+
+The 40-person ward from `backend/scripts/scenarios.js`, rostered for four consecutive 14-day periods. After each period its roster is treated as published history and the resulting fairness debt is fed into the next, exactly as the app does. Both runs use the same seeds; the spread is the standard deviation and the max - min of normalised burden (burden per full-time week) over all history so far. Every slot was filled in every period, both ways.
+
+| Period | Feedback on: std dev | max - min | Feedback off: std dev | max - min |
+| --- | ---: | ---: | ---: | ---: |
+| 1 (2 - 15 Mar 2026) | 0.573 | 2.507 | 0.573 | 2.507 |
+| 2 (16 - 29 Mar) | 0.378 | 2.227 | 0.441 | 2.040 |
+| 3 (30 Mar - 12 Apr) | 0.302 | 1.316 | 0.431 | 2.116 |
+| 4 (13 - 26 Apr) | 0.220 | 1.020 | 0.407 | 1.687 |
+
+With feedback the spread narrows every period, ending at 54% of the spread without it, and does not oscillate. It works by making each new roster deliberately uneven in favour of whoever carried less before, so in the first corrected period 5 of the 40 people swing from more than 5% over the average to more than 5% under; after that, one per period. These are generated scenarios, not data from a real ward.

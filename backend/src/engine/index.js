@@ -17,5 +17,18 @@ export { DEFAULT_WEIGHTS, resolveWeights } from './scheduling/weights.js';
 export { expandDemand, shiftInstants } from './scheduling/expandDemand.js';
 export { scoreRoster } from './scheduling/objective.js';
 
+// The fairness ledger (Milestone 6). Published assignments in, one row per
+// worker out, plus the debt map the generator reads - the window end is
+// passed in, so this reads no clock either.
+export {
+  burdenOf,
+  isWeekendShift,
+  fairnessWindow,
+  windowBefore,
+  clampWindowStart,
+  computeLedger,
+  toFairnessDebt,
+} from './fairness/index.js';
+
 // Type definitions (JSDoc only - no runtime code).
 export * from './types.js';

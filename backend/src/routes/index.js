@@ -12,6 +12,7 @@ import availabilityRoutes from './availability.routes.js';
 import rosterRoutes from './roster.routes.js';
 import jobRoutes from './job.routes.js';
 import assignmentRoutes from './assignment.routes.js';
+import fairnessRoutes from './fairness.routes.js';
 
 const router = Router();
 
@@ -31,5 +32,8 @@ router.use('/orgs/:orgId/availability', availabilityRoutes);
 router.use('/orgs/:orgId/rosters', rosterRoutes);
 router.use('/orgs/:orgId/jobs', jobRoutes);
 router.use('/orgs/:orgId/assignments', assignmentRoutes);
+
+// Who has been carrying the nights and weekends (Milestone 6).
+router.use('/orgs/:orgId/fairness', fairnessRoutes);
 
 export default router;

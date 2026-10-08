@@ -3,7 +3,7 @@
 // `import { User, Membership } from '../../models/index.js'`.
 //
 // Models arrive milestone by milestone. The swap models (SwapRequest,
-// SwapChain) and the fairness ledger are still stubs.
+// SwapChain), notifications and the audit log are still stubs.
 
 export { User } from './User.js';
 export { Organisation } from './Organisation.js';
@@ -24,3 +24,6 @@ export { Availability } from './Availability.js';
 export { Roster } from './Roster.js';
 export { Assignment } from './Assignment.js';
 export { GenerationJob } from './GenerationJob.js';
+
+// Who has been carrying the nights and weekends (Milestone 6).
+export { FairnessLedger } from './FairnessLedger.js';

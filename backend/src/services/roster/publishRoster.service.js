@@ -8,6 +8,7 @@
 import { Roster } from '../../models/index.js';
 import { AppError } from '../../errors/AppError.js';
 import { toSummary } from './listRosters.service.js';
+import { refreshLedgerSafely } from '../fairness/index.js';
 
 export async function publishRoster({ orgId, rosterId }) {
   const roster = await Roster.findOne({ _id: rosterId, orgId });
@@ -20,6 +21,11 @@ export async function publishRoster({ orgId, rosterId }) {
   roster.status = 'published';
   roster.publishedAt = new Date();
   await roster.save();
+
+  // Published work is what the fairness ledger measures, so it is rebuilt
+  // now. This never throws: a failed recompute leaves a stale number, never
+  // an unpublished roster.
+  await refreshLedgerSafely(orgId);
 
   return toSummary(roster.toObject());
 }

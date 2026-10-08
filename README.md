@@ -25,6 +25,7 @@ npm run dev                            # backend :4917 + frontend :5173
 | `npm run build` | Production build of the frontend |
 | `npm run lint` | ESLint across both workspaces |
 | `npm test` | Backend tests (Vitest + mongodb-memory-server), then the frontend's unit tests |
+| `npm run e2e` | End-to-end suite in a real browser, against an in-memory database (see below) |
 
 Add `-w backend` / `-w frontend` to target a single workspace.
 
@@ -38,6 +39,22 @@ Add `-w backend` / `-w frontend` to target a single workspace.
 4. Switch `MONGODB_URI` back to `relay-dev` when you are done.
 
 The script refuses to run unless the database name ends in `-demo`, and without `--yes`. Each run deletes the previous run's demo ward - found by its fixed id, never by anything other data could share - and builds it again, so rerunning is safe. The data is the same on every run; only the dates move, so the history always ends with the current week.
+
+## End-to-end tests
+
+`e2e/` drives the real app in a browser with Playwright: the built frontend (`npm run build`, served by `npm run preview`) and the backend, both on free ports, against an **in-memory** MongoDB that the demo seed fills. It never touches Atlas, `relay-dev` or `relay-demo`. It covers the Milestone 5 and 6 checklist - polling, illegal assignments, privacy of the raw JSON, two managers saving at once, keyboard use, publishing with holes, the fairness numbers, every page's console, and phone widths - and takes screenshots for a person to review. It is not in CI yet; run it locally before each milestone.
+
+```bash
+npm install --prefix e2e   # once
+npm run e2e                # build, start everything, run, tear it all down (about 5 minutes)
+```
+
+- It uses the Microsoft Edge already on the machine. Without Edge: `npx --prefix e2e playwright install chromium`, then run with `E2E_CHANNEL=chromium`.
+- `E2E_SKIP_BUILD=1` reuses the last `frontend/dist`, which is quicker while working on specs.
+- One spec: `npm run e2e -- specs/07-polling.spec.js`.
+- Everything it produces lands in `e2e/artifacts/`, which git ignores: the HTML report (`report/index.html`), `screenshots/`, measured figures in `numbers/`, and each server's log in `logs/`.
+- The specs share one seeded database and run in file order: read-only checks first, then the ones that change data, publishing last. There are no retries - a flaky test should be explained, not repeated.
+- Run one at a time. Playwright empties `e2e/artifacts/test-results/` as each run starts, so a second run started alongside deletes the first one's traces mid-test.
 
 ## Status
 

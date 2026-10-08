@@ -24,3 +24,8 @@ frontend/coverage/
 npm-debug.log*
 .DS_Store
 .vite/
+
+# End-to-end test output: screenshots, traces, reports and server logs.
+# Anchored like the entries above, so it can only ever match this one folder,
+# never a source directory that happens to share its name.
+/e2e/artifacts/

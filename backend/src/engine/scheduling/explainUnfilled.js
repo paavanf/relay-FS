@@ -13,16 +13,25 @@
 
 import { DateTime } from 'luxon';
 
-// Violation codes as a person would say them.
+// Violation codes as a person would say them. Most read the same for any
+// count; the two that start with "is" need "are" for more than one person -
+// "1 is unavailable", but "3 are unavailable".
 const REASONS = {
   MIN_REST: 'would breach minimum rest',
   MAX_WEEKLY_HOURS: 'would exceed weekly hours',
   MAX_CONSECUTIVE_DAYS: 'would work too many days in a row',
   DOUBLE_BOOKED: 'already on another shift then',
-  DECLARED_UNAVAILABLE: 'is unavailable',
-  QUALIFICATION_MISMATCH: 'is not qualified for this shift',
+  DECLARED_UNAVAILABLE: { one: 'is unavailable', many: 'are unavailable' },
+  QUALIFICATION_MISMATCH: { one: 'is not qualified for this shift', many: 'are not qualified for this shift' },
   MALFORMED_ASSIGNMENT: 'could not be evaluated',
 };
+
+function reasonFor(code, count) {
+  const reason = REASONS[code];
+  if (reason === undefined) return `blocked by ${code}`;
+  if (typeof reason === 'string') return reason;
+  return count === 1 ? reason.one : reason.many;
+}
 
 export function describeUnfilled({ slot, qualifiedCount, blockedBy }) {
   return {
@@ -47,7 +56,7 @@ function buildSentence({ slot, qualifiedCount, blockedBy }) {
   const holds = `${qualifiedCount} ${qualifiedCount === 1 ? 'holds' : 'hold'} this qualification`;
   const blocks = Object.entries(blockedBy)
     .sort(([, a], [, b]) => b - a)
-    .map(([code, count]) => `${count} ${REASONS[code] ?? `blocked by ${code}`}`);
+    .map(([code, count]) => `${count} ${reasonFor(code, count)}`);
 
   if (blocks.length === 0) {
     return `${need} ${holds}, but none were available.`;

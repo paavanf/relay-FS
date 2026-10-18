@@ -17,6 +17,10 @@ npm run dev                            # backend :4917 + frontend :5173
 
 `/api` is proxied from the Vite dev server to the backend, so the frontend calls relative paths.
 
+### If the database is paused
+
+Atlas pauses a free cluster after 30 days without connections, and the API then fails to reach it. In Atlas, open **Database** and click **Resume** on the cluster; it can take a few minutes to accept connections afterwards. Then run `cd backend && npm run db:check` - a read-only check that connects, reports whether the cluster is a replica set, lists the collections with their counts (add `-- relay-demo` to list the demo database too), and explains any failure in plain English.
+
 ## Scripts
 
 | Command | What it does |

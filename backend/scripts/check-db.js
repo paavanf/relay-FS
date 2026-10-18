@@ -11,7 +11,9 @@
 // It never prints the connection string. The credentials and hosts taken from
 // it are scrubbed out of any error message before that message is shown.
 //
-//   npm run db:check        exit code 0 = reachable, 1 = not
+//   npm run db:check                 exit code 0 = reachable, 1 = not
+//   npm run db:check -- relay-demo   also lists another database on the same
+//                                    cluster, over the same read-only connection
 
 import mongoose from 'mongoose';
 
@@ -43,12 +45,27 @@ const CAUSES = [
     ],
   },
   {
-    match: /Server selection|ServerSelection|whitelist|\bIP\b|timed out/,
-    cause: 'Your current IP address is not on the Atlas access list, or the cluster is paused.',
+    // The servers answered but refused the secure handshake. Atlas does this
+    // to an address that is not on the cluster's access list, so it comes
+    // before the general timeout below, which it would otherwise match too.
+    match: /alert internal error|SSL alert number 80/,
+    cause: 'The cluster refused this computer\'s secure connection. On Atlas that almost always means your current IP address is not on the access list; it can also happen while the cluster is still paused.',
     fix: [
-      'Atlas -> Network Access -> Add IP Address -> Add Current IP Address.',
-      'Atlas -> Clusters -> if the cluster shows Paused, click Resume and wait for it to start.',
-      'Then run npm run db:check again.',
+      'Atlas -> Network Access -> Add IP Address -> Add Current IP Address. Your address has probably changed since you last connected.',
+      'Atlas -> Database: check the cluster shows Active, not Paused or Resuming. If it shows Paused, click Resume.',
+      'Wait a minute for the change to apply, then run npm run db:check again.',
+    ],
+  },
+  {
+    // Atlas pauses a free cluster after 30 days without connections. Right
+    // after Resume it can take a few minutes to accept them, which looks
+    // exactly like this - hence the wait as the first step.
+    match: /Server selection|ServerSelection|ReplicaSetNoPrimary|whitelist|\bIP\b|timed out/,
+    cause: 'The cluster is still resuming, is still paused, or your current IP address is not allowed.',
+    fix: [
+      'Wait 5 minutes and run npm run db:check again - a cluster that has just been resumed takes a few minutes to accept connections.',
+      'Atlas -> Database: check the cluster shows Active, not Paused or Resuming. If it shows Paused, click Resume.',
+      'Atlas -> Network Access -> Add IP Address -> Add Current IP Address (your address may have changed since you last connected).',
     ],
   },
 ];
@@ -58,9 +75,18 @@ const line = (label, value) => console.log(`  ${label.padEnd(18)} ${value}`);
 // Everything an error can say about itself, joined for matching. Never printed
 // as-is: it can contain hostnames.
 function haystack(err) {
-  const parts = [err?.name, err?.code, err?.codeName, err?.message, err?.cause?.message];
+  const parts = [err?.name, err?.code, err?.codeName, err?.message, err?.cause?.message, err?.reason?.type];
   for (const server of err?.reason?.servers?.values?.() ?? []) parts.push(server?.error?.message);
   return parts.filter(Boolean).join(' | ');
+}
+
+// What each server in the cluster said when it could not be reached, once
+// per distinct message, scrubbed. "Timed out" from every server reads
+// differently from a connection that was closed, which helps tell a paused
+// cluster from a blocked address.
+function serverErrors(err, secrets) {
+  const messages = [...(err?.reason?.servers?.values?.() ?? [])].map((s) => s?.error?.message).filter(Boolean);
+  return [...new Set(messages.map((message) => scrub(message, secrets)))];
 }
 
 // The pieces of the connection string that must never reach the screen, in
@@ -84,7 +110,8 @@ function secretPartsOf(uri) {
 function scrub(text, secrets) {
   let out = String(text)
     .replace(/mongodb(?:\+srv)?:\/\/\S+/gi, '<connection string>')
-    .replace(/[\w.-]+\.mongodb\.net(?::\d+)?/gi, '<atlas host>');
+    .replace(/[\w.-]+\.mongodb\.net(?::\d+)?/gi, '<atlas host>')
+    .replace(/\b\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?\b/g, '<address>');
   for (const secret of secrets) out = out.split(secret).join('<redacted>');
   return out;
 }
@@ -113,6 +140,15 @@ async function listCollections(db) {
   return rows;
 }
 
+function printCollections(database, rows) {
+  line('Database', database);
+  line('Collections', rows.length === 0 ? '0 - empty, or not created yet' : String(rows.length));
+
+  const width = Math.max(0, ...rows.map(([name]) => name.length));
+  if (rows.length > 0) console.log('');
+  for (const [name, count] of rows) console.log(`    ${name.padEnd(width)}  ${String(count).padStart(7)}`);
+}
+
 function printCause(err, secrets) {
   const known = CAUSES.find((c) => c.match.test(haystack(err)));
 
@@ -124,6 +160,9 @@ function printCause(err, secrets) {
   // and for a recognised one it confirms the diagnosis.
   const detail = scrub(`${err?.name ?? 'Error'}: ${err?.message ?? err}`, secrets);
   console.log(`\n${known ? 'Detail' : 'Error'}: ${detail}`);
+
+  if (err?.reason?.type) console.log(`Cluster state seen: ${err.reason.type}`);
+  for (const message of serverErrors(err, secrets)) console.log(`Server said: ${message}`);
 }
 
 async function main() {
@@ -171,13 +210,13 @@ async function main() {
     line('Ping', 'ok');
     line('Replica set', describeTopology(await db.command({ hello: 1 })));
 
-    const rows = await listCollections(db);
-    line('Database', mongoose.connection.name);
-    line('Collections', String(rows.length));
+    printCollections(mongoose.connection.name, await listCollections(db));
 
-    const width = Math.max(0, ...rows.map(([name]) => name.length));
-    if (rows.length > 0) console.log('');
-    for (const [name, count] of rows) console.log(`    ${name.padEnd(width)}  ${String(count).padStart(7)}`);
+    // Any other database named on the command line, e.g. relay-demo.
+    for (const name of process.argv.slice(2).filter((arg) => /^[\w-]+$/.test(arg))) {
+      console.log('');
+      printCollections(name, await listCollections(mongoose.connection.client.db(name)));
+    }
 
     console.log('\nThe database is reachable.');
     return 0;

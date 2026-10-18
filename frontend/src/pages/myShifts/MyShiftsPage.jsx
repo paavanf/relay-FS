@@ -5,10 +5,12 @@
 // editing the query string.
 //
 // Built narrow first: this gets read on a phone, one-handed, in a corridor.
+// Each shift still to come can be offered for a swap from here.
 import { useQuery } from '@tanstack/react-query';
 import { DateTime } from 'luxon';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
 import { Skeleton } from '../../components/ui/Skeleton.jsx';
+import { Callout } from '../../components/ui/Callout.jsx';
 import { ErrorState } from '../../components/ui/ErrorState.jsx';
 import { ShiftList } from './ShiftList.jsx';
 import { NoShiftsState } from './NoShiftsState.jsx';
@@ -16,6 +18,7 @@ import { listAssignments } from '../../features/roster/api/assignments.js';
 import { listShiftTemplates } from '../../features/catalog/api/shiftTemplates.js';
 import { indexTemplates } from '../schedule/grid/dates.js';
 import { useOrg } from '../../features/organisation/useOrg.js';
+import { useMyOffersByShift } from '../../features/swaps/hooks/useSwapRequests.js';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
 
 // Eight weeks ahead is enough to plan around without loading a year.
@@ -38,6 +41,8 @@ function MyShiftsPage() {
     queryFn: () => listShiftTemplates(orgId),
   });
 
+  const offers = useMyOffersByShift(orgId);
+
   const isPending = shifts.isPending || templates.isPending;
   const error = shifts.error ?? templates.error;
 
@@ -48,6 +53,11 @@ function MyShiftsPage() {
       <div className="mt-6">
         {isPending && <Skeleton className="h-64 w-full" />}
         {error && <ErrorState message={error.message} onRetry={shifts.refetch} />}
+        {offers.error && (
+          <Callout variant="warning" className="mb-4">
+            Your swap offers could not be loaded, so shifts cannot be offered just now.
+          </Callout>
+        )}
 
         {!isPending &&
           !error &&
@@ -58,6 +68,7 @@ function MyShiftsPage() {
               assignments={shifts.data}
               templatesById={indexTemplates(templates.data)}
               timezone={orgTimezone}
+              offersByAssignment={offers.byShift}
             />
           ))}
       </div>

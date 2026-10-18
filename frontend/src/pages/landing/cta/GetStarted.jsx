@@ -2,8 +2,9 @@
 // built and what is not.
 //
 // Fairness shipped in Milestone 6 and is described by exactly what it does.
-// Swaps are named here as in development, and nowhere else on the page: they
-// are planned, not shipped.
+// So are swaps, as far as Milestone 7 takes them: Relay finds the options,
+// direct and multi-person, but proposing and completing a swap is still to
+// come - and the line says that rather than implying otherwise.
 import { ButtonLink } from '../../../components/ui/ButtonLink.jsx';
 import { LandingSection } from '../LandingSection.jsx';
 
@@ -30,7 +31,10 @@ export function GetStarted() {
           generator steers the heaviest shifts away from anyone above it.
         </p>
         <p>
-          <span className="font-medium text-content-secondary">In development:</span> shift swaps.
+          <span className="font-medium text-content-secondary">Swaps:</span> offer a shift you cannot work and
+          Relay finds who could take it - a direct swap, or a chain of three or four people where each takes the
+          next one's shift - checked against the same rules as any roster edit. Proposing and agreeing a swap in
+          Relay is still in development.
         </p>
       </div>
     </LandingSection>

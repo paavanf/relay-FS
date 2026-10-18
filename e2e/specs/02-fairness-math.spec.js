@@ -40,7 +40,7 @@ test("Hiro Tanaka's ledger row matches his published shifts", async ({ sessions 
   const ledger = { shifts: row.shiftsWorked, nights: row.shiftCounts.night, weekends: row.shiftCounts.weekend, hours: row.hoursWorked };
   recordNumbers(testInfo, 'fairness-math', { worker: hiro.name, window: fairness.window, rosters: inWindow.length, counted, ledger });
 
-  expect(inWindow, 'the four published weeks are all in the window').toHaveLength(4);
+  expect(inWindow, 'the five published weeks are all in the window').toHaveLength(5);
   expect(counted.nights, 'nights').toBe(ledger.nights);
   expect(counted.weekends, 'weekend shifts').toBe(ledger.weekends);
   expect(counted.shifts, 'shifts').toBe(ledger.shifts);

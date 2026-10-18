@@ -1,4 +1,4 @@
-// 07-polling.spec.js
+// 09-polling.spec.js
 // Checklist section: "Polling stops" - count /jobs/ requests, and assert they
 // stop once the job completes, and stop after navigating away in the middle
 // of a generation.

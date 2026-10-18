@@ -1,4 +1,4 @@
-// 08-illegal-assignments.spec.js
+// 10-illegal-assignments.spec.js
 // Checklist section: "Illegal assignments" - minimum rest, double booking,
 // declared unavailability and qualification, each blocked with a reason that
 // names the rule.

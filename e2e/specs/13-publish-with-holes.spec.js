@@ -1,4 +1,4 @@
-// 11-publish-with-holes.spec.js
+// 13-publish-with-holes.spec.js
 // Checklist section: "Publish with holes" - blocked until the acknowledgement
 // is ticked.
 //

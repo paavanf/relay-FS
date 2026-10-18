@@ -20,7 +20,7 @@ import { loadGenerationInput } from '../../backend/src/services/roster/loadGener
 import { registerUser } from '../../backend/src/services/auth/register.service.js';
 import { createOrganisation } from '../../backend/src/services/organisation/create.service.js';
 import { DEMO_ORG_ID } from '../../backend/scripts/demo/ids.js';
-import { currentMonday, addDays, shortDate } from '../../backend/scripts/demo/dates.js';
+import { currentMonday, addDays, shortDate, rosterPlan } from '../../backend/scripts/demo/dates.js';
 import { WARD, DEMO_PASSWORD, EMAIL_DOMAIN } from '../../backend/scripts/demo/ward.js';
 
 // Days of the holes week (0 = its Monday) and who is away on each. Wednesday
@@ -37,7 +37,8 @@ async function membershipOf(key) {
 }
 
 export async function addRosterWithHoles() {
-  const startDate = addDays(currentMonday(WARD.timezone), 21);
+  // The week after the seeded draft, wherever the seed puts it.
+  const startDate = addDays(rosterPlan(currentMonday(WARD.timezone)).at(-1).endDate, 1);
   const endDate = addDays(startDate, 6);
 
   for (const { day, people, note } of AWAY) {

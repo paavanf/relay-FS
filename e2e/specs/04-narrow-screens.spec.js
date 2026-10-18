@@ -1,5 +1,6 @@
 // 04-narrow-screens.spec.js
 // Checklist section: "375px: no horizontal scroll on My Shifts and Fairness"
+// - and on Swaps, since Milestone 7, which workers will open on their phones
 // - asserted as scrollWidth <= clientWidth on the whole document, once each
 // page's data has arrived and been drawn.
 //
@@ -17,6 +18,7 @@ import { PHONE } from '../support/session.js';
 const PAGES = [
   { name: 'my-shifts', heading: 'My shifts' },
   { name: 'fairness', heading: 'Fairness' },
+  { name: 'swaps', heading: 'Swaps' },
 ];
 
 /** How many pixels two boxes overlap side to side; 0 when they sit apart. */

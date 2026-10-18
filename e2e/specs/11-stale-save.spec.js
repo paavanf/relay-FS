@@ -1,4 +1,4 @@
-// 09-stale-save.spec.js
+// 11-stale-save.spec.js
 // Checklist section: "Race condition" - two managers on the same draft; the
 // stale save shows a clear error, not a crash.
 //

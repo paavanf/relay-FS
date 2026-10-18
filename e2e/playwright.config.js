@@ -1,5 +1,5 @@
 // playwright.config.js
-// The end-to-end suite for Milestones 5 and 6. How to run it is in the root
+// The end-to-end suite for Milestones 5 to 7. How to run it is in the root
 // README, under "End-to-end tests".
 //
 // One worker and no retries, on purpose. The specs share one seeded

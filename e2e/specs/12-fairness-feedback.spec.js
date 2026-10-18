@@ -1,4 +1,4 @@
-// 10-fairness-feedback.spec.js
+// 12-fairness-feedback.spec.js
 // Checklist section: "Fairness feedback" - take the three people most over
 // their share and the three most under, generate the next draft, and compare
 // how many heavy shifts (nights plus weekends) each group gets in it.
@@ -17,9 +17,11 @@ import { showRoster } from '../support/schedule.js';
 import { countShifts, average } from '../support/shifts.js';
 import { recordNumbers } from '../support/artifacts.js';
 import { WARD } from '../../backend/scripts/demo/ward.js';
+import { WEEKS_BEFORE, WEEKS_AHEAD, DRAFT_DAYS } from '../../backend/scripts/demo/dates.js';
 
-const HISTORY_WEEKS = 4;
-const DRAFT_WEEKS = 2;
+// Every published week is history to the ledger, the ones ahead included.
+const HISTORY_WEEKS = WEEKS_BEFORE + 1 + WEEKS_AHEAD;
+const DRAFT_WEEKS = DRAFT_DAYS / 7;
 
 test('heavy shifts in the next draft, for the most over and the most under', async ({ sessions }, testInfo) => {
   const { orgId, draft } = stack();

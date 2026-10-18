@@ -3,6 +3,7 @@
 
 import mongoose from 'mongoose';
 import { DEFAULT_ROSTER_RULES } from '../config/constants.js';
+import { DEFAULT_SWAP_POLICY, SWAP_CHAIN_LENGTH_RANGE } from '../config/swaps.js';
 
 const organisationSchema = new mongoose.Schema(
   {
@@ -28,6 +29,17 @@ const organisationSchema = new mongoose.Schema(
         min: 1,
         max: 168,
         default: DEFAULT_ROSTER_RULES.maxHoursPerWeek,
+      },
+    },
+
+    // How the swap chain finder treats this organisation. Only the chain
+    // length for now: the longest chain of people it will suggest.
+    swapPolicy: {
+      maxChainLength: {
+        type: Number,
+        min: SWAP_CHAIN_LENGTH_RANGE.min,
+        max: SWAP_CHAIN_LENGTH_RANGE.max,
+        default: DEFAULT_SWAP_POLICY.maxChainLength,
       },
     },
   },

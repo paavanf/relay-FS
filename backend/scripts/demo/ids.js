@@ -24,6 +24,7 @@ const KINDS = {
   availability: 7,
   roster: 8,
   assignment: 9,
+  swapRequest: 10,
 };
 
 /** demoId('user', 3) -> ObjectId('64656d6f0200000000000003') */

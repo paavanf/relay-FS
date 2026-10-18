@@ -11,7 +11,7 @@ import mongoose from 'mongoose';
 import { testServerUri } from './db.js';
 import { main } from '../../scripts/demo/runSeed.js';
 import { User, Organisation, Membership, Qualification, ShiftTemplate } from '../../src/models/index.js';
-import { CoverageRequirement, Availability, Roster, Assignment, FairnessLedger } from '../../src/models/index.js';
+import { CoverageRequirement, Availability, Roster, Assignment, FairnessLedger, SwapRequest } from '../../src/models/index.js';
 
 export const DEMO_ANCHOR = '2026-03-02'; // a Monday
 
@@ -51,5 +51,6 @@ export function snapshot() {
     rosters: (await Roster.find().sort({ startDate: 1 }).lean()).map((r) => `${r.startDate} ${r.endDate} ${r.status}`),
     assignments: (await Assignment.find().sort({ _id: 1 }).lean()).map((a) => `${a._id} ${a.membershipId} ${a.date}`),
     measured: await FairnessLedger.countDocuments({ measured: true }),
+    swapRequests: (await SwapRequest.find().sort({ _id: 1 }).lean()).map((r) => `${r._id} ${r.membershipId} ${r.assignmentId} ${r.status}`),
   }));
 }

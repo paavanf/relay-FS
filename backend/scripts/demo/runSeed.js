@@ -1,6 +1,7 @@
 // runSeed.js
 // The demo seed from start to finish: check the guards, connect, remove the
-// last run's ward, build a new one, and print how to sign in.
+// last run's ward, build a new one - people, rosters and open swap requests -
+// and print how to sign in.
 //
 // Kept apart from seed-demo.js so the test suite can call main() against an
 // in-memory database with arguments and an environment of its own. It
@@ -11,6 +12,7 @@ import { databaseNameOf, refusalFor, scrub } from './guards.js';
 import { removeDemoData, emailsTakenByOthers } from './reset.js';
 import { writeWard } from './writeWard.js';
 import { writeRosters } from './writeRosters.js';
+import { writeSwapRequests } from './writeSwapRequests.js';
 import { printSummary } from './printSummary.js';
 import { DEMO_USER_IDS, DEMO_EMAILS } from './wardDocs.js';
 import { currentMonday } from './dates.js';
@@ -54,8 +56,9 @@ export async function main(argv, env, { anchor } = {}) {
     const monday = anchor ?? currentMonday(WARD.timezone);
     const ward = await writeWard({ anchor: monday });
     const { rosters } = await writeRosters({ anchor: monday });
+    const swaps = await writeSwapRequests({ anchor: monday });
 
-    printSummary({ ward, rosters });
+    printSummary({ ward, rosters, swaps });
     return 0;
   } catch (err) {
     console.log(`\nThe seed stopped: ${scrub(err?.message ?? err, uri)}`);

@@ -1,6 +1,6 @@
 // writeRosters.js
 // Builds the demo's rosters with the real generator: four published weeks,
-// one after another, then the two-week draft.
+// one after another (the last of them next week), then the two-week draft.
 //
 // One at a time and in order, on purpose. Each roster is generated from the
 // fairness debt of the weeks published before it - the same feedback a real
@@ -41,8 +41,9 @@ export async function writeRosters({ anchor }) {
       status: plan.status,
       unfilledSlots: result.unfilledSlots,
       createdBy: MANAGER_MEMBERSHIP_ID,
-      // Published on the Wednesday before it starts, as a ward would.
-      publishedAt: plan.status === 'published' ? new Date(`${addDays(plan.startDate, -5)}T12:00:00Z`) : null,
+      // Published ten days before it starts, so even next week's went out
+      // before this week began - never a date still to come.
+      publishedAt: plan.status === 'published' ? new Date(`${addDays(plan.startDate, -10)}T12:00:00Z`) : null,
     });
 
     await Assignment.insertMany(

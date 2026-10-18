@@ -7,7 +7,8 @@
 
 // Shared by evaluate-generation.js and export-landing-fixture.js, so the
 // numbers printed by `npm run evaluate` and the landing-page demo come from
-// identical runs. Change them here and both move together.
+// identical runs. Change them here and both move together. The swap
+// benchmark (benchmark-swaps.js) builds its wards from the same staff and rules.
 export const SEED = 20260309;
 export const MAX_ITERATIONS = 4000;
 
@@ -23,7 +24,7 @@ const QUALS = [
 ];
 
 // Deterministic staff list - index decides who holds what, so no randomness.
-function staff(count, prefix = 'w') {
+export function staff(count, prefix = 'w') {
   return Array.from({ length: count }, (_, i) => {
     const qualificationIds = ['RN'];
     if (i % 4 === 0) qualificationIds.push('CN');
@@ -33,7 +34,7 @@ function staff(count, prefix = 'w') {
   });
 }
 
-function everyDay(requirementsByTemplate) {
+export function everyDay(requirementsByTemplate) {
   const rules = [];
   for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek += 1) {
     for (const [shiftTemplateId, requirements] of Object.entries(requirementsByTemplate)) {
@@ -71,10 +72,12 @@ export const SCENARIOS = [
     qualifications: QUALS,
     coverageRequirements: WARD_RULES,
     // Half the team refuses nights outright; a third avoids weekends.
+    // A recurring entry names one weekday (the app refuses one without), so
+    // "never nights" is seven of them, as a worker would enter it.
     availability: [
       ...staff(40)
         .filter((_, i) => i % 2 === 0)
-        .map((w) => ({ membershipId: w.membershipId, type: 'recurring', dayOfWeek: null, shiftTemplateId: 't-night', status: 'unavailable', date: null })),
+        .flatMap((w) => [0, 1, 2, 3, 4, 5, 6].map((dayOfWeek) => ({ membershipId: w.membershipId, type: 'recurring', dayOfWeek, shiftTemplateId: 't-night', status: 'unavailable', date: null }))),
       ...staff(40)
         .filter((_, i) => i % 3 === 0)
         .flatMap((w) => [0, 6].map((dayOfWeek) => ({ membershipId: w.membershipId, type: 'recurring', dayOfWeek, shiftTemplateId: null, status: 'avoid', date: null }))),

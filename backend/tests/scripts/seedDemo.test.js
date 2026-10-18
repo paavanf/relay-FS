@@ -1,7 +1,8 @@
 // seedDemo.test.js
 // The demo seed, run against the in-memory server - never a real database:
 // what it builds, that people can sign in with what it prints, and that a
-// rerun gives the same data without touching anyone else's.
+// rerun gives the same data - its swap requests included - without touching
+// anyone else's. What those swap requests show is seedDemoSwaps.test.js.
 //
 // The three tests run in order and share one database: the second signs in
 // to what the first built, and the third reruns on top of it.
@@ -35,18 +36,19 @@ afterEach(() => {
 const login = (app, email) => request(app).post('/api/v1/auth/login').send({ email, password: DEMO_PASSWORD });
 
 describe('the demo seed', () => {
-  it('builds the ward, four published weeks and a two-week draft', async () => {
+  it('builds the ward, five published weeks - two of them ahead - and a two-week draft', async () => {
     expect(await seed(['--yes'])).toBe(0);
     const built = await snapshot();
 
     expect(built).toMatchObject({ users: 14, organisations: 1, memberships: 14, qualifications: 3, templates: 3, coverage: 21 });
     expect(new Set(built.availability.map((entry) => entry.split(' ')[1]))).toEqual(new Set(['unavailable', 'prefer', 'avoid']));
     expect(built.rosters).toEqual([
-      '2026-02-09 2026-02-15 published',
       '2026-02-16 2026-02-22 published',
       '2026-02-23 2026-03-01 published',
       '2026-03-02 2026-03-08 published',
-      '2026-03-09 2026-03-22 draft',
+      '2026-03-09 2026-03-15 published',
+      '2026-03-16 2026-03-22 published',
+      '2026-03-23 2026-04-05 draft',
     ]);
     expect(built.assignments.length).toBeGreaterThan(200);
     // Everyone on the rota is measured; the owner and manager are not on it.

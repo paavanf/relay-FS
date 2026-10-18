@@ -30,5 +30,11 @@ export {
   toFairnessDebt,
 } from './fairness/index.js';
 
+// The swap chain finder (Milestone 7). Open offers in, direct swaps and
+// multi-person chains out - every candidate checked whole by the same
+// constraints as above, ranked, and explained when there are none. Search
+// only: nothing here proposes, reserves or commits anything.
+export { findSwapOptions, SWAP_SEARCH_DEFAULTS, RANKING_WEIGHTS, applyCycle, legsOf, canonicalKey } from './swaps/index.js';
+
 // Type definitions (JSDoc only - no runtime code).
 export * from './types.js';

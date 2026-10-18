@@ -16,6 +16,7 @@ import rosterRoutes from './roster.routes.js';
 import jobRoutes from './job.routes.js';
 import assignmentRoutes from './assignment.routes.js';
 import fairnessRoutes from './fairness.routes.js';
+import swapRequestRoutes from './swapRequest.routes.js';
 
 const router = Router();
 
@@ -45,5 +46,9 @@ router.use('/orgs/:orgId/assignments', assignmentRoutes);
 
 // Who has been carrying the nights and weekends (Milestone 6).
 router.use('/orgs/:orgId/fairness', fairnessRoutes);
+
+// Swap requests and the swap chain finder (Milestone 7): offer a shift, see
+// the direct swaps and chains that could take it. Search only.
+router.use('/orgs/:orgId/swap-requests', swapRequestRoutes);
 
 export default router;

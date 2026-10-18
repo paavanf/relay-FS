@@ -39,10 +39,14 @@ const CACHE_LIMIT = 20_000;
 function memoise(compute) {
   const cache = new Map();
 
-  return (key, ...rest) => {
-    if (cache.has(key)) return cache.get(key);
+  // One lookup on a hit, and the two extra arguments named rather than
+  // spread: this runs millions of times, and both showed up in profiles.
+  // Nothing memoised here ever computes undefined, so it can mean "missing".
+  return (key, first, second) => {
+    const hit = cache.get(key);
+    if (hit !== undefined) return hit;
 
-    const value = compute(key, ...rest);
+    const value = compute(key, first, second);
     if (cache.size >= CACHE_LIMIT) cache.clear();
     cache.set(key, value);
     return value;
@@ -72,11 +76,14 @@ export function isValidInstant(iso) {
   return millisOf(iso) !== null;
 }
 
+// Anchored to the epoch rather than to now(). Zone validity does not depend
+// on the current time, and reading the clock - even here - would be the one
+// impure thing in the engine. Memoised because evaluate() asks on every call,
+// and building a DateTime in a zone is one of the dearer steps there is.
+const zoneIsValid = memoise((timezone) => DateTime.fromMillis(0, { zone: timezone }).isValid);
+
 export function isValidZone(timezone) {
-  // Anchored to the epoch rather than to now(). Zone validity does not depend
-  // on the current time, and reading the clock - even here - would be the one
-  // impure thing in the engine.
-  return typeof timezone === 'string' && DateTime.fromMillis(0, { zone: timezone }).isValid;
+  return typeof timezone === 'string' && zoneIsValid(timezone);
 }
 
 /** Milliseconds since the epoch, or null when the input will not parse. */
@@ -84,7 +91,8 @@ export function toMillis(iso) {
   return millisOf(iso);
 }
 
-const zonedOf = memoise((cacheKey, iso, timezone) => {
+// Keyed by zone, then instant: see memoiseTwo.
+const zonedOf = memoiseTwo((timezone, iso) => {
   const dt = parse(iso)?.setZone(timezone);
   if (!dt || !dt.isValid) return null;
   return { date: dt.toISODate(), dayOfWeek: dt.weekday % 7 };
@@ -92,7 +100,7 @@ const zonedOf = memoise((cacheKey, iso, timezone) => {
 
 function zoned(iso, timezone) {
   if (typeof iso !== 'string') return null;
-  return zonedOf(`${iso}|${timezone}`, iso, timezone);
+  return zonedOf(timezone, iso);
 }
 
 /** The local calendar date, "2026-03-14", in the org's timezone. */
@@ -131,17 +139,33 @@ export const addDays = memoiseTwo((isoDate, days) => {
   return dt.isValid ? dt.plus({ days }).toISODate() : null;
 });
 
-// Same idea as memoise, for the two-argument helpers above.
+// Same idea as memoise, for two arguments: one cache per first argument, so
+// a lookup never builds a combined key. Joining the two into one string on
+// every call - and hashing that new string - was most of the cost of the
+// whole engine in a swap search's profile. The arguments themselves are
+// strings the callers already hold, whose hashes are kept.
 function memoiseTwo(compute) {
-  const cache = new Map();
+  const caches = new Map();
+  let size = 0;
 
   return (first, second) => {
-    const key = `${first}|${second}`;
-    if (cache.has(key)) return cache.get(key);
+    let cache = caches.get(first);
+    if (cache === undefined) {
+      cache = new Map();
+      caches.set(first, cache);
+    }
+    const hit = cache.get(second);
+    if (hit !== undefined) return hit;
 
     const value = compute(first, second);
-    if (cache.size >= CACHE_LIMIT) cache.clear();
-    cache.set(key, value);
+    if (size >= CACHE_LIMIT) {
+      caches.clear();
+      size = 0;
+      cache = new Map();
+      caches.set(first, cache);
+    }
+    cache.set(second, value);
+    size += 1;
     return value;
   };
 }

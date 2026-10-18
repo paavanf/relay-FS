@@ -20,6 +20,10 @@ export const emailOf = (person) => `${person.key}@${EMAIL_DOMAIN}`;
 export const DEMO_EMAILS = PEOPLE.map(emailOf);
 export const MANAGER_MEMBERSHIP_ID = membershipIds.get('manager');
 
+/** The stored id of a person ('asha') or a shift template ('night'), by its key in ward.js. */
+export const membershipIdOf = (key) => membershipIds.get(key);
+export const templateIdOf = (key) => templateIds.get(key);
+
 // Half a year before the anchor: everyone has been on the ward for longer
 // than the history, so fairness measures each of them across all of it.
 const wardSince = (anchor) => new Date(`${addDays(anchor, -182)}T09:00:00Z`);

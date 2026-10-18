@@ -59,6 +59,21 @@ export default [
           ],
         },
       ],
+      // No ambient clock and no unseeded randomness either: time is passed in
+      // (an injected now()), and randomness comes from scheduling/random.js.
+      'no-restricted-properties': [
+        'error',
+        { object: 'Date', property: 'now', message: 'src/engine reads no clock - take an injected now() instead.' },
+        { object: 'performance', property: 'now', message: 'src/engine reads no clock - take an injected now() instead.' },
+        { object: 'Math', property: 'random', message: 'src/engine uses seeded randomness only - see scheduling/random.js.' },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "NewExpression[callee.name='Date'][arguments.length=0]",
+          message: 'src/engine reads no clock - new Date() with no argument is the current time.',
+        },
+      ],
     },
   },
   {

@@ -91,5 +91,8 @@
  * @property {string} message
  */
 
+// The swap chain finder's shapes (SwapOffer, ChainLeg, Chain) live beside it,
+// in swaps/types.js.
+
 // Makes this file an ES module so the public entry point can re-export it.
 export {};

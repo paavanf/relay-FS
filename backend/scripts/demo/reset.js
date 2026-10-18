@@ -22,6 +22,7 @@ import {
   Assignment,
   GenerationJob,
   FairnessLedger,
+  SwapRequest,
   User,
   RefreshToken,
   PasswordResetToken,
@@ -41,6 +42,7 @@ const ORG_SCOPED = [
   Assignment,
   GenerationJob,
   FairnessLedger,
+  SwapRequest,
 ];
 
 export async function removeDemoData(userIds) {

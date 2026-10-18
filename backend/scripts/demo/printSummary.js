@@ -1,8 +1,10 @@
 // printSummary.js
-// What the seed prints once it has finished: what it built, and how to sign in.
+// What the seed prints once it has finished: what it built, how to sign in,
+// and who to sign in as to see each kind of swap answer.
 
-import { WARD, PEOPLE, QUALIFICATIONS, DEMO_PASSWORD } from './ward.js';
-import { emailOf } from './wardDocs.js';
+import { DateTime } from 'luxon';
+import { WARD, PEOPLE, QUALIFICATIONS, TEMPLATES, DEMO_PASSWORD } from './ward.js';
+import { emailOf, membershipIdOf, templateIdOf } from './wardDocs.js';
 
 const codeOf = new Map(QUALIFICATIONS.map((q) => [q.key, q.code]));
 
@@ -12,7 +14,7 @@ function describe(person) {
   return `${qualifications.padEnd(8)} ${person.hours} h/week, ${person.employmentType}`;
 }
 
-export function printSummary({ ward, rosters }) {
+export function printSummary({ ward, rosters, swaps }) {
   console.log(`\nCreated ${WARD.name}:`);
   console.log(`  ${ward.people} people, ${ward.qualifications} qualifications, ${ward.templates} shift templates,`);
   console.log(`  ${ward.coverage} coverage rules and ${ward.availability} availability entries`);
@@ -25,5 +27,26 @@ export function printSummary({ ward, rosters }) {
   console.log(`\nSign in as any of these. The password is the same for everyone: ${DEMO_PASSWORD}`);
   for (const person of PEOPLE) {
     console.log(`  ${emailOf(person).padEnd(20)} ${person.name.padEnd(15)} ${describe(person)}`);
+  }
+
+  printSwaps(swaps);
+}
+
+const personOf = (membershipId) => PEOPLE.find((person) => String(membershipIdOf(person.key)) === String(membershipId));
+const templateOf = (id) => TEMPLATES.find((template) => String(templateIdOf(template.key)) === String(id));
+
+// "Sat 14 Mar, Night"
+const shiftLabel = (a) => `${DateTime.fromISO(a.date, { zone: 'utc' }).toFormat('ccc d LLL')}, ${templateOf(a.shiftTemplateId).name}`;
+
+function printSwaps(swaps) {
+  console.log(`\nSwap requests: ${swaps.offered} people have offered a shift in the weeks ahead. Sign in as one of these, open Swaps and choose Find swaps:`);
+  const cases = [
+    [swaps.chain, 'only a three-person chain resolves it'],
+    [swaps.direct, 'a direct swap resolves it'],
+    [swaps.none, 'no options, and the reason why'],
+  ];
+  for (const [{ membershipId, assignment }, outcome] of cases) {
+    const person = personOf(membershipId);
+    console.log(`  ${emailOf(person).padEnd(20)} ${person.name.padEnd(15)} ${shiftLabel(assignment).padEnd(18)} ${outcome}`);
   }
 }

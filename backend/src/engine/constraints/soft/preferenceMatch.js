@@ -76,7 +76,9 @@ export function scorePreferenceMatch(assignments, context) {
   return penalties;
 }
 
-function appliesTo(entry, assignment, date, dayOfWeek) {
+// Exported so the swap ranking reads "did they mark this shift avoid or
+// prefer" through this one rule rather than a copy of it.
+export function appliesTo(entry, assignment, date, dayOfWeek) {
   const scoped = entry.shiftTemplateId == null || entry.shiftTemplateId === assignment.shiftTemplateId;
   if (!scoped) return false;
   if (entry.type === 'exception') return entry.date === date;

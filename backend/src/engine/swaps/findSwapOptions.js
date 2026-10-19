@@ -7,8 +7,9 @@
 // the same scores to skip chains that could never make the list), and
 // explainNoMatch when nothing is found.
 //
-// Search only. Proposing, accepting, reserving and committing a chain are
-// the next milestone, and nothing here writes anything anywhere.
+// Search only: nothing here writes anything anywhere. Proposing, accepting,
+// reserving and committing a chain are the services in services/swapChain/,
+// whose status changes go through chainStateMachine.js.
 
 import { buildGraph } from './buildGraph.js';
 import { createCycleValidator } from './validateCycle.js';

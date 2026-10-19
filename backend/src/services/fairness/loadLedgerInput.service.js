@@ -68,8 +68,10 @@ export async function loadLedgerInput({ org, window: requested }) {
       category: t.category,
       burdenWeight: t.burdenWeight ?? 1,
     })),
-    // The engine compares instants as ISO strings and ids as strings.
+    // The engine compares instants as ISO strings and ids as strings. The id
+    // lets a swap's impact preview move shifts between people in this input.
     assignments: assignments.map((a) => ({
+      id: String(a._id),
       membershipId: String(a.membershipId),
       shiftTemplateId: String(a.shiftTemplateId),
       startsAt: a.startsAt.toISOString(),

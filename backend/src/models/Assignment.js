@@ -53,6 +53,19 @@ const assignmentSchema = new mongoose.Schema(
     // Where it came from, so a manager can see what the generator chose and
     // what a person changed afterwards.
     source: { type: String, enum: ['generated', 'manual', 'swap'], default: 'generated' },
+
+    // Goes up by one whenever the shift changes hands, so a swap that was
+    // checked against version 3 can tell at commit time that something has
+    // changed it since. Records saved before this field existed have none,
+    // which counts as 0.
+    version: { type: Number, default: 0 },
+
+    // The proposed swap chain holding this shift while its people decide,
+    // and until when. A reservation past its time counts as free: expiry is
+    // read from these timestamps, never from a timer, because the free tier
+    // sleeps and a timer would not survive that.
+    reservedByChainId: { type: mongoose.Schema.Types.ObjectId, ref: 'SwapChain', default: null },
+    reservationExpiresAt: { type: Date, default: null },
   },
   { timestamps: true },
 );
@@ -61,6 +74,11 @@ const assignmentSchema = new mongoose.Schema(
 // queries that matter.
 assignmentSchema.index({ rosterId: 1, date: 1 });
 assignmentSchema.index({ orgId: 1, membershipId: 1, startsAt: 1 });
+
+// Letting go of a chain's shifts, and the sweep for reservations whose time
+// has passed.
+assignmentSchema.index({ reservedByChainId: 1 });
+assignmentSchema.index({ reservationExpiresAt: 1 });
 
 export const Assignment =
   mongoose.models.Assignment ?? mongoose.model('Assignment', assignmentSchema);

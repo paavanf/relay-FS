@@ -3,3 +3,4 @@
 
 export { createOrganisation } from './create.service.js';
 export { getRosterRules, updateRosterRules } from './rosterRules.service.js';
+export { getSwapRules, updateSwapRules } from './swapRules.service.js';

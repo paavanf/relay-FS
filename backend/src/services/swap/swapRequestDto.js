@@ -14,8 +14,9 @@ export async function describeRequests(requests, viewer) {
 
   return requests.map((request) => ({
     id: String(request._id),
-    // 'open' for every request a list returns: a cancelled one is gone, and
-    // one whose shift has started counts as expired and is left out.
+    // 'open', or 'matched' while part of a proposed swap. A cancelled or
+    // fulfilled one is gone from lists, and one whose shift has started
+    // counts as expired and is left out.
     status: request.status,
     requester: { membershipId: String(request.membershipId), name: names.get(String(request.membershipId)) },
     mine: String(request.membershipId) === String(viewer?._id),

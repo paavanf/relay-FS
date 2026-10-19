@@ -1,7 +1,8 @@
 // describeOptions.js
 // Turns the engine's answer into the options response: the request, every
 // option's hand-overs with names and shift details, the score behind its
-// place, and the reasons when there is nothing.
+// place, its key - what a proposal names it by (optionKey.js) - and the
+// reasons when there is nothing.
 //
 // Names only for the people in an option - nobody can understand a chain
 // without them - and nothing about anyone else in the organisation. The
@@ -10,6 +11,7 @@
 import { namesOf } from '../member/memberNames.js';
 import { describeRequests } from './swapRequestDto.js';
 import { shiftDto } from './describeShifts.js';
+import { optionKeyOf } from './optionKey.js';
 
 export async function describeOptions({ request, input, result, viewer }) {
   const options = [...result.direct, ...result.chains];
@@ -19,6 +21,7 @@ export async function describeOptions({ request, input, result, viewer }) {
 
   const person = (membershipId) => ({ membershipId, name: names.get(membershipId) ?? 'A team member' });
   const describe = (chain) => ({
+    key: optionKeyOf(chain),
     size: chain.size,
     score: chain.score,
     legs: chain.legs.map((leg) => {

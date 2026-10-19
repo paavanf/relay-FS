@@ -3,7 +3,7 @@
 
 import mongoose from 'mongoose';
 import { DEFAULT_ROSTER_RULES } from '../config/constants.js';
-import { DEFAULT_SWAP_POLICY, SWAP_CHAIN_LENGTH_RANGE } from '../config/swaps.js';
+import { DEFAULT_SWAP_POLICY, SWAP_CHAIN_LENGTH_RANGE, SWAP_ACCEPTANCE_WINDOW_RANGE } from '../config/swaps.js';
 
 const organisationSchema = new mongoose.Schema(
   {
@@ -32,8 +32,9 @@ const organisationSchema = new mongoose.Schema(
       },
     },
 
-    // How the swap chain finder treats this organisation. Only the chain
-    // length for now: the longest chain of people it will suggest.
+    // The organisation's swap rules: the longest chain of people the finder
+    // suggests, how long a proposed swap waits for everyone to accept, and
+    // whether a manager approves a swap before it happens.
     swapPolicy: {
       maxChainLength: {
         type: Number,
@@ -41,6 +42,13 @@ const organisationSchema = new mongoose.Schema(
         max: SWAP_CHAIN_LENGTH_RANGE.max,
         default: DEFAULT_SWAP_POLICY.maxChainLength,
       },
+      acceptanceWindowHours: {
+        type: Number,
+        min: SWAP_ACCEPTANCE_WINDOW_RANGE.min,
+        max: SWAP_ACCEPTANCE_WINDOW_RANGE.max,
+        default: DEFAULT_SWAP_POLICY.acceptanceWindowHours,
+      },
+      requireManagerApproval: { type: Boolean, default: DEFAULT_SWAP_POLICY.requireManagerApproval },
     },
   },
   { timestamps: true },

@@ -1,7 +1,7 @@
 // runSeed.js
 // The demo seed from start to finish: check the guards, connect, remove the
-// last run's ward, build a new one - people, rosters and open swap requests -
-// and print how to sign in.
+// last run's ward, build a new one - people, rosters, open swap requests and
+// two proposed swaps - and print how to sign in.
 //
 // Kept apart from seed-demo.js so the test suite can call main() against an
 // in-memory database with arguments and an environment of its own. It
@@ -13,6 +13,7 @@ import { removeDemoData, emailsTakenByOthers } from './reset.js';
 import { writeWard } from './writeWard.js';
 import { writeRosters } from './writeRosters.js';
 import { writeSwapRequests } from './writeSwapRequests.js';
+import { writeSwapProposals } from './writeSwapProposals.js';
 import { printSummary } from './printSummary.js';
 import { DEMO_USER_IDS, DEMO_EMAILS } from './wardDocs.js';
 import { currentMonday } from './dates.js';
@@ -54,11 +55,15 @@ export async function main(argv, env, { anchor } = {}) {
     console.log('\nRemoved the previous demo ward, if there was one.');
 
     const monday = anchor ?? currentMonday(WARD.timezone);
+    // When the proposals are made: now - or, for a test's fixed week long
+    // past, the start of that week, before any of its shifts.
+    const now = anchor ? new Date(`${monday}T00:00:00Z`) : new Date();
     const ward = await writeWard({ anchor: monday });
     const { rosters } = await writeRosters({ anchor: monday });
     const swaps = await writeSwapRequests({ anchor: monday });
+    const proposals = await writeSwapProposals({ anchor: monday, now });
 
-    printSummary({ ward, rosters, swaps });
+    printSummary({ ward, rosters, swaps, proposals });
     return 0;
   } catch (err) {
     console.log(`\nThe seed stopped: ${scrub(err?.message ?? err, uri)}`);

@@ -2,7 +2,7 @@
 // HTTP layer for organisation endpoints. Thin: parse, call service, respond.
 // Members and invites have their own controllers.
 
-import { createOrganisation, getRosterRules, updateRosterRules } from '../services/organisation/index.js';
+import { createOrganisation, getRosterRules, updateRosterRules, getSwapRules, updateSwapRules } from '../services/organisation/index.js';
 
 export async function createOrg(req, res) {
   const org = await createOrganisation({
@@ -26,4 +26,12 @@ export async function saveRosterRules(req, res) {
   // The validator guarantees all three rules are present, so this can never
   // leave one unset - see the note in rosterRules.service.js.
   res.json({ rosterRules: await updateRosterRules(req.orgId, req.valid.body) });
+}
+
+export async function showSwapRules(req, res) {
+  res.json({ swapRules: await getSwapRules(req.orgId) });
+}
+
+export async function saveSwapRules(req, res) {
+  res.json({ swapRules: await updateSwapRules(req.orgId, req.valid.body) });
 }

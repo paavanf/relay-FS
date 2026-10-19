@@ -1,7 +1,7 @@
 // index.js
 // The swap services (Milestone 7): offering a shift, listing and
-// withdrawing offers, and finding the options for one. Search only -
-// proposing and committing a chain arrive in Milestone 8.
+// withdrawing offers, and finding the options for one. Proposing and
+// committing a chain are in ../swapChain/ (Milestone 8).
 
 export { createSwapRequest } from './createSwapRequest.service.js';
 export { listSwapRequests } from './listSwapRequests.service.js';

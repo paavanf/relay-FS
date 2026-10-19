@@ -27,6 +27,11 @@ const baseSchema = z.object({
 
   // Where links in emails should point (the frontend, not the API).
   FRONTEND_URL: z.string().default('http://localhost:5173'),
+
+  // The shared secret a scheduled job sends to POST /api/v1/internal/*
+  // (the reaper for expired swap reservations). Optional: without it those
+  // endpoints refuse every request. An empty value counts as unset.
+  INTERNAL_JOB_SECRET: z.preprocess((value) => (value === '' ? undefined : value), secret.optional()),
 });
 
 // Outside production we fall back to local defaults so the API boots before a

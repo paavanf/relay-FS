@@ -16,8 +16,15 @@ import {
   createOrgSchema,
   orgIdParamSchema,
   updateRosterRulesSchema,
+  updateSwapRulesSchema,
 } from '../validators/organisation.validators.js';
-import { createOrg, showRosterRules, saveRosterRules } from '../controllers/organisation.controller.js';
+import {
+  createOrg,
+  showRosterRules,
+  saveRosterRules,
+  showSwapRules,
+  saveSwapRules,
+} from '../controllers/organisation.controller.js';
 
 const router = Router();
 
@@ -42,6 +49,19 @@ router.put(
   resolveMembership,
   authorize(MANAGER_ROLES),
   asyncHandler(saveRosterRules),
+);
+
+// The swap rules work the same way: every member may read them - workers
+// see them on the Swaps page - and managers and owners change them.
+router.get('/:orgId/swap-rules', authenticate, validate({ params: orgIdParamSchema }), resolveMembership, asyncHandler(showSwapRules));
+
+router.put(
+  '/:orgId/swap-rules',
+  authenticate,
+  validate({ params: orgIdParamSchema, body: updateSwapRulesSchema }),
+  resolveMembership,
+  authorize(MANAGER_ROLES),
+  asyncHandler(saveSwapRules),
 );
 
 export default router;

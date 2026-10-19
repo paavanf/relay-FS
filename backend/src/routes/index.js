@@ -17,6 +17,9 @@ import jobRoutes from './job.routes.js';
 import assignmentRoutes from './assignment.routes.js';
 import fairnessRoutes from './fairness.routes.js';
 import swapRequestRoutes from './swapRequest.routes.js';
+import swapChainRoutes from './swapChain.routes.js';
+import notificationRoutes from './notification.routes.js';
+import internalRoutes from './internal.routes.js';
 
 const router = Router();
 
@@ -48,7 +51,15 @@ router.use('/orgs/:orgId/assignments', assignmentRoutes);
 router.use('/orgs/:orgId/fairness', fairnessRoutes);
 
 // Swap requests and the swap chain finder (Milestone 7): offer a shift, see
-// the direct swaps and chains that could take it. Search only.
+// the direct swaps and chains that could take it.
 router.use('/orgs/:orgId/swap-requests', swapRequestRoutes);
+
+// Proposed swaps (Milestone 8): propose an option, accept, approve, and the
+// atomic commit - plus the notifications those changes write.
+router.use('/orgs/:orgId/swap-chains', swapChainRoutes);
+router.use('/orgs/:orgId/notifications', notificationRoutes);
+
+// Jobs a scheduler calls, guarded by a shared secret rather than a login.
+router.use('/internal', internalRoutes);
 
 export default router;

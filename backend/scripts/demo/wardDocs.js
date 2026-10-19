@@ -29,8 +29,10 @@ export const qualificationIdOf = (key) => qualificationIds.get(key);
 // than the history, so fairness measures each of them across all of it.
 const wardSince = (anchor) => new Date(`${addDays(anchor, -182)}T09:00:00Z`);
 
+// The demo gives people the longest time the swap rules allow to accept a
+// proposal (a week), so the proposals the seed makes stay open that long.
 export function organisationDoc() {
-  return { _id: orgId, name: WARD.name, timezone: WARD.timezone };
+  return { _id: orgId, name: WARD.name, timezone: WARD.timezone, swapPolicy: { acceptanceWindowHours: 168, requireManagerApproval: true } };
 }
 
 export function userDocs(passwordHash) {

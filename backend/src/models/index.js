@@ -4,8 +4,8 @@
 //
 // Models arrive milestone by milestone. SwapRequest arrived with the swap
 // chain finder (Milestone 7); SwapChain - a proposed chain and who has
-// accepted it - waits for Milestone 8, and notifications and the audit log
-// are still stubs.
+// accepted it - with Milestone 8, along with the notifications and audit
+// entries its changes write.
 
 export { User } from './User.js';
 export { Organisation } from './Organisation.js';
@@ -29,4 +29,10 @@ export { GenerationJob } from './GenerationJob.js';
 
 // Who has been carrying the nights and weekends (Milestone 6).
 export { FairnessLedger } from './FairnessLedger.js';
+
+// Swaps: offers (Milestone 7), and proposed chains with what they write
+// along the way (Milestone 8).
 export { SwapRequest } from './SwapRequest.js';
+export { SwapChain } from './SwapChain.js';
+export { Notification } from './Notification.js';
+export { AuditLog } from './AuditLog.js';

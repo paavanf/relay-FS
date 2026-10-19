@@ -23,6 +23,9 @@ import {
   GenerationJob,
   FairnessLedger,
   SwapRequest,
+  SwapChain,
+  Notification,
+  AuditLog,
   User,
   RefreshToken,
   PasswordResetToken,
@@ -43,6 +46,9 @@ const ORG_SCOPED = [
   GenerationJob,
   FairnessLedger,
   SwapRequest,
+  SwapChain,
+  Notification,
+  AuditLog,
 ];
 
 export async function removeDemoData(userIds) {

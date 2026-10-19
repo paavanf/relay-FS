@@ -10,8 +10,9 @@
 //
 // Called after:
 //   - publishing a roster (roster/publishRoster.service.js)
-//   - Milestone 8: committing a swap changes published assignments too. Call
-//     this from the swap-commit service as soon as it exists.
+//   - committing a swap, which changes published assignments too
+//     (swapChain/commitChain.service.js) - after its transaction, so a
+//     failed recompute can never undo or fail the swap
 
 import { logger } from '../../utils/logger.js';
 import { recomputeLedger } from './recomputeLedger.service.js';

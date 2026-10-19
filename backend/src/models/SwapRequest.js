@@ -2,8 +2,13 @@
 // A worker offering one of their published shifts to whoever can take it.
 //
 // Each open request is one offer in the swap chain finder's graph. Looking
-// for options never changes it; proposing, accepting and committing a chain
-// arrive in the next milestone, along with the statuses they need.
+// for options never changes it. Its status:
+//
+//   open       on offer, and in every search
+//   matched    part of a proposed swap chain (chainId) - out of every search
+//              until the chain either happens or ends; then open again
+//   fulfilled  the chain happened: the shift has changed hands
+//   cancelled  withdrawn by the person who offered it
 //
 // Expiry is derived rather than timed: once the shift has started, the
 // request is treated as expired whenever it is read. No timers - the free
@@ -33,8 +38,11 @@ const swapRequestSchema = new mongoose.Schema(
       daysOfWeek: { type: [{ type: Number, min: 0, max: 6 }], default: [] },
     },
 
-    status: { type: String, enum: ['open', 'cancelled'], default: 'open' },
+    status: { type: String, enum: ['open', 'matched', 'fulfilled', 'cancelled'], default: 'open' },
     cancelledAt: { type: Date, default: null },
+
+    // The proposed chain this offer is part of, while it is matched.
+    chainId: { type: mongoose.Schema.Types.ObjectId, ref: 'SwapChain', default: null },
   },
   { timestamps: true },
 );
@@ -44,7 +52,9 @@ const swapRequestSchema = new mongoose.Schema(
 swapRequestSchema.index({ orgId: 1, status: 1, startsAt: 1 });
 
 // One open request per shift, enforced by the database, so two clicks at the
-// same moment cannot both create one.
+// same moment cannot both create one. A matched request is never open at
+// the same time as another: offering refuses while one is matched
+// (createSwapRequest.service.js), and only its chain ending reopens it.
 swapRequestSchema.index({ assignmentId: 1 }, { unique: true, partialFilterExpression: { status: 'open' } });
 
 export const SwapRequest = mongoose.models.SwapRequest ?? mongoose.model('SwapRequest', swapRequestSchema);

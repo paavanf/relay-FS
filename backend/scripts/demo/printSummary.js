@@ -1,6 +1,7 @@
 // printSummary.js
 // What the seed prints once it has finished: what it built, how to sign in,
-// and who to sign in as to see each kind of swap answer.
+// who to sign in as to see each kind of swap answer, and the two proposed
+// swaps waiting for someone.
 
 import { DateTime } from 'luxon';
 import { WARD, PEOPLE, QUALIFICATIONS, TEMPLATES, DEMO_PASSWORD } from './ward.js';
@@ -14,7 +15,7 @@ function describe(person) {
   return `${qualifications.padEnd(8)} ${person.hours} h/week, ${person.employmentType}`;
 }
 
-export function printSummary({ ward, rosters, swaps }) {
+export function printSummary({ ward, rosters, swaps, proposals }) {
   console.log(`\nCreated ${WARD.name}:`);
   console.log(`  ${ward.people} people, ${ward.qualifications} qualifications, ${ward.templates} shift templates,`);
   console.log(`  ${ward.coverage} coverage rules and ${ward.availability} availability entries`);
@@ -30,6 +31,7 @@ export function printSummary({ ward, rosters, swaps }) {
   }
 
   printSwaps(swaps);
+  printProposals(proposals);
 }
 
 const personOf = (membershipId) => PEOPLE.find((person) => String(membershipIdOf(person.key)) === String(membershipId));
@@ -52,4 +54,15 @@ function printSwaps(swaps) {
   }
   const until = DateTime.fromISO(swaps.openUntil).setZone(WARD.timezone).toFormat('ccc d LLL, HH:mm');
   console.log(`  The earliest of these shifts starts ${until}; requests close as their shifts start, so reseed after that.`);
+}
+
+const at = (date) => DateTime.fromJSDate(new Date(date)).setZone(WARD.timezone).toFormat('ccc d LLL, HH:mm');
+
+function printProposals({ waiting, approval }) {
+  const partner = personOf(waiting.partner);
+  const [first, second] = approval.people.map(personOf);
+  console.log('\nProposed swaps, so every state is visible:');
+  console.log(`  ${emailOf(partner).padEnd(20)} ${partner.name.padEnd(15)} a swap from ${personOf(waiting.proposer).name} waits on Swaps to be accepted or declined`);
+  console.log(`  ${'owner or manager'.padEnd(20)} ${''.padEnd(15)} the swap between ${first.name} and ${second.name} waits on Swaps > Approvals`);
+  console.log(`  They stay open until ${at(waiting.expiresAt)} and ${at(approval.expiresAt)}.`);
 }

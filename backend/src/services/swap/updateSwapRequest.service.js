@@ -11,12 +11,14 @@ import { describeRequests } from './swapRequestDto.js';
 import { filtersOf } from './shiftFilters.js';
 
 export async function updateSwapRequest({ orgId, membership, requestId, note, acceptableShiftFilters, now = new Date() }) {
-  const request = await SwapRequest.findOne({ _id: requestId, orgId, status: 'open' });
+  const request = await SwapRequest.findOne({ _id: requestId, orgId, status: { $in: ['open', 'matched'] } });
   if (!request) throw AppError.notFound('Swap request not found');
 
   if (String(request.membershipId) !== String(membership._id)) {
     throw AppError.forbidden('Only the person who offered a shift can change the offer.');
   }
+  // What someone would take decided the proposal they are in; it stays put until that ends.
+  if (request.status === 'matched') throw AppError.conflict('This offer is part of a swap proposal, so it cannot be changed now.');
   if (request.startsAt <= now) throw AppError.conflict('This shift has already started, so the offer can no longer be changed.');
 
   if (note !== undefined) request.note = note;

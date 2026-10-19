@@ -3,11 +3,15 @@
 // workers (Wren and Sam), a day shift template, and two rosters - one
 // published, one draft - in the weeks ahead.
 //
+// Everyone holds one qualification, and every shift records it as its role
+// (Milestone 7.5) - a shift without one can never be swapped. Ask for
+// { roleless: true } to make one the way rosters were saved before roles.
+//
 // Dates are counted from today, so a "future" shift stays in the future
 // however long after this was written the suite runs.
 
 import request from 'supertest';
-import { Roster, Assignment } from '../../src/models/index.js';
+import { Roster, Assignment, Qualification, Membership } from '../../src/models/index.js';
 import { auth, buildOrg, join } from '../helpers/orgBuilder.js';
 
 const DAY_MS = 86_400_000;
@@ -30,14 +34,18 @@ export async function swapWorld(app) {
   const published = await roster('published');
   const draft = await roster('draft');
 
+  const role = await Qualification.create({ orgId: org.orgId, name: 'Registered Nurse', code: 'RN' });
+  await Membership.updateMany({ orgId: org.orgId }, { $set: { qualificationIds: [role._id] } });
+
   /** A day shift (07:00-15:00 UTC; no rule here depends on the local weekday) for someone on a roster, `days` from today. */
-  const shift = async (onRoster, membershipId, days) => {
+  const shift = async (onRoster, membershipId, days, { roleless = false } = {}) => {
     const date = dateFromToday(days);
     const assignment = await Assignment.create({
       orgId: org.orgId,
       rosterId: onRoster._id,
       membershipId,
       shiftTemplateId,
+      slotQualificationId: roleless ? null : role._id,
       date,
       startsAt: new Date(`${date}T07:00:00Z`),
       endsAt: new Date(`${date}T15:00:00Z`),
@@ -45,7 +53,7 @@ export async function swapWorld(app) {
     return String(assignment._id);
   };
 
-  return { ...org, sam, published, draft, shift };
+  return { ...org, sam, published, draft, shift, role: String(role._id) };
 }
 
 /** POST /swap-requests as someone. */

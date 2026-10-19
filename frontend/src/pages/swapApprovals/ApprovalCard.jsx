@@ -15,7 +15,7 @@ import { ChainCard } from '../swaps/ChainCard.jsx';
 import { ImpactPreview } from './ImpactPreview.jsx';
 import { RejectDialog } from './RejectDialog.jsx';
 
-export function ApprovalCard({ chain, onTimeUp }) {
+export function ApprovalCard({ chain, onTimeUp, highlight = false }) {
   const { orgId } = useOrg();
   const { showToast } = useToast();
   const act = useChainAction(orgId);
@@ -48,7 +48,7 @@ export function ApprovalCard({ chain, onTimeUp }) {
 
   return (
     <>
-      <ChainCard chain={chain} onTimeUp={onTimeUp} actions={actions} />
+      <ChainCard chain={chain} onTimeUp={onTimeUp} actions={actions} highlight={highlight} />
       {isRejecting && (
         <RejectDialog
           names={names}

@@ -52,7 +52,7 @@ function MyShiftsPage() {
 
       <div className="mt-6">
         {isPending && <Skeleton className="h-64 w-full" />}
-        {error && <ErrorState message={error.message} onRetry={shifts.refetch} />}
+        {error && <ErrorState message={error.message} onRetry={() => Promise.all([shifts.refetch(), templates.refetch()])} />}
         {offers.error && (
           <Callout variant="warning" className="mb-4">
             Your swap offers could not be loaded, so shifts cannot be offered just now.

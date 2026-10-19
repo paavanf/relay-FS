@@ -35,7 +35,7 @@ export function QualificationDialog({ qualification, onClose }) {
     onSuccess: () => {
       // Refetch the list so the table shows the change immediately.
       queryClient.invalidateQueries({ queryKey: ['qualifications', orgId] });
-      showToast({ type: 'success', title: isEdit ? 'Qualification updated' : 'Qualification added' });
+      showToast({ type: 'success', title: isEdit ? 'Changes saved' : 'Qualification added' });
       onClose();
     },
     onError: (err) =>

@@ -1,8 +1,9 @@
-// TopBar - a thin strip: menu button on mobile, org switcher, theme toggle
-// and the user menu.
+// TopBar - a thin strip: menu button on mobile, org switcher, the
+// notification bell, theme toggle and the user menu.
 import { Menu } from 'lucide-react';
 import { OrgSwitcher } from './OrgSwitcher.jsx';
 import { UserMenu } from './UserMenu.jsx';
+import { NotificationBell } from '../../../features/notifications/components/NotificationBell.jsx';
 import { ThemeToggle } from '../../ui/ThemeToggle.jsx';
 
 export function TopBar({ onOpenNav }) {
@@ -24,6 +25,7 @@ export function TopBar({ onOpenNav }) {
       {/* Never squeezed: on a phone it is the organisation name that gives
           way, truncating, rather than these controls sliding over it. */}
       <div className="flex shrink-0 items-center gap-2">
+        <NotificationBell />
         <ThemeToggle />
         <UserMenu />
       </div>

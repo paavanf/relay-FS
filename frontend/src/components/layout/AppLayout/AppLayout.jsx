@@ -1,12 +1,24 @@
 // AppLayout - the shell for every signed-in page.
 // A fixed sidebar on the left, a thin top bar, and the page on the warm page
-// surface. Below lg the sidebar becomes a drawer.
-import { useState } from 'react';
+// surface. Below lg the sidebar becomes a drawer. Pages load on demand, so
+// while one's code arrives the shell stays and a page-shaped placeholder
+// shows where it will be.
+import { Suspense, useState } from 'react';
 import { Outlet } from 'react-router';
+import { Skeleton } from '../../ui/Skeleton.jsx';
 import { Sidebar } from './Sidebar.jsx';
 import { TopBar } from './TopBar.jsx';
 import { MobileNav } from './MobileNav.jsx';
 import { Logo } from '../../Logo.jsx';
+
+function PageLoading() {
+  return (
+    <div className="mx-auto max-w-5xl space-y-4" aria-label="Loading page">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-48 w-full" />
+    </div>
+  );
+}
 
 function AppLayout() {
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -26,7 +38,9 @@ function AppLayout() {
         <TopBar onOpenNav={() => setIsNavOpen(true)} />
 
         <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8">
-          <Outlet />
+          <Suspense fallback={<PageLoading />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

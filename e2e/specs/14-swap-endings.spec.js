@@ -3,8 +3,8 @@
 // demo's seeded proposals (support/proposals.js):
 //
 //   declined   the person it waits for declines, on a phone: it moves to
-//              History for both of them, the other is told, and both
-//              offers are open again
+//              History for both of them, the proposer is told under the
+//              bell, and both offers are open again
 //   expired    its deadline passes - moved into the past in the test
 //              database rather than waited for - and the next look expires
 //              it: the manager's queue drops it, and the people in it see
@@ -42,8 +42,8 @@ test('declined: the swap is off for both of them, and their offers are open agai
 
   const { page: theirs } = await sessions.open(proposer, { path: appPath('swaps') });
   await expect(theirs.getByRole('region', { name: 'History' }).getByText(ended)).toBeVisible();
-  const told = `${decider.name} declined the swap, so it is off. Your offer is open again.`;
-  await expect(theirs.getByRole('region', { name: 'Updates' }).getByText(told)).toBeVisible();
+  await theirs.goto(appPath('notifications'));
+  await expect(theirs.getByText(`${decider.name} declined your swap proposal, so it is off. Your offer is open again.`)).toBeVisible();
 });
 
 test('expired: past its deadline, it leaves the queue and says it ran out of time', async ({ sessions }) => {

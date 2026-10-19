@@ -1,50 +1,23 @@
 // The one place the app talks to the backend. Components never call fetch()
-// directly - they use this. Handles auth headers, JSON, and 401 refresh.
+// directly - they use this. Handles auth headers, JSON and 401 refresh, and
+// throws an ApiError (lib/apiError.js) for anything that is not 2xx. It also
+// tells lib/slowRequests.js how long each request took, so a server waking
+// up from sleep gets a banner rather than a frozen-looking page.
+// Pass { expectSlow: true } for requests that are slow because they work.
 
 import { getToken } from './tokenStore.js';
 import { refreshAccessToken } from './refreshHelper.js';
+import { trackRequest } from './slowRequests.js';
+import { ApiError, errorFor } from './apiError.js';
+
+export { ApiError };
 
 const BASE_URL = '/api/v1';
-
-// Error thrown for any non-2xx response, so callers can read err.status etc.
-export class ApiError extends Error {
-  constructor(message, { status, code, details, body } = {}) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-    this.code = code;
-    this.details = details;
-    // The decoded response body. Useful when an endpoint returns something
-    // meaningful alongside a non-2xx status (e.g. /api/health when the API is
-    // up but its database is not).
-    this.body = body;
-  }
-}
 
 // Feature endpoints live under /api/v1. A path that already starts with /api
 // is used exactly as given, which lets us reach the backend's /api/health.
 function buildUrl(path) {
   return path.startsWith('/api/') ? path : BASE_URL + path;
-}
-
-// A validation failure sends the generic message "Validation failed" and puts
-// the text a person can actually act on inside details:
-//   { body: { fieldErrors: { password: ['Password must contain a number'] } } }
-// Lift those out so forms show the real reason instead of the generic one.
-function readableMessage(error, fallback) {
-  const messages = [];
-
-  for (const target of Object.values(error?.details ?? {})) {
-    for (const fieldMessages of Object.values(target?.fieldErrors ?? {})) {
-      messages.push(...fieldMessages);
-    }
-    messages.push(...(target?.formErrors ?? []));
-  }
-
-  if (messages.length === 0) return error?.message ?? fallback;
-
-  // Cap it: a toast showing every field at once is unreadable.
-  return messages.slice(0, 3).join('. ');
 }
 
 function buildHeaders(body) {
@@ -66,15 +39,18 @@ async function sendRequest(method, path, body) {
   });
 }
 
-async function request(method, path, body) {
+async function request(method, path, body, { expectSlow = false } = {}) {
+  const done = trackRequest({ expectSlow });
   let response;
 
   try {
     response = await sendRequest(method, path, body);
   } catch {
     // Network-level failure: server down, DNS, offline.
+    done({ answered: false });
     throw new ApiError('Cannot reach the Relay API.', { status: 0 });
   }
+  done();
 
   // Access token expired - refresh once, then retry the original request.
   if (response.status === 401 && !path.startsWith('/auth/')) {
@@ -86,34 +62,14 @@ async function request(method, path, body) {
 
   const payload = response.status === 204 ? null : await response.json().catch(() => null);
 
-  if (!response.ok) {
-    // Every error the API itself sends carries an {error:{...}} envelope. A
-    // 5xx with no JSON body therefore did not come from the API - it is the
-    // dev proxy (or a gateway) saying it could not reach the backend at all.
-    // Reporting that as "Internal Server Error" sends you hunting for a
-    // server bug that does not exist.
-    if (payload === null && response.status >= 500) {
-      throw new ApiError('Cannot reach the Relay API. Is the backend running?', {
-        status: response.status,
-      });
-    }
-
-    const error = payload?.error ?? {};
-    throw new ApiError(readableMessage(error, response.statusText), {
-      status: response.status,
-      code: error.code,
-      details: error.details,
-      body: payload,
-    });
-  }
-
+  if (!response.ok) throw errorFor(response, payload);
   return payload;
 }
 
 export const api = {
-  get: (path) => request('GET', path),
-  post: (path, body) => request('POST', path, body),
-  patch: (path, body) => request('PATCH', path, body),
-  put: (path, body) => request('PUT', path, body),
-  delete: (path) => request('DELETE', path),
+  get: (path, options) => request('GET', path, undefined, options),
+  post: (path, body, options) => request('POST', path, body, options),
+  patch: (path, body, options) => request('PATCH', path, body, options),
+  put: (path, body, options) => request('PUT', path, body, options),
+  delete: (path, options) => request('DELETE', path, undefined, options),
 };

@@ -38,7 +38,7 @@ export function ShiftTemplateDialog({ template, onClose }) {
       isEdit ? updateShiftTemplate(orgId, template._id, data) : createShiftTemplate(orgId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shiftTemplates', orgId] });
-      showToast({ type: 'success', title: isEdit ? 'Shift template updated' : 'Shift template added' });
+      showToast({ type: 'success', title: isEdit ? 'Changes saved' : 'Shift template added' });
       onClose();
     },
     onError: (err) => showToast({ type: 'error', title: 'Could not save', message: err.message }),

@@ -11,7 +11,7 @@ import { appPath } from '../support/stack.js';
 import { asha, manager } from '../support/people.js';
 
 const PUBLIC_PAGES = ['/', '/login', '/register', '/forgot-password'];
-const WORKER_PAGES = ['schedule', 'my-shifts', 'availability', 'swaps', 'fairness'];
+const WORKER_PAGES = ['schedule', 'my-shifts', 'availability', 'swaps', 'fairness', 'notifications', 'preferences'];
 const MANAGER_PAGES = [...WORKER_PAGES, 'swaps/approvals', 'team', 'settings'];
 
 async function visitEach({ page, problems }, paths) {

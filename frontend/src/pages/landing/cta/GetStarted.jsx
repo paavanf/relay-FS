@@ -5,6 +5,8 @@
 // So are swaps, now that Milestone 8 completes them: Relay finds the
 // options, everyone in one accepts, a manager approves where the rules ask
 // for it, and every shift changes hands at once - nothing more is claimed.
+// And notifications (Milestone 9): the bell, and email for exactly the three
+// events that send one - no push, no texts, nothing instant.
 import { ButtonLink } from '../../../components/ui/ButtonLink.jsx';
 import { LandingSection } from '../LandingSection.jsx';
 
@@ -35,6 +37,12 @@ export function GetStarted() {
           Relay finds who could take it - a direct swap, or a chain of three or four people where each takes the
           next one's shift. Once everyone in it accepts, and a manager approves if you ask for that, Relay checks
           it against the same rules as any roster edit and every shift changes hands at once.
+        </p>
+        <p>
+          <span className="font-medium text-content-secondary">Notifications:</span> the bell in the app tells you
+          when a roster with your shifts is published, when a swap is waiting for your answer - or, for managers,
+          your approval - and when a swap you are in goes through. The roster and the swaps waiting for you are
+          emailed too, unless you turn that off in Preferences.
         </p>
       </div>
     </LandingSection>

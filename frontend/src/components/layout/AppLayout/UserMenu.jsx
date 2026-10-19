@@ -1,13 +1,20 @@
-// UserMenu - the avatar in the top bar, with a small menu behind it.
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { LogOut } from 'lucide-react';
+// UserMenu - the avatar in the top bar, with a small menu behind it: who you
+// are, your Preferences (how this organisation reaches you), and Log out.
+// Escape closes it and puts focus back on the avatar, as a click outside does.
+import { useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { LogOut, SlidersHorizontal } from 'lucide-react';
 import { Avatar } from '../../ui/Avatar.jsx';
 import { useAuth } from '../../../features/auth/useAuth.js';
+import { useOrg } from '../../../features/organisation/useOrg.js';
+
+const ITEM = 'flex w-full items-center gap-2 rounded-md px-3 py-2 text-body-sm text-content-secondary transition-colors hover:bg-surface-hover hover:text-content-primary';
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
+  const button = useRef(null);
   const { user, logout } = useAuth();
+  const { orgId } = useOrg();
   const navigate = useNavigate();
 
   async function handleLogout() {
@@ -16,15 +23,23 @@ export function UserMenu() {
     navigate('/login');
   }
 
+  function closeOnEscape(event) {
+    if (event.key !== 'Escape') return;
+    setIsOpen(false);
+    button.current?.focus();
+  }
+
   return (
-    <div className="relative">
+    <div className="relative" onKeyDown={isOpen ? closeOnEscape : undefined}>
       <button
+        ref={button}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        aria-label="Open user menu"
         aria-expanded={isOpen}
-        className="block rounded-full"
+        className="block rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus"
       >
+        {/* Named by hidden text rather than aria-label: the initials are only a picture. */}
+        <span className="sr-only">Open user menu</span>
         <Avatar name={user?.name} size="sm" />
       </button>
 
@@ -39,12 +54,12 @@ export function UserMenu() {
               <p className="truncate text-xs text-content-tertiary">{user?.email}</p>
             </div>
 
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="mt-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-body-sm text-content-secondary transition-colors hover:bg-surface-hover hover:text-content-primary"
-            >
-              <LogOut className="size-4" />
+            <Link to={`/app/${orgId}/preferences`} onClick={() => setIsOpen(false)} className={`mt-1 ${ITEM}`}>
+              <SlidersHorizontal className="size-4" aria-hidden="true" />
+              Preferences
+            </Link>
+            <button type="button" onClick={handleLogout} className={ITEM}>
+              <LogOut className="size-4" aria-hidden="true" />
               Log out
             </button>
           </div>

@@ -45,6 +45,7 @@ export function useScheduleData() {
   const coverage = useQuery({ queryKey: ['coverage', orgId], queryFn: () => listCoverage(orgId) });
   const qualifications = useQuery({ queryKey: ['qualifications', orgId], queryFn: () => listQualifications(orgId) });
 
+  const queries = [rosterList, roster, members, templates, coverage, qualifications];
   const loaded = roster.data && members.data && templates.data && coverage.data && qualifications.data;
   const detail = loaded
     ? {
@@ -62,7 +63,8 @@ export function useScheduleData() {
     setSelectedId: setChosenId,
     detail,
     isLoading: rosterList.isPending,
-    error: rosterList.error ?? roster.error ?? members.error ?? templates.error ?? coverage.error ?? qualifications.error,
-    refetch: rosterList.refetch,
+    error: queries.find((query) => query.error)?.error ?? null,
+    // Trying again asks again for whichever failed - any of the six can.
+    refetch: () => Promise.all(queries.filter((query) => query.error).map((query) => query.refetch())),
   };
 }

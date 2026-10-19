@@ -26,7 +26,7 @@ export function ShiftCell({ assignment, template, isWeekend, canEdit, onClick })
       )}
     >
       {label}
-      <span className="ml-1 tabular-nums opacity-80">{times}</span>
+      <span className="ml-1 tabular-nums">{times}</span>
     </span>
   ) : (
     <span className="block h-[26px]" aria-hidden="true" />

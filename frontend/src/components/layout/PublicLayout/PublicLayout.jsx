@@ -5,7 +5,9 @@
 // that shows what the product does. Below lg the brand panel is dropped and
 // only the form remains.
 
+import { Suspense } from 'react';
 import { Outlet } from 'react-router';
+import { Spinner } from '../../ui/Spinner.jsx';
 import { Logo } from '../../Logo.jsx';
 import { SwapCycleGraphic } from '../../brand/SwapCycleGraphic.jsx';
 import { ThemeToggle } from '../../ui/ThemeToggle.jsx';
@@ -21,7 +23,10 @@ function PublicLayout() {
 
         <div className="flex flex-1 items-center justify-center px-6 pb-12 lg:px-10">
           <div className="w-full max-w-sm">
-            <Outlet />
+            {/* Each form loads on demand; a spinner holds its place meanwhile. */}
+            <Suspense fallback={<Spinner className="mx-auto text-brand-solid" />}>
+              <Outlet />
+            </Suspense>
           </div>
         </div>
       </div>

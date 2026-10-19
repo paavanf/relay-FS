@@ -4,7 +4,9 @@
 //
 //   Dara proposes the demo's three-person chain from its option, and it
 //   becomes her proposal - with where everyone stands on it
-//   the other two accept it, the first on a phone
+//   the first of the other two, on a phone, finds it under the bell:
+//   following the notification opens the proposal and clears the dot
+//   (Milestone 9) - then both accept it
 //   the manager reads what approving would change, and approves
 //   all three then find the shift they took on My Shifts, and the one they
 //   gave gone
@@ -27,6 +29,19 @@ const accountOf = (person) => everyone.find((p) => p.name === person.name);
 const cardIn = (scope, proposer) => scope.getByRole('listitem', { name: `Swap proposed by ${proposer.name}` });
 const offerButton = (page, shift) => page.getByRole('button', { name: `Offer this shift: ${shiftTitleOf(shift)}` });
 
+// The bell counts it; its notification opens the proposal, and its dot goes -
+// one fewer unread (an earlier spec's published roster may have left others).
+async function followTheBell(page, proposer) {
+  const bell = page.getByRole('button', { name: /^Notifications, \d+ unread$/ });
+  const unread = Number((await bell.getAttribute('aria-label')).match(/\d+/)[0]);
+  await bell.click();
+  const panel = page.getByRole('dialog', { name: 'Notifications' });
+  await panel.getByRole('link', { name: new RegExp(`^Unread: ${proposer.name} proposed a swap`) }).click();
+  await expect(page).toHaveURL(/\/swaps\?chain=[0-9a-f]{24}$/);
+  const left = unread - 1;
+  await expect(page.getByRole('button', { name: left > 0 ? `Notifications, ${left} unread` : 'Notifications', exact: true })).toBeVisible();
+}
+
 test("a three-person swap: proposed, accepted, approved - and everyone's My Shifts shows it", async ({ sessions }) => {
   const { request, person: dara, options } = chainCase;
   const option = options.chains[0];
@@ -48,7 +63,8 @@ test("a three-person swap: proposed, accepted, approved - and everyone's My Shif
 
   // The other two accept - the first on a phone, where most people will.
   for (const [i, other] of others.entries()) {
-    const { page } = await sessions.open(accountOf(other), { path: appPath('swaps'), viewport: i === 0 ? PHONE : undefined });
+    const { page } = await sessions.open(accountOf(other), { path: appPath(i === 0 ? 'my-shifts' : 'swaps'), viewport: i === 0 ? PHONE : undefined });
+    if (i === 0) await followTheBell(page, dara);
     const waiting = cardIn(page.getByRole('region', { name: 'Waiting for you' }), dara);
     if (i === 0) await captureAll(page, 'swap-waiting-for-you', { target: waiting });
     await waiting.getByRole('button', { name: 'Accept' }).click();

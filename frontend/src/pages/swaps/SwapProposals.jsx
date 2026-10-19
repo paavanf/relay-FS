@@ -24,7 +24,13 @@ export function SwapProposals({ highlightId }) {
   const { waiting, proposals } = chainSections(chains.data);
   return (
     <div className="space-y-6">
-      <ChainList title="Waiting for you" chains={waiting} empty="Nobody is waiting for you to answer a swap." onTimeUp={chains.refetch} />
+      <ChainList
+        title="Waiting for you"
+        chains={waiting}
+        empty="Nobody is waiting for you to answer a swap."
+        onTimeUp={chains.refetch}
+        highlightId={highlightId}
+      />
       <ChainList
         title="Your proposals"
         description="Swaps you proposed or accepted, waiting for the others - or a manager."
@@ -36,10 +42,11 @@ export function SwapProposals({ highlightId }) {
   );
 }
 
-export function SwapHistory() {
+export function SwapHistory({ highlightId }) {
   const { orgId } = useOrg();
   const chains = useSwapChains(orgId);
   if (!chains.data) return null;
 
-  return <ChainList title="History" description="Swaps that have ended, and how." chains={chainSections(chains.data).history} />;
+  const { history } = chainSections(chains.data);
+  return <ChainList title="History" description="Swaps that have ended, and how." chains={history} highlightId={highlightId} />;
 }

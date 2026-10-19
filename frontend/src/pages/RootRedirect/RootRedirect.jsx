@@ -4,7 +4,8 @@
 import { Navigate } from 'react-router';
 import { useAuth } from '../../features/auth/useAuth.js';
 import { FullScreenLoader } from '../../components/ui/FullScreenLoader.jsx';
-import LandingPage from '../landing/index.js';
+// Loaded on demand, like every page: a signed-in visitor never downloads it.
+import { LandingPage } from '../../app/lazyPages.js';
 
 function RootRedirect() {
   const { user, isLoading } = useAuth();

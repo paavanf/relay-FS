@@ -20,9 +20,10 @@ export async function createRoster(orgId, data) {
   return result.roster;
 }
 
-// Answers 202 with a job id; the work happens on a worker thread.
+// Answers 202 with a job id; the work happens on a worker thread. It has its
+// own progress display, so it never shows the slow-server banner.
 export async function generateRoster(orgId, rosterId) {
-  return api.post(`/orgs/${orgId}/rosters/${rosterId}/generate`, {});
+  return api.post(`/orgs/${orgId}/rosters/${rosterId}/generate`, {}, { expectSlow: true });
 }
 
 export async function publishRoster(orgId, rosterId) {

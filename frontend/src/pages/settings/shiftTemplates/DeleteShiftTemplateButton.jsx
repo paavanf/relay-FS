@@ -25,7 +25,7 @@ export function DeleteShiftTemplateButton({ template }) {
       showToast({ type: 'success', title: 'Shift template retired' });
       setIsConfirming(false);
     },
-    onError: (err) => showToast({ type: 'error', title: 'Could not remove', message: err.message }),
+    onError: (err) => showToast({ type: 'error', title: 'Could not retire', message: err.message }),
   });
 
   return (
@@ -34,9 +34,9 @@ export function DeleteShiftTemplateButton({ template }) {
         type="button"
         onClick={() => setIsConfirming(true)}
         className="rounded-sm p-1.5 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-danger-content"
-        aria-label={`Remove ${template.name}`}
+        aria-label={`Retire ${template.name}`}
       >
-        <Trash2 className="size-4" />
+        <Trash2 className="size-4" aria-hidden="true" />
       </button>
 
       <Dialog isOpen={isConfirming} onClose={() => setIsConfirming(false)}>

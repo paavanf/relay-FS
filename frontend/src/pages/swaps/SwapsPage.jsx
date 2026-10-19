@@ -7,24 +7,27 @@
 //   My offers         your open offers, each with "Find swaps" beside its
 //                     options; proposing one asks everyone else in it
 //   History           swaps that have ended, and how
-//   Updates           what has happened to your swaps
 //   Swap rules        how swaps work in this organisation, read-only
 //
-// Proposals and updates are fetched every 15 seconds while the page is
+// What has happened to your swaps is told under the bell (Milestone 9). A
+// notification links here with ?chain=<id>, and that swap is brought into
+// view, outlined. Proposals are fetched every 15 seconds while the page is
 // open, and when the window regains focus.
 import { useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
 import { useToast } from '../../components/ui/toast/useToast.js';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
 import { SwapProposals, SwapHistory } from './SwapProposals.jsx';
 import { OffersAndOptions } from './OffersAndOptions.jsx';
-import { SwapUpdates } from './SwapUpdates.jsx';
 import { SwapRulesNote } from './SwapRulesNote.jsx';
 
 function SwapsPage() {
   useDocumentTitle('Swaps');
   const { showToast } = useToast();
   const [proposedId, setProposedId] = useState(null);
+  const [params] = useSearchParams();
+  const linkedId = params.get('chain');
 
   function onProposed(chain) {
     setProposedId(chain.id);
@@ -39,10 +42,9 @@ function SwapsPage() {
       />
 
       <div className="mt-6 space-y-8">
-        <SwapProposals highlightId={proposedId} />
+        <SwapProposals highlightId={proposedId ?? linkedId} />
         <OffersAndOptions onProposed={onProposed} />
-        <SwapHistory />
-        <SwapUpdates />
+        <SwapHistory highlightId={linkedId} />
         <SwapRulesNote />
       </div>
     </div>

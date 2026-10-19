@@ -24,7 +24,7 @@ export function EditOfferDialog({ request, onClose }) {
       { requestId: request.id, note: note.trim(), acceptableShiftFilters: filters },
       {
         onSuccess: () => {
-          showToast({ type: 'success', title: 'Offer updated' });
+          showToast({ type: 'success', title: 'Changes saved' });
           onClose();
         },
       },

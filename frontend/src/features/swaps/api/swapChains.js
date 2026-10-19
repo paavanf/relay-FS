@@ -36,9 +36,3 @@ export async function actOnChain(orgId, chainId, action, body = {}) {
 export function chainImpact(orgId, chainId) {
   return api.get(`/orgs/${orgId}/swap-chains/${chainId}/impact`);
 }
-
-/** Your own notifications, newest first. */
-export async function listNotifications(orgId) {
-  const result = await api.get(`/orgs/${orgId}/notifications`);
-  return result.notifications;
-}

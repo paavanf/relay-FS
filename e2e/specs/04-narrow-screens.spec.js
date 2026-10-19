@@ -1,8 +1,9 @@
 // 04-narrow-screens.spec.js
 // Checklist section: "375px: no horizontal scroll on My Shifts and Fairness"
-// - and on Swaps, since Milestone 7, which workers will open on their phones
-// - asserted as scrollWidth <= clientWidth on the whole document, once each
-// page's data has arrived and been drawn.
+// - and on Swaps, since Milestone 7, and every other worker page since
+// Milestone 9 (Availability, Notifications, Preferences), which people open
+// on their phones - asserted as scrollWidth <= clientWidth on the whole
+// document, once each page's data has arrived and been drawn.
 //
 // Both a worker and a manager, because the two see different Fairness pages.
 //
@@ -17,8 +18,11 @@ import { PHONE } from '../support/session.js';
 
 const PAGES = [
   { name: 'my-shifts', heading: 'My shifts' },
+  { name: 'availability', heading: 'Availability' },
   { name: 'fairness', heading: 'Fairness' },
   { name: 'swaps', heading: 'Swaps' },
+  { name: 'notifications', heading: 'Notifications' },
+  { name: 'preferences', heading: 'Preferences' },
 ];
 
 /** How many pixels two boxes overlap side to side; 0 when they sit apart. */
@@ -26,9 +30,10 @@ const overlap = (a, b) => Math.max(0, Math.min(a.x + a.width, b.x + b.width) - M
 
 async function topBarOverlaps(page) {
   const switcher = await page.getByLabel('Switch organisation').boundingBox();
+  const bell = await page.getByRole('button', { name: /^Notifications/ }).boundingBox();
   const theme = await page.getByRole('radiogroup', { name: 'Theme' }).boundingBox();
   const user = await page.getByRole('button', { name: 'Open user menu' }).boundingBox();
-  return { nameUnderThemeToggle: overlap(switcher, theme), themeToggleUnderUserMenu: overlap(theme, user) };
+  return { nameUnderBell: overlap(switcher, bell), bellUnderThemeToggle: overlap(bell, theme), themeToggleUnderUserMenu: overlap(theme, user) };
 }
 
 for (const person of [asha, manager]) {
@@ -48,7 +53,8 @@ for (const person of [asha, manager]) {
       }));
       expect(scrollWidth, `${name} is ${scrollWidth}px wide in a ${clientWidth}px screen`).toBeLessThanOrEqual(clientWidth);
       expect(await topBarOverlaps(page), `${name}: top-bar controls overlapping, in pixels`).toEqual({
-        nameUnderThemeToggle: 0,
+        nameUnderBell: 0,
+        bellUnderThemeToggle: 0,
         themeToggleUnderUserMenu: 0,
       });
     }

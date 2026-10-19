@@ -72,7 +72,7 @@ test('widening what an offer would take turns its chain into a direct swap, and 
   await change.click();
   await dialog.getByRole('radio', { name: "Any shift I'm free for" }).check();
   await dialog.getByRole('button', { name: 'Save changes' }).click();
-  await expect(page.getByRole('alert').filter({ hasText: 'Offer updated' })).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: 'Changes saved' })).toBeVisible();
   await findSwapsForMyOffer(page, chain.request);
   await expect(page.getByRole('region', { name: 'Direct swaps' })).toBeVisible();
 

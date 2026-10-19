@@ -1,22 +1,21 @@
 // useSwapChains.js
-// The proposed swaps someone can see, their notifications, and the counts
-// behind the sidebar badges - all kept fresh by asking again rather than
-// guessing.
+// The proposed swaps someone can see, and the counts behind the sidebar
+// badges - all kept fresh by asking again rather than guessing.
 //
-// While the Swaps page is open its chains and notifications are fetched
-// every 15 seconds and whenever the window regains focus; leaving the page
-// unmounts the queries, which stops the polling. The sidebar's counts ask
-// less often, since they only decide whether a badge shows.
+// While the Swaps page is open its chains are fetched every 15 seconds and
+// whenever the window regains focus; leaving the page unmounts the query,
+// which stops the polling. The sidebar's counts ask every 30 seconds while
+// the tab is visible - the same rhythm as the notification bell, so the two
+// agree.
 
 import { useQuery } from '@tanstack/react-query';
-import { listChains, chainSummary, listNotifications, chainImpact } from '../api/swapChains.js';
+import { listChains, chainSummary, chainImpact } from '../api/swapChains.js';
 import { getSwapRules } from '../../organisation/api/swapRules.js';
 
 export const chainKeys = {
   list: (orgId) => ['swapChains', orgId],
   summary: (orgId) => ['swapChainSummary', orgId],
   impact: (orgId, chainId) => ['swapChainImpact', orgId, chainId],
-  notifications: (orgId) => ['notifications', orgId],
   rules: (orgId) => ['swapRules', orgId],
 };
 
@@ -26,12 +25,8 @@ export function useSwapChains(orgId) {
   return useQuery({ queryKey: chainKeys.list(orgId), queryFn: () => listChains(orgId), ...LIVE });
 }
 
-export function useNotifications(orgId) {
-  return useQuery({ queryKey: chainKeys.notifications(orgId), queryFn: () => listNotifications(orgId), ...LIVE });
-}
-
 export function useChainSummary(orgId) {
-  return useQuery({ queryKey: chainKeys.summary(orgId), queryFn: () => chainSummary(orgId), refetchInterval: 60_000 });
+  return useQuery({ queryKey: chainKeys.summary(orgId), queryFn: () => chainSummary(orgId), refetchInterval: 30_000, refetchOnWindowFocus: true });
 }
 
 export function useChainImpact(orgId, chainId) {

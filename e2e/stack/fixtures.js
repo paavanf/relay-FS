@@ -76,13 +76,13 @@ export async function addRosterWithHoles() {
       rosterId: roster._id,
       membershipId: a.membershipId,
       shiftTemplateId: a.shiftTemplateId,
+      slotQualificationId: a.slotQualificationId ?? null,
       date: a.date,
       startsAt: new Date(a.startsAt),
       endsAt: new Date(a.endsAt),
       source: 'generated',
     })),
   );
-
   return { holesRosterId: String(roster._id), holesCount: result.unfilledSlots.length };
 }
 

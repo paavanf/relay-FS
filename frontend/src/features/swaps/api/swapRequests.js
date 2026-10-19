@@ -14,8 +14,14 @@ export async function listSwapRequests(orgId) {
   return result.swapRequests;
 }
 
-export async function offerShift(orgId, { assignmentId, note }) {
-  const result = await api.post(`/orgs/${orgId}/swap-requests`, { assignmentId, note });
+export async function offerShift(orgId, { assignmentId, note, acceptableShiftFilters }) {
+  const result = await api.post(`/orgs/${orgId}/swap-requests`, { assignmentId, note, acceptableShiftFilters });
+  return result.swapRequest;
+}
+
+/** Changes your own open offer: its note, or what you would take in return. */
+export async function updateOffer(orgId, requestId, changes) {
+  const result = await api.patch(`/orgs/${orgId}/swap-requests/${requestId}`, changes);
   return result.swapRequest;
 }
 

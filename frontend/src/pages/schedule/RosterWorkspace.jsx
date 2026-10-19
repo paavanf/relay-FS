@@ -13,7 +13,9 @@ import { useOrg } from '../../features/organisation/useOrg.js';
 
 export function RosterWorkspace({ detail }) {
   const { isManager } = useOrg();
-  const { roster, assignments, unfilledSlots, members, templates } = detail;
+  const { roster, assignments, unfilledSlots, members, templates, coverage, qualificationsById } = detail;
+  // What says which roles each shift has, and which are filled.
+  const roles = { coverage, qualificationsById, assignments };
 
   const [openCell, setOpenCell] = useState(null);
 
@@ -41,7 +43,7 @@ export function RosterWorkspace({ detail }) {
       <RosterGrid
         roster={roster}
         assignments={assignments}
-        unfilledSlots={unfilledSlots}
+        roles={roles}
         members={members}
         templates={templates}
         canEdit={canEdit}
@@ -55,6 +57,7 @@ export function RosterWorkspace({ detail }) {
           rosterId={roster.id}
           cell={openCell}
           templates={templates}
+          roles={roles}
           onClose={() => setOpenCell(null)}
         />
       )}

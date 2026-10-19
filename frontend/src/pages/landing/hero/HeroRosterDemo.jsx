@@ -5,9 +5,9 @@
 // generator's actual output for a sample cafe (see ../fixtures/index.js) and
 // appear in the order the generator placed them.
 //
-// Shifts not yet placed are passed as unfilled slots so each day's Coverage
-// cell keeps counting against the real requirement: it reads short, then
-// complete, exactly as it would on a live roster.
+// Each day's Coverage cell counts the places filled against the cafe's real
+// coverage rules, role by role, so it reads short, then complete, as the
+// shifts are placed - exactly as it would on a live roster.
 import { RosterGrid } from '../../schedule/grid/index.js';
 import { cafe } from '../fixtures/index.js';
 import { useFillAnimation } from './useFillAnimation.js';
@@ -15,6 +15,7 @@ import { useInView } from '../../../hooks/useInView.js';
 import { usePrefersReducedMotion } from '../../../hooks/usePrefersReducedMotion.js';
 
 const noop = () => {};
+const qualificationsById = new Map(cafe.qualifications.map((q) => [q.id, q]));
 
 export function HeroRosterDemo() {
   const [ref, inView] = useInView({ threshold: 0.3 });
@@ -24,7 +25,6 @@ export function HeroRosterDemo() {
   const shown = useFillAnimation(total, { running: inView, instant: reducedMotion });
 
   const placed = cafe.assignments.slice(0, shown);
-  const pending = cafe.assignments.slice(shown).map((a) => ({ slotId: a.id, date: a.date }));
 
   return (
     <figure ref={ref}>
@@ -38,7 +38,7 @@ export function HeroRosterDemo() {
       <RosterGrid
         roster={cafe.roster}
         assignments={placed}
-        unfilledSlots={pending}
+        roles={{ coverage: cafe.coverage, qualificationsById, assignments: placed }}
         members={cafe.members}
         templates={cafe.templates}
         canEdit={false}

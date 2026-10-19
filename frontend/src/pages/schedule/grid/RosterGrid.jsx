@@ -8,7 +8,7 @@ import { GridHeader } from './GridHeader.jsx';
 import { GridRow } from './GridRow.jsx';
 import { CoverageBar } from './CoverageBar.jsx';
 
-export function RosterGrid({ roster, assignments, unfilledSlots, members, templates, canEdit, onCellClick }) {
+export function RosterGrid({ roster, assignments, roles, members, templates, canEdit, onCellClick }) {
   const columns = buildColumns(roster.startDate, roster.endDate);
   const assignmentsByKey = indexAssignments(assignments);
   const templatesById = indexTemplates(templates);
@@ -23,11 +23,7 @@ export function RosterGrid({ roster, assignments, unfilledSlots, members, templa
         <GridHeader columns={columns} />
 
         <tbody>
-          <CoverageBar
-            columns={columns}
-            assignments={assignments}
-            unfilledSlots={unfilledSlots}
-          />
+          <CoverageBar columns={columns} templates={templates} roles={roles} />
 
           {members.map((member) => (
             <GridRow

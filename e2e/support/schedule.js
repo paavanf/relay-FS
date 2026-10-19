@@ -40,12 +40,22 @@ export function cellButton(page, roster, memberName, date) {
   return row.getByRole('cell').nth(daysBetween(roster.startDate, date)).getByRole('button');
 }
 
-/** Opens a cell's dialog and picks a shift, leaving the verdict on screen. */
-export async function tryShift(page, roster, memberName, date, shiftName) {
+/**
+ * Opens a cell's dialog and picks a shift - and, if the dialog asks which
+ * role the person fills and none is chosen yet, the named role or else the
+ * first - leaving the verdict on screen.
+ */
+export async function tryShift(page, roster, memberName, date, shiftName, roleName) {
   await cellButton(page, roster, memberName, date).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByRole('heading', { name: memberName })).toBeVisible();
   await dialog.getByRole('radio', { name: new RegExp(`^${shiftName}\\b`) }).check();
+
+  const roles = dialog.getByRole('group', { name: 'Role' });
+  if (await roles.isVisible()) {
+    const role = roleName ? roles.getByRole('radio', { name: new RegExp(`^${roleName}\\b`) }) : roles.getByRole('radio').first();
+    if (!(await role.isChecked())) await role.check();
+  }
   await expect(dialog.getByText('Checking the rules...')).toBeHidden();
   return dialog;
 }

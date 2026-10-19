@@ -17,7 +17,7 @@ import { appPath } from '../support/stack.js';
 import { manager } from '../support/people.js';
 import { PHONE } from '../support/session.js';
 import { captureAll } from '../support/screens.js';
-import { findSwapCases, findSwapsForMyOffer, diagramGeometry, arrowProblems, firstOption, escapeRegExp } from '../support/swaps.js';
+import { findSwapCases, findSwapsForMyOffer, diagramGeometry, arrowProblems, firstOption, escapeRegExp, shiftTitleOf } from '../support/swaps.js';
 
 let cases;
 test.beforeAll(async () => {
@@ -27,7 +27,7 @@ test.beforeAll(async () => {
 test('the request only a chain resolves shows a three-person chain, drawn and in words', async ({ sessions }) => {
   expect(cases.chain, 'the demo has a request only a chain resolves').toBeDefined();
   const { page } = await sessions.open(cases.chain.person, { path: appPath('swaps') });
-  await findSwapsForMyOffer(page);
+  await findSwapsForMyOffer(page, cases.chain.request);
 
   await expect(page.getByRole('heading', { level: 2, name: /^Swaps for your / })).toBeVisible();
   const card = firstOption(page, 'Swap chains');
@@ -57,7 +57,7 @@ test('the request only a chain resolves shows a three-person chain, drawn and in
 test('a request with a direct swap shows it before any chain', async ({ sessions }) => {
   expect(cases.direct, 'the demo has a request with a direct swap').toBeDefined();
   const { page } = await sessions.open(cases.direct.person, { path: appPath('swaps') });
-  await findSwapsForMyOffer(page);
+  await findSwapsForMyOffer(page, cases.direct.request);
 
   const card = firstOption(page, 'Direct swaps');
   await expect(card.getByText(/^A direct swap, so only two people need to agree\./)).toBeVisible();
@@ -74,7 +74,7 @@ test('a request with a direct swap shows it before any chain', async ({ sessions
 test('a request with no options says why, and that it may change', async ({ sessions }) => {
   expect(cases.none, 'the demo has a request with no options').toBeDefined();
   const { page } = await sessions.open(cases.none.person, { path: appPath('swaps') });
-  await findSwapsForMyOffer(page);
+  await findSwapsForMyOffer(page, cases.none.request);
 
   await expect(page.getByRole('heading', { name: 'No swaps found yet' })).toBeVisible();
   await expect(page.getByText(cases.none.options.noMatch.summary, { exact: true })).toBeVisible();
@@ -86,13 +86,13 @@ test('a request with no options says why, and that it may change', async ({ sess
 test('a manager sees every open offer, and reads options with names', async ({ sessions }) => {
   const { page } = await sessions.open(manager, { path: appPath('swaps') });
   const everyones = page.getByRole('region', { name: "Everyone's open offers" });
-  for (const { request } of [cases.chain, cases.direct, cases.none]) {
-    await expect(everyones.getByText(request.requester.name, { exact: true })).toBeVisible();
-  }
+  // Named by person and shift, since one person may offer two.
+  const findButton = (request) => everyones.getByRole('button', { name: `Find swaps: ${request.requester.name}, ${shiftTitleOf(request.assignment)}` });
+  for (const { request } of [cases.chain, cases.direct, cases.none, cases.role]) await expect(findButton(request)).toBeVisible();
 
-  const name = cases.chain.request.requester.name;
-  await everyones.getByRole('button', { name: new RegExp(`^Find swaps: ${escapeRegExp(name)},`) }).click();
-  await expect(page.getByRole('heading', { level: 2, name: new RegExp(`^Swaps for ${escapeRegExp(name)}'s `) })).toBeVisible();
+  await findButton(cases.chain.request).click();
+  const name = escapeRegExp(cases.chain.request.requester.name);
+  await expect(page.getByRole('heading', { level: 2, name: new RegExp(`^Swaps for ${name}'s `) })).toBeVisible();
   const sentences = firstOption(page, 'Swap chains').getByRole('listitem');
   await expect(sentences).toHaveCount(3);
   await expect(sentences.filter({ hasText: /\b(you|your|You)\b/ })).toHaveCount(0);

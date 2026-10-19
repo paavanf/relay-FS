@@ -3,12 +3,14 @@
 // request, and the options for each, through the real API.
 //
 // The seed picks its cases with the real engine (backend/scripts/demo/
-// swapCases.js), so the suite looks up who they belong to instead of
-// hard-coding names a generator change could move.
+// swapCases.js), so the suite looks them up rather than hard-coding names.
 //
-//   chain   no direct swap, and a three-person chain at the top
+//   chain   no direct swap, and a three-person chain at the top (in the demo,
+//           because its owner said what they would take in return)
 //   direct  has a direct swap
-//   none    no options at all
+//   none    no options, because of the days its owner cannot work
+//   role    no options, because nobody else offering holds the role its
+//           shift fills
 
 import { apiAs } from './api.js';
 import { stack } from './stack.js';
@@ -17,10 +19,13 @@ import { manager, everyone } from './people.js';
 function kindOf(options) {
   if (options.direct.length > 0) return 'direct';
   if (options.chains[0]?.size === 3) return 'chain';
-  return options.chains.length === 0 ? 'none' : 'longer';
+  if (options.chains.length > 0) return 'longer';
+  const why = options.noMatch?.summary ?? '';
+  if (why.includes('without the qualification your shift needs')) return 'role';
+  return why.includes('marked unavailable') ? 'none' : 'other';
 }
 
-/** { chain, direct, none } - each { request, options, person } for the first request of that kind. */
+/** { chain, direct, none, role } - each { request, options, person } for the first request of that kind. */
 export async function findSwapCases() {
   const { orgId } = stack();
   const api = await apiAs(manager);
@@ -43,9 +48,15 @@ export const firstOption = (page, group) =>
 
 export const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-/** On the Swaps page, as the requester: "Find swaps" on their own (only) offer. */
-export async function findSwapsForMyOffer(page) {
-  await page.getByRole('region', { name: 'My offers' }).getByRole('button', { name: /^Find swaps/ }).click();
+const longDate = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+
+/** A shift as the Swaps page names it: "Tuesday 17 March, Night". */
+export const shiftTitleOf = (assignment) => `${longDate.format(new Date(`${assignment.date}T00:00:00Z`))}, ${assignment.shift.name}`;
+
+/** On the Swaps page, as the requester: "Find swaps" on that one offer of theirs (some people offer two). */
+export async function findSwapsForMyOffer(page, request) {
+  const mine = page.getByRole('region', { name: 'My offers' });
+  await mine.getByRole('button', { name: `Find swaps: ${shiftTitleOf(request.assignment)}` }).click();
 }
 
 /**

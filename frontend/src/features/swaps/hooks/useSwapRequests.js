@@ -1,11 +1,11 @@
 // useSwapRequests.js
-// The open swap offers someone may see, and the two things they can do to
-// their own: offer a shift and withdraw it. Both mutations refresh the list,
-// and drop any options already fetched, since a new or withdrawn offer can
-// change what everyone else's searches find.
+// The open swap offers someone may see, and what they can do to their own:
+// offer a shift, change what they would take in return, and withdraw it.
+// Every mutation refreshes the list and drops any options already fetched,
+// since each can change what everyone's searches find.
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { listSwapRequests, offerShift, withdrawOffer } from '../api/swapRequests.js';
+import { listSwapRequests, offerShift, updateOffer, withdrawOffer } from '../api/swapRequests.js';
 
 export const swapKeys = {
   list: (orgId) => ['swapRequests', orgId],
@@ -39,6 +39,10 @@ function useRefreshingMutation(orgId, mutationFn) {
 
 export function useOfferShift(orgId) {
   return useRefreshingMutation(orgId, (input) => offerShift(orgId, input));
+}
+
+export function useUpdateOffer(orgId) {
+  return useRefreshingMutation(orgId, ({ requestId, ...changes }) => updateOffer(orgId, requestId, changes));
 }
 
 export function useWithdrawOffer(orgId) {

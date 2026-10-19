@@ -32,11 +32,14 @@ export function useAssignMutations({ rosterId, onDone }) {
     showToast({ type: 'error', title: 'Could not save', message: err.message });
   };
 
+  // The role travels with the shift; a shift without roles sends none.
   const saving = useMutation({
-    mutationFn: ({ assignment, membershipId, shiftTemplateId, date }) =>
-      assignment
-        ? updateAssignment(orgId, assignment.id, { shiftTemplateId })
-        : createAssignment(orgId, { rosterId, membershipId, shiftTemplateId, date }),
+    mutationFn: ({ assignment, membershipId, shiftTemplateId, slotQualificationId, date }) => {
+      const role = slotQualificationId ? { slotQualificationId } : {};
+      return assignment
+        ? updateAssignment(orgId, assignment.id, { shiftTemplateId, ...role })
+        : createAssignment(orgId, { rosterId, membershipId, shiftTemplateId, date, ...role });
+    },
     onSuccess: () => settle('Shift saved'),
     onError,
   });

@@ -1,8 +1,9 @@
 // applyChainEvent.js
 // How a chain's status changes, apart from the commit itself: read the
-// chain, ask the state machine, and store its answer together with
-// everything that goes with it, in one transaction - the chain's shifts let
-// go if it has ended, the audit entry, the notifications.
+// chain, ask the state machine, and store its answer together with what
+// goes with it, in one transaction - the chain's shifts let go if it has
+// ended, and the audit entry. Once that is saved, the people it concerns
+// are notified (best-effort, so a notification can never undo a change).
 //
 // If another request moved the chain between the read and the write, the
 // write does nothing (chainRecord.js); then the chain is read again and the
@@ -13,6 +14,7 @@ import { SwapChain } from '../../models/index.js';
 import { AppError } from '../../errors/AppError.js';
 import { transition } from '../../engine/index.js';
 import { inTransaction } from '../../utils/transaction.js';
+import { notifyChainChange } from '../notification/notifyChain.js';
 import { toMachine, saveTransition } from './chainRecord.js';
 import { releaseShifts } from './releaseShifts.js';
 import { recordChange } from './recordChange.js';
@@ -30,6 +32,13 @@ export async function storeTransition({ doc, result, actorId, session }) {
   return saved;
 }
 
+/** storeTransition in its own transaction, then - once saved - the notifications. */
+export async function storeThenNotify({ doc, result, actorId = null }) {
+  const saved = await inTransaction((session) => storeTransition({ doc, result, actorId, session }));
+  if (saved) await notifyChainChange({ chain: saved, applied: result.applied, actorId });
+  return saved;
+}
+
 /**
  * Applies one event to one chain. Returns { doc, result }: the chain as it
  * now is, and the state machine's answer. Throws the refusal if it refused.
@@ -43,7 +52,7 @@ export async function applyChainEvent({ orgId, chainId, event, actorId = null, n
     if (!result.ok) throw refusalError(result);
     if (!result.changed) return { doc, result };
 
-    const saved = await inTransaction((session) => storeTransition({ doc, result, actorId, session }));
+    const saved = await storeThenNotify({ doc, result, actorId });
     if (saved) return { doc: saved, result };
   }
   throw AppError.conflict('This swap is changing right now. Look again in a moment.');

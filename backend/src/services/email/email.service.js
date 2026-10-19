@@ -1,8 +1,8 @@
 // email.service.js
-// The two emails Relay sends, and the rule that governs both: email is
+// The emails Relay sends, and the rule that governs them all: email is
 // best-effort. A delivery failure is logged loudly and reported back to the
-// caller, but it never throws, because neither a password reset nor an invite
-// should fail just because a message did not go out.
+// caller, but it never throws, because neither a password reset, an invite
+// nor a swap should fail just because a message did not go out.
 //
 // Outside production the link is ALWAYS logged as well, whatever the transport
 // is doing. That way local testing never depends on delivery working.
@@ -10,7 +10,7 @@
 import { env } from '../../config/env.js';
 import { logger } from '../../utils/logger.js';
 import { deliver } from './transport.js';
-import { passwordResetEmail, inviteEmail } from './templates.js';
+import { passwordResetEmail, inviteEmail, noticeEmail } from './templates.js';
 
 // Deliberately not logged in production - a reset link in a log file is a
 // password reset anyone with log access can perform.
@@ -56,5 +56,21 @@ export async function sendInviteEmail(toEmail, inviteLink, orgName, inviterName)
     to: toEmail,
     subject: `${inviterName || 'Someone'} invited you to join ${orgName} on Relay`,
     html: inviteEmail({ inviteLink, orgName, inviterName }),
+  });
+}
+
+/**
+ * A notification about something that expires (services/notification/
+ * emailNotices.js decides which, and to whom). The subject doubles as the
+ * heading, and the link opens the page it is about.
+ * @returns {Promise<boolean>} whether the message actually went out
+ */
+export async function sendNoticeEmail(toEmail, { subject, message, link, label }) {
+  logLink(subject, toEmail, link);
+
+  return trySend({
+    to: toEmail,
+    subject,
+    html: noticeEmail({ heading: subject, message, link, label }),
   });
 }

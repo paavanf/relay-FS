@@ -1,12 +1,11 @@
 // chainFlow.test.js
-// A swap from proposal to the end, through the API, and everything it
-// leaves behind:
+// A swap from proposal to the end, through the API, and what it leaves behind:
 //
 //   proposed, accepted, approved: the shifts change hands, the offers are
 //   fulfilled, the fairness ledger is recomputed, and the audit log and
 //   notifications tell the story in order
 //   declined or rejected: it ends at once, the shifts are let go and the
-//   offers open again, and the others are told why
+//   offers open again, and those it concerns are told why
 //   while it waits, the people in it see where everyone stands, and the
 //   sidebar counts what is waiting for each of them
 
@@ -37,7 +36,8 @@ beforeEach(async () => {
   before = await snapshot();
 });
 
-const typesFor = async (person) => (await Notification.find({ membershipId: person.membershipId }).sort({ _id: 1 }).lean()).map((n) => n.type);
+// Swap notifications only: managers also hear about each person joining as the world is built.
+const typesFor = async (person) => (await Notification.find({ membershipId: person.membershipId, type: /^swap_/ }).sort({ _id: 1 }).lean()).map((n) => n.type);
 const summaryFor = async (person) => (await request(app).get(`/api/v1/orgs/${world.orgId}/swap-chains/summary`).set(auth(person.token))).body;
 
 describe('a swap from proposal to the end', () => {
@@ -46,8 +46,7 @@ describe('a swap from proposal to the end', () => {
     expect(chain).toMatchObject({ status: 'proposed', size: 2, youProposed: true, waitingForYou: false });
     expect(chain.participants.map((p) => p.state)).toEqual(['accepted', 'waiting']);
 
-    const samSees = (await api.show(world.people.sam, chain.id)).body.chain;
-    expect(samSees).toMatchObject({ waitingForYou: true, youAreIn: true });
+    expect((await api.show(world.people.sam, chain.id)).body.chain).toMatchObject({ waitingForYou: true, youAreIn: true });
     expect(await summaryFor(world.people.sam)).toEqual({ waitingForYou: 1, awaitingApproval: 0 });
     expect((await api.list(world.people.tess)).body.chains).toEqual([]);
 
@@ -62,12 +61,13 @@ describe('a swap from proposal to the end', () => {
 
     const actions = (await AuditLog.find({ chainId: chain.id }).sort({ _id: 1 }).lean()).map((entry) => entry.action);
     expect(actions).toEqual(['swap.proposed', 'swap.accepted', 'swap.awaiting_approval', 'shift.transferred', 'shift.transferred', 'swap.approved', 'swap.committed']);
-    expect(await typesFor(world.people.sam)).toEqual(['swap_proposed', 'swap_awaiting_approval', 'swap_approved', 'swap_committed']);
+    expect(await typesFor(world.people.sam)).toEqual(['swap_proposed', 'swap_committed']);
+    expect(await typesFor(world.people.wren)).toEqual(['swap_accepted', 'swap_committed']);
     expect(await typesFor(world.manager)).toEqual(['swap_awaiting_approval']);
     await expectInvariants(before);
   });
 
-  it('declined: it ends at once, the shifts are let go, and the others are told', async () => {
+  it('declined: it ends at once, the shifts are let go, and the proposer is told', async () => {
     const holders = await holdersNow();
     const chain = await wrenProposes(api, world);
 
@@ -77,8 +77,8 @@ describe('a swap from proposal to the end', () => {
     expect(res.body.chain.participants.map((p) => p.state)).toEqual(['accepted', 'waiting', 'declined']);
     await expectNothingChanged(chain.id, 'declined', holders, 3);
     const told = await Notification.find({ chainId: chain.id, type: 'swap_declined' }).lean();
-    expect(told.map((n) => String(n.membershipId)).sort()).toEqual([world.people.wren.membershipId, world.people.sam.membershipId].sort());
-    expect(told[0].message).toBe('Tess Third declined the swap, so it is off. Your offer is open again.');
+    expect(told.map((n) => String(n.membershipId))).toEqual([world.people.wren.membershipId]);
+    expect(told[0].message).toBe('Tess Third declined your swap proposal, so it is off. Your offer is open again.');
     await expectInvariants(before);
   });
 

@@ -19,6 +19,7 @@ import { AppError } from '../../errors/AppError.js';
 import { inTransaction } from '../../utils/transaction.js';
 import { optionKeyOf } from '../swap/optionKey.js';
 import { recordChange } from './recordChange.js';
+import { notifyChainChange } from '../notification/notifyChain.js';
 
 const HOUR_MS = 3_600_000;
 const TAKEN = 'Someone has just proposed a swap with one of these shifts, or one of them has changed. Search again.';
@@ -47,7 +48,7 @@ export async function reserveChain({ orgId, proposerId, option, input, policy, n
   const expiresAt = new Date(Math.min(now.getTime() + policy.acceptanceWindowHours * HOUR_MS, earliest));
   const chainId = new mongoose.Types.ObjectId();
 
-  return inTransaction(async (session) => {
+  const chain = await inTransaction(async (session) => {
     for (const leg of legs) {
       const held = await Assignment.updateOne(
         {
@@ -71,8 +72,12 @@ export async function reserveChain({ orgId, proposerId, option, input, policy, n
       [{ _id: chainId, orgId, proposerId, optionKey: optionKeyOf(option), legs, requiresApproval: policy.requireManagerApproval, expiresAt }],
       { session },
     );
-    const chain = created.toObject();
-    await recordChange({ chain, applied: 'propose', actorId: proposerId, session });
-    return chain;
+    const stored = created.toObject();
+    await recordChange({ chain: stored, applied: 'propose', actorId: proposerId, session });
+    return stored;
   });
+
+  // Once it is saved, everyone else in it hears that it was proposed to them.
+  await notifyChainChange({ chain, applied: 'propose', actorId: proposerId });
+  return chain;
 }

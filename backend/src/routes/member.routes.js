@@ -1,9 +1,10 @@
 // member.routes.js
 // Mounted under /orgs/:orgId/members.
 //
-// Any member may list the team. Changing or deactivating someone is for
-// managers and owners - and which of the two may do what (roles are
-// owner-only) is enforced in the services.
+// Any member may list the team, and read or change their own preferences
+// (/me/preferences - "Email me about swaps and rosters"). Changing or
+// deactivating someone is for managers and owners - and which of the two
+// may do what (roles are owner-only) is enforced in the services.
 //
 // mergeParams so :orgId survives the mount path and reaches resolveMembership.
 
@@ -16,11 +17,23 @@ import { authorize } from '../middleware/authorize.js';
 import { MANAGER_ROLES } from '../config/constants.js';
 import { orgIdParamSchema } from '../validators/organisation.validators.js';
 import { membershipIdParamSchema, updateMemberSchema } from '../validators/member.validators.js';
+import { updatePreferencesSchema } from '../validators/notification.validators.js';
 import { list, update, deactivate } from '../controllers/member.controller.js';
+import { showPreferences, savePreferences } from '../controllers/notification.controller.js';
 
 const router = Router({ mergeParams: true });
 
 router.get('/', authenticate, validate({ params: orgIdParamSchema }), resolveMembership, asyncHandler(list));
+
+// Your own preferences - before /:membershipId, so "me" is never read as an id.
+router.get('/me/preferences', authenticate, validate({ params: orgIdParamSchema }), resolveMembership, asyncHandler(showPreferences));
+router.put(
+  '/me/preferences',
+  authenticate,
+  validate({ params: orgIdParamSchema, body: updatePreferencesSchema }),
+  resolveMembership,
+  asyncHandler(savePreferences),
+);
 
 router.patch(
   '/:membershipId',

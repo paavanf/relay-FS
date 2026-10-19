@@ -8,9 +8,10 @@
 // Made the way people make them: an offer from each person, then the real
 // reservation (reserveChain.js) and acceptance (acceptChain) code, so they
 // are exactly what the app would have stored - reservations, audit entries
-// and notifications included. Each proposal is the engine's direct swap for
-// its pair. Their offers become matched, which takes them out of every
-// search, so the swap cases (swapCases.js) still answer as proven.
+// and notifications included, though nobody is emailed: the demo's
+// addresses are not real. Each proposal is the engine's direct swap for its
+// pair. Their offers become matched, which takes them out of every search,
+// so the swap cases (swapCases.js) still answer as proven.
 
 import { Membership, Organisation, Roster, Assignment, SwapRequest } from '../../src/models/index.js';
 import { findSwapOptions } from '../../src/engine/index.js';
@@ -19,6 +20,7 @@ import { toEngineAssignment } from '../../src/services/roster/toEngineAssignment
 import { loadSwapSearch } from '../../src/services/swap/loadSwapSearch.service.js';
 import { reserveChain } from '../../src/services/swapChain/reserveChain.js';
 import { acceptChain } from '../../src/services/swapChain/index.js';
+import { setEmailing } from '../../src/services/notification/index.js';
 import { DEFAULT_SWAP_POLICY } from '../../src/config/swaps.js';
 import { demoId, DEMO_ORG_ID } from './ids.js';
 import { datesAhead } from './dates.js';
@@ -49,6 +51,15 @@ async function propose([mine, theirs], { policy, now }) {
   return reserveChain({ orgId: DEMO_ORG_ID, proposerId: String(mine.membershipId), option, input: { ...input, offers }, policy, now });
 }
 
+// The first waits for its second person; the second is accepted, so it waits for a manager.
+async function proposeBoth({ waiting, approval, policy, now }) {
+  const waitingChain = await propose(waiting, { policy, now });
+  const approvalChain = await propose(approval, { policy, now });
+  const partner = await Membership.findById(approval[1].membershipId).lean();
+  await acceptChain({ orgId: DEMO_ORG_ID, membership: partner, chainId: approvalChain._id, now });
+  return [waitingChain, approvalChain];
+}
+
 export async function writeSwapProposals({ anchor, now }) {
   const org = await Organisation.findById(DEMO_ORG_ID).lean();
   const data = await loadOrgSchedulingData(org);
@@ -70,10 +81,8 @@ export async function writeSwapProposals({ anchor, now }) {
     [await offer(pairs[1][0], first + 2), await offer(pairs[1][1], first + 3)],
   ];
 
-  const waitingChain = await propose(waiting, { policy, now });
-  const approvalChain = await propose(approval, { policy, now });
-  const partner = await Membership.findById(approval[1].membershipId).lean();
-  await acceptChain({ orgId: DEMO_ORG_ID, membership: partner, chainId: approvalChain._id, now });
+  setEmailing(false);
+  const [waitingChain, approvalChain] = await proposeBoth({ waiting, approval, policy, now }).finally(() => setEmailing(true));
 
   return {
     waiting: { proposer: waiting[0].membershipId, partner: waiting[1].membershipId, expiresAt: waitingChain.expiresAt },

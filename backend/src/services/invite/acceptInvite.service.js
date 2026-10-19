@@ -8,18 +8,20 @@
 // a duplicate.
 //
 // Returns the membership in the shape the frontend keeps in its auth context,
-// so the new organisation can be opened straight away.
+// so the new organisation can be opened straight away. The organisation's
+// managers are told someone joined - best-effort, once it is saved.
 
 import mongoose from 'mongoose';
 import { Invite, Membership, Organisation, User } from '../../models/index.js';
 import { MEMBERSHIP_STATUS } from '../../config/constants.js';
 import { AppError } from '../../errors/AppError.js';
 import { findValidInvite, inviteNoLongerValid } from './findValidInvite.js';
+import { notify } from '../notification/notify.service.js';
 
 export async function acceptInvite({ rawToken, userId }) {
   const invite = await findValidInvite(rawToken);
 
-  const user = await User.findById(userId).select('email').lean();
+  const user = await User.findById(userId).select('email name').lean();
   if (!user) throw AppError.unauthorized('User not found');
   if (user.email !== invite.email) {
     throw AppError.forbidden('This invite is for a different email address');
@@ -31,6 +33,7 @@ export async function acceptInvite({ rawToken, userId }) {
   }
 
   const membership = await redeem({ invite, userId, existing });
+  await notify('member_joined', { membership, name: user.name });
   const org = await Organisation.findById(invite.orgId).select('name timezone').lean();
 
   return {

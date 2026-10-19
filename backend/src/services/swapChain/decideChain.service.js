@@ -9,8 +9,7 @@
 // exactly as it was read.
 
 import { transition } from '../../engine/index.js';
-import { inTransaction } from '../../utils/transaction.js';
-import { applyChainEvent, storeTransition } from './applyChainEvent.js';
+import { applyChainEvent, storeThenNotify } from './applyChainEvent.js';
 import { commitChain } from './commitChain.service.js';
 import { toMachine } from './chainRecord.js';
 import { findVisibleChain } from './findVisibleChain.js';
@@ -24,7 +23,7 @@ export async function approveChain({ orgId, membership, chainId, now = new Date(
 
   // Past its time: it expires instead, whatever the manager asked.
   if (result.applied === 'expire') {
-    await inTransaction((session) => storeTransition({ doc, result, actorId: null, session }));
+    await storeThenNotify({ doc, result });
     throw expiredError();
   }
 

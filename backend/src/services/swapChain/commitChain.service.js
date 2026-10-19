@@ -9,12 +9,12 @@
 //   5. each shift to its new holder - its role kept, its version up one,
 //      its reservation cleared
 //   6. the chain's offers fulfilled
-//   7. an audit entry for every shift handed over, and the notifications
+//   7. an audit entry for every shift handed over
 //
 // A failed check rolls all of that back. The chain is then marked failed
 // with the reason, its shifts let go and its offers reopened, and everyone
-// in it told. After a commit, the fairness ledger is recomputed - and a
-// recompute that fails never undoes or fails the swap.
+// in it told. After a commit, the fairness ledger is recomputed and the
+// people in it are notified - and neither, failing, undoes the swap.
 
 import { SwapChain, SwapRequest } from '../../models/index.js';
 import { AppError } from '../../errors/AppError.js';
@@ -22,7 +22,8 @@ import { transition } from '../../engine/index.js';
 import { inTransaction } from '../../utils/transaction.js';
 import { refreshLedgerSafely } from '../fairness/refreshLedgerSafely.service.js';
 import { saveTransition } from './chainRecord.js';
-import { storeTransition } from './applyChainEvent.js';
+import { storeThenNotify } from './applyChainEvent.js';
+import { notifyChainChange } from '../notification/notifyChain.js';
 import { recordChange } from './recordChange.js';
 import { findCommitProblem } from './commitChecks.js';
 import { handOverShifts, CommitRefused } from './handOverShifts.js';
@@ -47,7 +48,7 @@ export async function commitChain({ orgId, doc, ready, actorId = null, now = new
   if (!done.ok) throw refusalError(done);
 
   if (done.applied === 'expire') {
-    await inTransaction((session) => storeTransition({ doc, result: done, actorId: null, session }));
+    await storeThenNotify({ doc, result: done });
     throw expiredError();
   }
 
@@ -66,13 +67,14 @@ export async function commitChain({ orgId, doc, ready, actorId = null, now = new
     });
 
     await refreshLedgerSafely(orgId);
+    await notifyChainChange({ chain: committed, applied: 'committed', actorId });
     return committed;
   } catch (err) {
     if (err instanceof ChainMoved) return asItNowIs(doc);
     if (!(err instanceof CommitRefused)) throw err;
 
     const failed = transition(ready, { type: 'commitFailed', reason: err.message }, now);
-    const stored = await inTransaction((session) => storeTransition({ doc, result: failed, actorId, session }));
+    const stored = await storeThenNotify({ doc, result: failed, actorId });
     if (stored) throw failedError(stored);
     return asItNowIs(doc);
   }

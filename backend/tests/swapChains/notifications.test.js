@@ -33,7 +33,8 @@ describe('notifications', () => {
     const chain = await wrenProposes(api, world, world.people.sam);
 
     const [proposedToSam] = await notificationsOf(world.people.sam);
-    expect(proposedToSam).toMatchObject({ type: 'swap_proposed', chainId: chain.id, read: false });
+    expect(proposedToSam).toMatchObject({ type: 'swap_proposed', related: { chainId: chain.id }, read: false });
+    expect(proposedToSam.link).toBe(`/app/${world.orgId}/swaps?chain=${chain.id}`);
     expect(proposedToSam.message).toMatch(/^Wren Worker proposed a swap: you would give your day shift on \w+ \d+ \w+ and take the day shift on \w+ \d+ \w+\. Accept or decline it on the Swaps page\.$/);
 
     // Wren proposed it, so has nothing to be told yet; Tess is not in it.

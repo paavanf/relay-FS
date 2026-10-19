@@ -30,6 +30,12 @@ const membershipSchema = new mongoose.Schema(
     contractedHoursPerWeek: { type: Number, min: 0, max: 168, default: 0 },
 
     joinedAt: { type: Date, default: Date.now },
+
+    // "Email me about swaps and rosters" (Milestone 9): whether the events
+    // that expire - a swap proposed to them, one waiting for their approval,
+    // a roster published - are emailed as well as shown in the app. On
+    // unless the person turns it off, per organisation.
+    emailNotifications: { type: Boolean, default: true },
   },
   { timestamps: true },
 );

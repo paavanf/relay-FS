@@ -32,7 +32,7 @@ export async function findSwapCases() {
   const cases = {};
 
   const { swapRequests } = (await api.get(`/orgs/${orgId}/swap-requests`)).body;
-  for (const request of swapRequests) {
+  for (const request of swapRequests.filter((r) => r.status === 'open')) {
     const options = (await api.get(`/orgs/${orgId}/swap-requests/${request.id}/options`)).body;
     const person = everyone.find((p) => p.name === request.requester.name);
     cases[kindOf(options)] ??= { request, options, person };

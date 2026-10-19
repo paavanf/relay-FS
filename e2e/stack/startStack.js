@@ -61,7 +61,10 @@ export async function startStack() {
     // If Playwright itself dies, still take the servers down with it.
     process.once('exit', () => [preview, backend, database.value.child].forEach(stopTree));
 
-    return { info: { baseURL: webOrigin, apiURL: apiOrigin, database: DATABASE, ...data }, timings, stop };
+    // databaseUri is the in-memory server's local address, for the one helper
+    // that writes to it directly (support/database.js - expiring a swap
+    // without waiting days for it).
+    return { info: { baseURL: webOrigin, apiURL: apiOrigin, database: DATABASE, databaseUri: mongoUri, ...data }, timings, stop };
   } catch (err) {
     await stop();
     throw err;

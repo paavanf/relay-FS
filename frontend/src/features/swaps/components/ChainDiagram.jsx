@@ -8,6 +8,10 @@
 // their heads (marker contents take their colour from where they sit, not
 // from the line that uses them), fill and stroke classes for the rest - so
 // it is right in both themes. No animation. The geometry is chainLayout.js.
+//
+// A proposed swap passes `states` - membershipId -> 'accepted', 'waiting' or
+// 'declined' - and each person shows theirs; the arrows are drawn exactly
+// as they are without it.
 
 import { useId } from 'react';
 import { cn } from '../../../lib/utils.js';
@@ -15,7 +19,7 @@ import { VIEW_WIDTH, HEAD, placePeople, arrowBetween, frameFor } from './chainLa
 import { DiagramPerson } from './DiagramPerson.jsx';
 import { shiftTag } from '../shiftWords.js';
 
-export function ChainDiagram({ option, youId, label, className }) {
+export function ChainDiagram({ option, youId, label, className, states }) {
   // useId gives ids like ":r1:"; a url(#...) reference wants plain characters.
   const markerId = `swap-arrow-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const people = option.legs.map((leg) => leg.to);
@@ -44,7 +48,13 @@ export function ChainDiagram({ option, youId, label, className }) {
       ))}
 
       {people.map((person, i) => (
-        <DiagramPerson key={person.membershipId} person={person} place={places[i]} isYou={person.membershipId === youId} />
+        <DiagramPerson
+          key={person.membershipId}
+          person={person}
+          place={places[i]}
+          isYou={person.membershipId === youId}
+          state={states?.[person.membershipId]}
+        />
       ))}
 
       {/* Labels last, so their halo sits over any line they cross. */}

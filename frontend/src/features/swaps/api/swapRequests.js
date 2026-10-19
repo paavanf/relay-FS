@@ -2,9 +2,9 @@
 // API calls for shift swaps (Milestone 7): offering a shift, listing and
 // withdrawing offers, and asking for the options on one.
 //
-// Looking at options is read-only on the server - it never reserves a shift
-// or tells anyone anything - so the page can ask as often as someone wants
-// to look. Proposing a swap is the next milestone.
+// Looking at options never reserves a shift or tells anyone anything, so the
+// page can ask as often as someone wants to look. Proposing one of them is
+// in swapChains.js.
 
 import { api } from '../../../lib/apiClient.js';
 

@@ -4,8 +4,9 @@ import { cn } from '../../lib/utils.js';
 export function Tabs({ tabs, activeTab, onChange }) {
   return (
     <div className="border-b border-line-subtle">
-      {/* A tighter gap on phones, so four tabs fit a 375px screen. */}
-      <nav className="-mb-px flex gap-4 sm:gap-6" role="tablist">
+      {/* A tighter gap on phones. Where the tabs still do not fit a narrow
+          screen, the row scrolls sideways on its own - never the page. */}
+      <nav className="-mb-px flex gap-4 overflow-x-auto sm:gap-6" role="tablist">
         {tabs.map((tab) => {
           const isActive = tab.value === activeTab;
 
@@ -17,7 +18,7 @@ export function Tabs({ tabs, activeTab, onChange }) {
               aria-selected={isActive}
               onClick={() => onChange(tab.value)}
               className={cn(
-                'border-b-2 px-0.5 py-2.5 text-sm transition-colors',
+                'shrink-0 border-b-2 px-0.5 py-2.5 text-sm whitespace-nowrap transition-colors',
                 isActive
                   ? 'border-brand-solid font-medium text-content-primary'
                   : 'border-transparent text-content-secondary hover:border-line-strong hover:text-content-primary',

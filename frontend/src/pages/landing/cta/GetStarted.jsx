@@ -2,9 +2,9 @@
 // built and what is not.
 //
 // Fairness shipped in Milestone 6 and is described by exactly what it does.
-// So are swaps, as far as Milestone 7 takes them: Relay finds the options,
-// direct and multi-person, but proposing and completing a swap is still to
-// come - and the line says that rather than implying otherwise.
+// So are swaps, now that Milestone 8 completes them: Relay finds the
+// options, everyone in one accepts, a manager approves where the rules ask
+// for it, and every shift changes hands at once - nothing more is claimed.
 import { ButtonLink } from '../../../components/ui/ButtonLink.jsx';
 import { LandingSection } from '../LandingSection.jsx';
 
@@ -33,8 +33,8 @@ export function GetStarted() {
         <p>
           <span className="font-medium text-content-secondary">Swaps:</span> offer a shift you cannot work and
           Relay finds who could take it - a direct swap, or a chain of three or four people where each takes the
-          next one's shift - checked against the same rules as any roster edit. Proposing and agreeing a swap in
-          Relay is still in development.
+          next one's shift. Once everyone in it accepts, and a manager approves if you ask for that, Relay checks
+          it against the same rules as any roster edit and every shift changes hands at once.
         </p>
       </div>
     </LandingSection>

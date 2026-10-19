@@ -6,11 +6,10 @@
 //                 every circle - and no direct swap
 //   the direct    a request with a direct swap shows it before any chain
 //   no options    says why in plain words, and that new offers can change it
-//   a manager     sees every open request, worded with names, not "you"
-//
-// Read-only - looking at options changes nothing - so these run before the
-// specs that change data. Each answer is captured for review in both themes
-// at both widths: e2e/artifacts/screenshots/swap-*.png.
+//   a manager     sees every open request, worded with names, not "you" -
+//                 and cannot propose someone else's swap
+// Read-only, so these run before the specs that change data. Each answer is
+// captured in both themes at both widths: e2e/artifacts/screenshots/swap-*.png.
 
 import { test, expect } from '../support/test.js';
 import { appPath } from '../support/stack.js';
@@ -39,8 +38,8 @@ test('the request only a chain resolves shows a three-person chain, drawn and in
   await expect(sentences.nth(0)).toHaveText(/^\S+ takes your .+ shift on .+\.$/);
   await expect(sentences.nth(1)).toHaveText(/^You take \S+'s .+ shift on .+\.$/);
   await expect(card.getByText(/^Three people\./)).toBeVisible();
-  await expect(card.getByRole('button', { name: 'Propose this swap' })).toBeDisabled();
-  await expect(card.getByText(/^Proposing arrives in the next update\./)).toBeVisible();
+  await expect(card.getByRole('button', { name: 'Propose this swap' })).toBeEnabled();
+  await expect(card.getByText('Everyone else in it is asked to accept. Looking reserves nothing.')).toBeVisible();
 
   // The arrows as the browser drew them stop short of every circle.
   const geometry = await diagramGeometry(card.getByRole('img', { name: /^Diagram of a 3-person swap chain between / }));
@@ -96,4 +95,5 @@ test('a manager sees every open offer, and reads options with names', async ({ s
   const sentences = firstOption(page, 'Swap chains').getByRole('listitem');
   await expect(sentences).toHaveCount(3);
   await expect(sentences.filter({ hasText: /\b(you|your|You)\b/ })).toHaveCount(0);
+  await expect(firstOption(page, 'Swap chains').getByRole('button', { name: 'Propose this swap' })).toHaveCount(0);
 });

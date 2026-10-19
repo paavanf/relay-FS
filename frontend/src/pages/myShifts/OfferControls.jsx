@@ -1,9 +1,11 @@
 // OfferControls - the swap part of a shift card on My Shifts.
 //
 // A shift still to come can be offered for a swap. Once offered, the card
-// says so, links to its options, and lets the offer be withdrawn. ShiftList
-// shows these only on shifts that have not started: one underway can no
-// longer be handed over, and the server would refuse it anyway.
+// says so, links to its options, and lets the offer be withdrawn. Once part
+// of a proposed swap, it says that instead - the proposal holds the shift,
+// so it is answered or cancelled on the Swaps page. ShiftList shows these
+// only on shifts that have not started: one underway can no longer be
+// handed over, and the server would refuse it anyway.
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { Badge } from '../../components/ui/Badge.jsx';
@@ -24,6 +26,17 @@ export function OfferControls({ assignment, label, offer }) {
       onSuccess: () => showToast({ type: 'success', title: 'Offer withdrawn', message: 'This shift is no longer up for a swap.' }),
       onError: (error) => showToast({ type: 'error', title: 'Could not withdraw the offer', message: error.message }),
     });
+  }
+
+  if (offer?.status === 'matched') {
+    return (
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <Badge variant="info">In a proposed swap</Badge>
+        <Link to={`/app/${orgId}/swaps`} className="text-body-sm font-medium text-brand-content underline-offset-2 hover:underline">
+          See it on Swaps
+        </Link>
+      </div>
+    );
   }
 
   if (offer) {

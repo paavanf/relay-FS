@@ -26,6 +26,10 @@ const LABEL_OFFSET = 14;
 /** How far below a circle's centre its name sits. */
 export const NAME_BELOW = NODE_RADIUS + 14;
 
+// Where a proposed swap says where each person stands ("Accepted"). frameFor
+// already leaves room for it, so the frame and every arrow are unchanged.
+export const STATE_BELOW = NAME_BELOW + 14;
+
 const round = (n) => Math.round(n * 10) / 10;
 
 /** A point `distance` from `from`, heading toward `to`. */

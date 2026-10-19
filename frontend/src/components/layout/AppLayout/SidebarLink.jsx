@@ -1,12 +1,16 @@
 // SidebarLink - one navigation item.
 // Active state: teal tint, teal text, and a small indicator bar on the left.
+// `count`, when above zero, is a small badge for things waiting on the
+// person - "Swaps 2" - and is read out with what it counts (`countLabel`).
+// `end` makes it active only on its own page, not the ones below it.
 import { NavLink } from 'react-router';
 import { cn } from '../../../lib/utils.js';
 
-export function SidebarLink({ to, icon: Icon, label, onNavigate }) {
+export function SidebarLink({ to, icon: Icon, label, onNavigate, count = 0, countLabel = 'waiting', end = false }) {
   return (
     <NavLink
       to={to}
+      end={end}
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
@@ -31,6 +35,12 @@ export function SidebarLink({ to, icon: Icon, label, onNavigate }) {
             aria-hidden="true"
           />
           {label}
+          {count > 0 && (
+            <span className="ml-auto rounded-full bg-brand-solid px-1.5 text-[11px] leading-[18px] font-semibold text-content-inverse tabular-nums">
+              {count}
+              <span className="sr-only"> {countLabel}</span>
+            </span>
+          )}
         </>
       )}
     </NavLink>

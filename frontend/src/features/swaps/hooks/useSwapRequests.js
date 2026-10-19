@@ -17,8 +17,9 @@ export function useSwapRequests(orgId) {
 }
 
 /**
- * Someone's own open offers, by the shift offered - null until loaded. A
- * manager's list holds everyone's offers; only their own count here.
+ * Someone's own offers - open, or part of a proposed swap - by the shift
+ * offered; null until loaded. A manager's list holds everyone's offers;
+ * only their own count here.
  */
 export function useMyOffersByShift(orgId) {
   const offers = useSwapRequests(orgId);

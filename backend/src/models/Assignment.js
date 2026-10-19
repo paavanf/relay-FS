@@ -36,6 +36,13 @@ const assignmentSchema = new mongoose.Schema(
       required: true,
     },
 
+    // The role this assignment fills: the qualification of the coverage slot
+    // ("the charge nurse's place on Monday's day shift"). Whoever holds the
+    // assignment - after a hand edit or a swap too - must hold exactly this.
+    // Null only on records made before roles were stored, which the
+    // constraint engine checks with the older any-of rule.
+    slotQualificationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Qualification', default: null },
+
     // The local calendar day this shift belongs to, in the org's timezone. A
     // night shift starting 23:00 belongs to the day it started.
     date: { type: String, required: true },

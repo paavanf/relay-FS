@@ -29,3 +29,7 @@ export const SWAP_SEARCH = Object.freeze({
 export const SWAP_OPTIONS_RATE_LIMIT = Object.freeze({ windowMs: 60_000, max: 20 });
 
 export const SWAP_NOTE_MAX_LENGTH = 280;
+
+// The kinds of shift an offer can say it would take in return - the shift
+// template categories (models/ShiftTemplate.js).
+export const SHIFT_CATEGORIES = Object.freeze(['day', 'evening', 'night']);

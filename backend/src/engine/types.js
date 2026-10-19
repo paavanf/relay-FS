@@ -31,6 +31,7 @@
  * @property {string} date              ISO date string, "2026-03-14"
  * @property {string} startsAt          ISO instant (UTC)
  * @property {string} endsAt            ISO instant (UTC)
+ * @property {string} [slotQualificationId]  the role (coverage slot) it fills; absent only on legacy records
  */
 
 /**

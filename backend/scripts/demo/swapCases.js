@@ -1,78 +1,65 @@
 // swapCases.js
-// Picks the demo's swap requests from the published weeks ahead, and uses
-// the real swap finder to prove each of the three that matter does what it
-// is there for:
+// Picks the demo's swap requests from the published weeks ahead, and has
+// swapCaseChecks.js prove each case on the exact pool chosen:
 //
-//   chain   only a three-person chain resolves it - there is no direct swap
+//   chain   a three-person chain resolves it - and only because its owner
+//           said what they would take ("only day shifts", say), which rules
+//           out the direct swap they would otherwise have
 //   direct  a direct swap resolves it
-//   none    nothing does, for a reason anyone can follow: Grace works Monday
-//           to Wednesday only, and the other offers fall on days she cannot
+//   none    nothing does, and the reason is Grace's own: she works Monday to
+//           Wednesday only, and the other offers fall on days she cannot
+//   role    nothing does, because the shift is a charge nurse's place and
+//           nobody else offering holds that role
 //
-// Only nurses' shifts that are always a registered nurse's place are used -
-// evenings, nights, and the day shifts of nurses who are not charge nurses -
-// so whoever takes one leaves it properly staffed. (The engine checks only
-// that someone holds a qualification a shift calls for, so it would also let
-// a healthcare assistant take a nurse's day shift. The demo should not show
-// that.)
-//
-// How: each candidate's options among all the others show its three-person
-// chains and who it could swap with directly. A chain whose first person
-// could swap directly with neither of the other two is a chain-only case.
-// Pools are then tried - those three and Grace, plus a pair with a direct
-// swap if the three have none between them - and every outcome is checked
-// again on exactly that pool, since each offer can open options for the
-// others. A request closes when its shift starts, so pools whose earliest
-// shift is latest go first: the demo keeps working as long as it can after a
+// The engine decides all of it, roles included, so no shift needs leaving
+// out for realism. Candidates are nurses' shifts (these are nurses' stories),
+// and pools whose earliest shift is latest go first - a request closes when
+// its shift starts, so the demo keeps working as long as it can after a
 // reseed. Ties go by offer ids, so every run keeps the same pool.
 
 import { findSwapOptions } from '../../src/engine/index.js';
+import { provesCases } from './swapCaseChecks.js';
 
 const latestFirst = (a, b) => b.startsAt.localeCompare(a.startsAt) || a.membershipId.localeCompare(b.membershipId);
-const keyOf = (pool) => pool.map((offer) => offer.id).join(' ');
 const offerOf = (assignment) => ({ id: `offer:${assignment.id}`, membershipId: assignment.membershipId, assignmentId: assignment.id });
-const distinctPeople = (offers) => new Set(offers.map((offer) => offer.membershipId)).size === offers.length;
+const keyOf = (pool) => pool.map((offer) => offer.id).join(' ');
+// The chain's owner, the charge nurse and Grace are each in one offer only. w, the
+// direct swap the filter rules out, may be a second shift offered by y or z - in
+// this ward the only chains run between the same three nurses.
+const castOk = ([x, y, z, w, role, grace]) =>
+  new Set([x, y, z, role, grace].map((o) => o.membershipId)).size === 5 && ![x, role, grace].some((o) => o.membershipId === w.membershipId);
 
 /**
- * @param {Object} input  engine assignments and context, the dates ahead,
- *   the org's maxLength, and who is who: Sets of nurse and charge-nurse
- *   membership ids, Grace's id, and the day shift's template id
- * @returns {{ pool: Object[], chain: Object, direct: Object, none: Object }}
- *   pool is every offer to store; chain, direct and none are the three to show
+ * @param {Object} input  engine assignments and context, the dates ahead, the org's
+ *   maxLength, and who is who: a Set of nurse membership ids, Grace's id, and the
+ *   charge nurse qualification's id
+ * @returns {{ pool: Object[], chain, direct, none, role }}  pool is every offer to store
  */
-export function pickSwapCases({ assignments, context, dates, maxLength, nurses, chargeNurses, grace, dayTemplateId }) {
+export function pickSwapCases({ assignments, context, dates, maxLength, nurses, grace, chargeNurseRole }) {
   const ahead = new Set(dates);
-  const candidates = assignments
-    .filter((a) => ahead.has(a.date) && nurses.has(a.membershipId) && a.membershipId !== grace)
-    .filter((a) => !(a.shiftTemplateId === dayTemplateId && chargeNurses.has(a.membershipId)))
-    .sort(latestFirst)
-    .map(offerOf);
+  const shiftOf = new Map(assignments.map((a) => [a.id, a]));
+  const categoryOf = (offer) => context.shiftTemplates.find((t) => t.id === shiftOf.get(offer.assignmentId).shiftTemplateId)?.category;
+  const candidates = assignments.filter((a) => ahead.has(a.date) && nurses.has(a.membershipId) && a.membershipId !== grace).sort(latestFirst).map(offerOf);
   const graces = assignments.filter((a) => a.membershipId === grace && ahead.has(a.date)).sort(latestFirst).map(offerOf)[0];
   if (!graces) throw new Error('The seed found no shift ahead for Grace to offer.');
 
   const byId = new Map(candidates.map((offer) => [offer.id, offer]));
   const optionsFor = (request, pool, wider = {}) => findSwapOptions({ request, offers: pool, assignments, context, maxLength, ...wider });
-
-  // What each candidate could do among all of them: every chain of up to three, nothing cut off.
   const among = new Map(candidates.map((offer) => [offer.id, optionsFor(offer, candidates, { maxLength: 3, topN: Infinity })]));
   const partners = (offer) => new Set(among.get(offer.id).direct.map((chain) => chain.offerIds[1]));
-  const directPairs = candidates.flatMap((p) => [...partners(p)].map((qId) => [p, byId.get(qId)]));
-
-  function proves(pool) {
-    const [x] = pool;
-    const chain = optionsFor(x, pool);
-    if (chain.direct.length > 0 || chain.chains[0]?.size !== 3) return null;
-    const none = optionsFor(graces, pool);
-    if (none.direct.length + none.chains.length > 0) return null;
-    const direct = pool.slice(1, -1).find((offer) => optionsFor(offer, pool).direct.length > 0);
-    return direct ? { pool, chain: x, direct, none: graces } : null;
-  }
+  const roleShifts = candidates.filter((offer) => shiftOf.get(offer.assignmentId).slotQualificationId === chargeNurseRole);
 
   const pools = [];
   for (const x of candidates) {
     for (const chain of among.get(x.id).chains) {
       const [y, z] = chain.offerIds.slice(1).map((id) => byId.get(id));
-      if (partners(x).has(y.id) || partners(x).has(z.id)) continue;
-      pools.push([x, y, z, graces], ...directPairs.map(([p, q]) => [x, y, z, p, q, graces]));
+      // x will only take shifts like y's - so y must not be a direct partner, nor z if z's shift is that kind.
+      const only = categoryOf(y);
+      if (partners(x).has(y.id) || (partners(x).has(z.id) && categoryOf(z) === only)) continue;
+      const choosy = { ...x, filters: { categories: [only], daysOfWeek: [] } };
+      for (const w of [...partners(x)].map((id) => byId.get(id)).filter((offer) => categoryOf(offer) !== only)) {
+        for (const role of roleShifts) pools.push([choosy, y, z, w, role, graces]);
+      }
     }
   }
 
@@ -80,9 +67,9 @@ export function pickSwapCases({ assignments, context, dates, maxLength, nurses, 
   const openUntil = (pool) => pool.map((offer) => startOf.get(offer.assignmentId)).sort()[0];
   const longestLasting = (a, b) => openUntil(b).localeCompare(openUntil(a)) || keyOf(a).localeCompare(keyOf(b));
 
-  for (const pool of pools.filter(distinctPeople).sort(longestLasting)) {
-    const cases = proves(pool);
-    if (cases) return cases;
+  for (const pool of pools.filter(castOk).sort(longestLasting)) {
+    const cases = provesCases(pool, optionsFor);
+    if (cases) return { ...cases, openUntil: openUntil(pool) };
   }
-  throw new Error('The seed found no chain-only swap among the nurse shifts ahead.');
+  throw new Error('The seed found no set of nurse shifts ahead that shows all four swap cases.');
 }

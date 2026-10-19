@@ -11,10 +11,11 @@
 import { Assignment, Roster, SwapRequest } from '../../models/index.js';
 import { AppError } from '../../errors/AppError.js';
 import { describeRequests } from './swapRequestDto.js';
+import { filtersOf } from './shiftFilters.js';
 
 const ALREADY_OFFERED = 'You have already offered this shift.';
 
-export async function createSwapRequest({ orgId, membership, assignmentId, note = '', now = new Date() }) {
+export async function createSwapRequest({ orgId, membership, assignmentId, note = '', acceptableShiftFilters, now = new Date() }) {
   const assignment = await Assignment.findOne({ _id: assignmentId, orgId }).lean();
   if (!assignment) throw AppError.notFound('Shift not found');
   if (String(assignment.membershipId) !== String(membership._id)) {
@@ -34,6 +35,7 @@ export async function createSwapRequest({ orgId, membership, assignmentId, note 
       rosterId: assignment.rosterId,
       startsAt: assignment.startsAt,
       note,
+      acceptableShiftFilters: filtersOf(acceptableShiftFilters),
     });
     const [described] = await describeRequests([request.toObject()], membership);
     return described;

@@ -1,23 +1,45 @@
-// swapBenchmarkParts.js
-// Helpers for benchmark-swaps.js: the wards, one roster for each, and random
-// pools of offers. (The table's arithmetic is in swapBenchmarkReport.js.)
+// swapBenchmarkWards.js
+// The wards benchmark-swaps.js measures, each rostered once by the real
+// generator. Pure computation over engine output - nothing here touches a
+// database or the network.
 //
-// Pure computation over engine output - nothing here touches a database or
-// the network. Pools come from a seeded generator, so every run asks exactly
-// the same questions and only the timings move.
+// Written down before the first run, and not to be tuned after seeing the
+// results (the README repeats them):
+//
+//   the evaluation harness's wards, as they are: the 40-person hospital ward,
+//   the ward with heavy availability constraints, and the understaffed one
+//
+//   the mixed-role ward: 40 people - 8 charge nurses (who are also registered
+//   nurses), 16 registered nurses and 16 healthcare assistants - where every
+//   shift needs particular roles: Day 1 CN + 3 RN + 3 HCA, Evening 1 CN +
+//   2 RN + 2 HCA, Night 1 CN + 1 RN + 2 HCA. Same shifts, rules, dates and
+//   timezone as the harness's 40-person ward; no declared availability.
+//
+//   for the performance target: the hospital ward with 100 staff and its
+//   demand scaled up 2.5 times, with fairness debts and preferences to rank by
 
 import { generateRoster } from '../src/engine/index.js';
 import { SCENARIOS, SEED, MAX_ITERATIONS, staff, everyDay } from './scenarios.js';
 
 const scenario = (prefix) => SCENARIOS.find((s) => s.name.startsWith(prefix));
+const people = (prefix, count, qualificationIds) =>
+  Array.from({ length: count }, (_, i) => ({ membershipId: `${prefix}${i}`, qualificationIds, contractedHoursPerWeek: 37.5 }));
+const needs = (cn, rn, hca) => [
+  { qualificationId: 'CN', count: cn },
+  { qualificationId: 'RN', count: rn },
+  { qualificationId: 'HCA', count: hca },
+];
 
-// The evaluation harness's wards, exactly as they are: the two 40-person
-// ones, and the understaffed one - 12 people doing 40 people's work, all at
-// their limits - as the contrast that shows when chains can and cannot help.
 export const WARDS = [scenario('Hospital ward'), scenario('Ward with heavy availability'), scenario('Understaffed ward')];
 
-// For the performance target: the same ward with 100 staff, and its demand
-// scaled up 2.5 times (12 people a day becomes 30) so they are about as busy.
+export const MIXED_WARD = {
+  ...scenario('Hospital ward'),
+  name: 'Mixed-role ward (40 staff, 14 days)',
+  workers: [...people('cn', 8, ['CN', 'RN']), ...people('rn', 16, ['RN']), ...people('hca', 16, ['HCA'])],
+  coverageRequirements: everyDay({ 't-day': needs(1, 3, 3), 't-eve': needs(1, 2, 2), 't-night': needs(1, 1, 2) }),
+  availability: [],
+};
+
 export const LARGE_WARD = {
   ...scenario('Hospital ward'),
   name: 'Hospital ward (100 staff, 14 days)',
@@ -44,40 +66,6 @@ export function contextOf(ward) {
     rules: ward.rules,
     timezone: ward.timezone,
   };
-}
-
-/**
- * Seeded random numbers in [0, 1) - mulberry32, the same small generator the
- * roster generator uses. Kept here so this script needs nothing from inside
- * the engine beyond its public API.
- */
-export function seededRandom(seed) {
-  let state = seed >>> 0;
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let t = Math.imul(state ^ (state >>> 15), state | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/** `size` different people with shifts, each offering one of their own at random. */
-export function poolOf(assignments, size, random) {
-  const shiftsOf = new Map();
-  for (const a of assignments) shiftsOf.set(a.membershipId, [...(shiftsOf.get(a.membershipId) ?? []), a]);
-  const people = [...shiftsOf.keys()].sort();
-
-  // A partial Fisher-Yates shuffle: the first `size` places, no repeats.
-  for (let i = 0; i < Math.min(size, people.length); i += 1) {
-    const j = i + Math.floor(random() * (people.length - i));
-    [people[i], people[j]] = [people[j], people[i]];
-  }
-
-  return people.slice(0, size).map((membershipId) => {
-    const own = shiftsOf.get(membershipId);
-    const shift = own[Math.floor(random() * own.length)];
-    return { id: `offer:${shift.id}`, membershipId, assignmentId: shift.id };
-  });
 }
 
 /**

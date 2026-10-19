@@ -55,6 +55,22 @@ describe('explaining why there are no options', () => {
     expect(noMatchReasons.summary).toBe('1 offer checked: 1 is from someone unavailable when your shift is.');
   });
 
+  it('names a role the other person lacks before a clash in your own week', () => {
+    // R's charge nurse place on Tuesday: Y holds RN only, so could never take
+    // it - and R could not take Y's Wednesday day anyway, straight off a night.
+    const assignments = [
+      { ...shift('r-cn', 'R', 't-day', '2026-03-03'), slotQualificationId: 'CN' },
+      shift('r-night', 'R', 't-night', '2026-03-03'),
+      { ...shift('y-day', 'Y', 't-day', '2026-03-04'), slotQualificationId: 'RN' },
+    ];
+    const offers = [offer('oR', 'R', 'r-cn'), offer('oY', 'Y', 'y-day')];
+    const ctx = world({ people: [{ id: 'R', qualificationIds: ['RN', 'CN'] }, { id: 'Y', qualificationIds: ['RN'] }] });
+
+    const { noMatchReasons } = search({ request: offers[0], offers, assignments, ctx });
+
+    expect(noMatchReasons.summary).toBe('1 offer checked: 1 is from someone without the qualification your shift needs.');
+  });
+
   it('explains an organisation where nobody else has offered anything', () => {
     const assignments = [shift('r-offer', 'R', 't-day', '2026-03-03')];
     const offers = [offer('oR', 'R', 'r-offer')];

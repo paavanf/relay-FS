@@ -69,3 +69,20 @@ export const rankedCaseArb = fc
       context: { ...base.context, availability: [...base.context.availability, ...extra] },
     };
   });
+
+// The same cases with "what would you take in return?" filled in at random:
+// each offer may name some kinds of shift and some weekdays, and either list
+// can be empty, meaning any. Filters only narrow who is willing, so every
+// roster is still legal.
+export const filteredCaseArb = fc
+  .record({
+    base: swapCaseArb,
+    filters: fc.array(fc.record({ categories: fc.subarray(['day', 'evening', 'night']), daysOfWeek: fc.subarray([0, 1, 2, 3, 4, 5, 6]) }), {
+      minLength: 10,
+      maxLength: 10,
+    }),
+  })
+  .map(({ base, filters }) => {
+    const offers = base.offers.map((offer, i) => ({ ...offer, filters: filters[i] }));
+    return { ...base, offers, request: offers.find((offer) => offer.id === base.request?.id) };
+  });

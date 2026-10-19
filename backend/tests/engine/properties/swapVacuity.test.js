@@ -49,11 +49,12 @@ describe('swap search on random cases', () => {
       `  Hand-overs ruled out by full validation: ${JSON.stringify(validationBlockers)}`,
     );
 
-    // Floors set from a measured run (direct 67.7%, chains only 1.1%,
-    // nothing 31.2%), well below it, so a regression shows and noise does
+    // Floors set from a measured run (direct 55.5%, chains only 1.4%,
+    // nothing 43.1%), well below it, so a regression shows and noise does
     // not. "Chains only" is naturally rare here: every random worker holds
-    // RN, which every random shift accepts, so when any swap works a direct
-    // one usually does too. The hand-built tests cover qualifications.
+    // RN and only the charge-nurse places need more, so when any swap works
+    // a direct one usually does too. swapRoleVacuity.test.js measures the
+    // role check and the "what would you take" filters on their own.
     expect(counted).toBeGreaterThan(CASES / 2);
     expect(outcome['direct swap found'] / counted).toBeGreaterThan(0.3);
     expect(outcome['nothing found'] / counted).toBeGreaterThan(0.1);

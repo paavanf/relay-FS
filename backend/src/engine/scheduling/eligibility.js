@@ -6,12 +6,11 @@
 // rule and the generator can never drift from what manual editing or swap
 // validation will later allow.
 //
-// The one check made here rather than there is the qualification: the
-// constraint engine asks "does this person hold ANY qualification this shift
-// calls for", which is the right question for an existing assignment. A slot
-// is more specific - it is the RN place on that shift, not the CN one - so
-// the exact qualification has to match. That is the demand model, not a
-// constraint being reimplemented.
+// Each candidate assignment carries its slot's role (slotQualificationId),
+// so the engine itself refuses anyone without that exact qualification. The
+// filter below only narrows the field first: it is how qualifiedCount - who
+// could ever fill this slot - is counted for the unfilled-slot explanation,
+// and it saves asking the engine about people it is bound to refuse.
 
 import { canAssign } from '../constraints/evaluate.js';
 
@@ -33,12 +32,13 @@ function ownAssignments(assignments, membershipId) {
   return assignments.filter((a) => a.membershipId === membershipId);
 }
 
-/** The assignment a slot becomes once somebody is put in it. */
+/** The assignment a slot becomes once somebody is put in it - the slot's role included. */
 export function toAssignment(slot, membershipId) {
   return {
     id: slot.slotId,
     membershipId,
     shiftTemplateId: slot.shiftTemplateId,
+    slotQualificationId: slot.qualificationId,
     date: slot.date,
     startsAt: slot.startsAt,
     endsAt: slot.endsAt,

@@ -47,8 +47,9 @@ export async function remove(req, res) {
 }
 
 // A dry run. Answers 200 whether or not the edit is legal - "this breaks
-// minimum rest" is a successful answer to the question that was asked.
+// minimum rest" is a successful answer to the question that was asked. The
+// shift's roles come back too, since saving it needs one of them.
 export async function validate(req, res) {
-  const { allowed, violations } = await validateAssignment({ orgId: req.orgId, ...req.valid.body });
-  res.json({ allowed, violations });
+  const { allowed, violations, roles } = await validateAssignment({ orgId: req.orgId, ...req.valid.body });
+  res.json({ allowed, violations, roles });
 }

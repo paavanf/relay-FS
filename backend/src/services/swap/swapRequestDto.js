@@ -6,6 +6,7 @@
 
 import { namesOf } from '../member/memberNames.js';
 import { shiftsById } from './describeShifts.js';
+import { filtersOf } from './shiftFilters.js';
 
 export async function describeRequests(requests, viewer) {
   const shifts = await shiftsById(requests.map((r) => r.assignmentId));
@@ -20,6 +21,7 @@ export async function describeRequests(requests, viewer) {
     mine: String(request.membershipId) === String(viewer?._id),
     assignment: shifts.get(String(request.assignmentId)) ?? null,
     note: request.note ?? '',
+    acceptableShiftFilters: filtersOf(request.acceptableShiftFilters),
     createdAt: request.createdAt,
   }));
 }

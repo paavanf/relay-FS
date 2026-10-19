@@ -11,7 +11,7 @@
 // the shift's start is copied here, where every query can filter on it.
 
 import mongoose from 'mongoose';
-import { SWAP_NOTE_MAX_LENGTH } from '../config/swaps.js';
+import { SWAP_NOTE_MAX_LENGTH, SHIFT_CATEGORIES } from '../config/swaps.js';
 
 const swapRequestSchema = new mongoose.Schema(
   {
@@ -25,6 +25,13 @@ const swapRequestSchema = new mongoose.Schema(
     startsAt: { type: Date, required: true },
 
     note: { type: String, trim: true, maxlength: SWAP_NOTE_MAX_LENGTH, default: '' },
+
+    // What the person would take in return: kinds of shift, and weekdays
+    // (0 = Sunday) in the organisation's timezone. An empty list means any.
+    acceptableShiftFilters: {
+      categories: { type: [{ type: String, enum: SHIFT_CATEGORIES }], default: [] },
+      daysOfWeek: { type: [{ type: Number, min: 0, max: 6 }], default: [] },
+    },
 
     status: { type: String, enum: ['open', 'cancelled'], default: 'open' },
     cancelledAt: { type: Date, default: null },

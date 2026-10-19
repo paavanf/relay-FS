@@ -38,6 +38,7 @@ export function toAssignmentDto(assignment) {
     rosterId: String(assignment.rosterId),
     membershipId: String(assignment.membershipId),
     shiftTemplateId: String(assignment.shiftTemplateId),
+    slotQualificationId: assignment.slotQualificationId ? String(assignment.slotQualificationId) : null,
     date: assignment.date,
     startsAt: assignment.startsAt.toISOString(),
     endsAt: assignment.endsAt.toISOString(),

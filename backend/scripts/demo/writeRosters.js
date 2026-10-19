@@ -53,6 +53,7 @@ export async function writeRosters({ anchor }) {
         rosterId,
         membershipId: a.membershipId,
         shiftTemplateId: a.shiftTemplateId,
+        slotQualificationId: a.slotQualificationId ?? null,
         date: a.date,
         startsAt: new Date(a.startsAt),
         endsAt: new Date(a.endsAt),

@@ -2,7 +2,7 @@
 // HTTP layer for swap requests and their options. Thin: who may do what is
 // decided in the services, so no route can forget to apply it.
 
-import { createSwapRequest, listSwapRequests, cancelSwapRequest, getSwapOptions } from '../services/swap/index.js';
+import { createSwapRequest, listSwapRequests, cancelSwapRequest, updateSwapRequest, getSwapOptions } from '../services/swap/index.js';
 
 export async function create(req, res) {
   const swapRequest = await createSwapRequest({
@@ -10,8 +10,19 @@ export async function create(req, res) {
     membership: req.membership,
     assignmentId: req.valid.body.assignmentId,
     note: req.valid.body.note,
+    acceptableShiftFilters: req.valid.body.acceptableShiftFilters,
   });
   res.status(201).json({ swapRequest });
+}
+
+export async function update(req, res) {
+  const swapRequest = await updateSwapRequest({
+    orgId: req.orgId,
+    membership: req.membership,
+    requestId: req.valid.params.requestId,
+    ...req.valid.body,
+  });
+  res.json({ swapRequest });
 }
 
 export async function list(req, res) {

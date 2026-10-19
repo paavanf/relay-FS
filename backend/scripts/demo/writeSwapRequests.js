@@ -1,33 +1,33 @@
 // writeSwapRequests.js
 // Stores the demo's open swap requests - picked and proved by swapCases.js -
-// under fixed ids, as offering a shift on My Shifts would store them. A few
-// people offer a shift from the weeks ahead; three of those requests are the
-// cases to look at (a chain only, a direct swap, and none at all).
+// under fixed ids, as offering a shift on My Shifts would store them: note,
+// "what I'd take in return" and all. Six shifts from the weeks ahead are on
+// offer; four of the requests are the cases to look at (a chain only a
+// filter forces, a direct swap, no options for Grace, and no options for a
+// charge nurse's shift).
 //
 // The search works on what the options endpoint would load: published
 // shifts, and the same scheduling data the generator and manual edits use.
 
 import { Organisation, Roster, Assignment, SwapRequest } from '../../src/models/index.js';
 import { loadOrgSchedulingData, toEngineContext } from '../../src/services/roster/orgSchedulingData.service.js';
-import { toEngineAssignment } from '../../src/services/swap/loadSwapSearch.service.js';
+import { toEngineAssignment } from '../../src/services/roster/toEngineAssignment.js';
 import { DEFAULT_SWAP_POLICY } from '../../src/config/swaps.js';
 import { demoId, DEMO_ORG_ID } from './ids.js';
 import { datesAhead } from './dates.js';
 import { PEOPLE } from './ward.js';
-import { membershipIdOf, templateIdOf } from './wardDocs.js';
+import { membershipIdOf, qualificationIdOf } from './wardDocs.js';
 import { pickSwapCases } from './swapCases.js';
 
-// A note for each offer by its place in the pool: the chain's three first,
-// Grace's last, and any pair added for a direct swap in between.
-const notes = (count) => [
-  'Family wedding that weekend - happy to take any shift back.',
+// A note for each offer by its place in the pool: [chain, y, z, w, role, grace].
+const notes = (only) => [
+  `Family wedding that weekend - I can only take ${only} shifts in return.`,
   'Would like this one off if it helps anyone.',
   'Swapping to get a long weekend.',
-  ...['Course day - looking to swap like for like.', 'Open to swapping.'].slice(0, count - 4),
+  'Open to swapping.',
+  'Course day - I need someone to cover the charge nurse role.',
   'Childcare fell through that day.',
 ];
-
-const idsOf = (filter) => new Set(PEOPLE.filter(filter).map((person) => String(membershipIdOf(person.key))));
 
 export async function writeSwapRequests({ anchor }) {
   const org = await Organisation.findById(DEMO_ORG_ID).lean();
@@ -40,14 +40,13 @@ export async function writeSwapRequests({ anchor }) {
     context: toEngineContext(data),
     dates: datesAhead(anchor),
     maxLength: org.swapPolicy?.maxChainLength ?? DEFAULT_SWAP_POLICY.maxChainLength,
-    nurses: idsOf((person) => person.qualifications.includes('rn')),
-    chargeNurses: idsOf((person) => person.qualifications.includes('cn')),
+    nurses: new Set(PEOPLE.filter((p) => p.qualifications.includes('rn')).map((p) => String(membershipIdOf(p.key)))),
     grace: String(membershipIdOf('grace')),
-    dayTemplateId: String(templateIdOf('day')),
+    chargeNurseRole: String(qualificationIdOf('cn')),
   });
 
   const byId = new Map(stored.map((a) => [String(a._id), a]));
-  const note = notes(cases.pool.length);
+  const note = notes(cases.chain.filters.categories[0]);
   await SwapRequest.insertMany(
     cases.pool.map((offer, i) => {
       const assignment = byId.get(offer.assignmentId);
@@ -59,12 +58,17 @@ export async function writeSwapRequests({ anchor }) {
         rosterId: assignment.rosterId,
         startsAt: assignment.startsAt,
         note: note[i],
+        acceptableShiftFilters: offer.filters ?? { categories: [], daysOfWeek: [] },
         status: 'open',
       };
     }),
   );
 
-  // For the summary: who to sign in as for each case, and their shift.
-  const describe = (offer) => ({ membershipId: offer.membershipId, assignment: byId.get(offer.assignmentId) });
-  return { offered: cases.pool.length, chain: describe(cases.chain), direct: describe(cases.direct), none: describe(cases.none) };
+  // For the summary: who to sign in as for each case, their shift, and how long the cases last.
+  const describe = (offer) => ({ membershipId: offer.membershipId, assignment: byId.get(offer.assignmentId), filters: offer.filters });
+  return {
+    offered: cases.pool.length,
+    openUntil: cases.openUntil,
+    ...Object.fromEntries(['chain', 'direct', 'none', 'role'].map((kind) => [kind, describe(cases[kind])])),
+  };
 }

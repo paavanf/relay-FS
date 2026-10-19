@@ -38,11 +38,14 @@ export const assignmentIdParamSchema = z
   .object({ orgId: objectId, assignmentId: objectId })
   .strict();
 
+// slotQualificationId is the role on the shift being filled - required by the
+// service for any shift whose coverage asks for roles.
 export const createAssignmentSchema = z
   .object({
     rosterId: objectId,
     membershipId: objectId,
     shiftTemplateId: objectId,
+    slotQualificationId: objectId.optional(),
     date: isoDate,
   })
   .strict();
@@ -53,6 +56,7 @@ export const updateAssignmentSchema = z
   .object({
     membershipId: objectId.optional(),
     shiftTemplateId: objectId.optional(),
+    slotQualificationId: objectId.optional(),
     date: isoDate.optional(),
   })
   .strict()

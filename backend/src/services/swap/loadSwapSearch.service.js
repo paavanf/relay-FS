@@ -17,18 +17,16 @@ import { loadOrgSchedulingData, toEngineContext } from '../roster/orgSchedulingD
 import { toFairnessDebt } from '../../engine/index.js';
 import { DEFAULT_FAIRNESS_POLICY } from '../../config/fairness.js';
 import { DEFAULT_SWAP_POLICY, SWAP_SEARCH } from '../../config/swaps.js';
+import { toEngineAssignment } from '../roster/toEngineAssignment.js';
+import { filtersOf } from './shiftFilters.js';
 
 const DAY_MS = 86_400_000;
 
-export const toOffer = (r) => ({ id: String(r._id), membershipId: String(r.membershipId), assignmentId: String(r.assignmentId) });
-
-export const toEngineAssignment = (a) => ({
-  id: String(a._id),
-  membershipId: String(a.membershipId),
-  shiftTemplateId: String(a.shiftTemplateId),
-  date: a.date,
-  startsAt: a.startsAt.toISOString(),
-  endsAt: a.endsAt.toISOString(),
+export const toOffer = (r) => ({
+  id: String(r._id),
+  membershipId: String(r.membershipId),
+  assignmentId: String(r.assignmentId),
+  filters: filtersOf(r.acceptableShiftFilters),
 });
 
 async function publishedAround(orgId, offered) {

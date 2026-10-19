@@ -29,6 +29,8 @@ export async function clearDraftShifts({ orgId, membershipId, name, session }) {
       slotId: `left-${shift._id}`,
       date: shift.date,
       shiftTemplateId: shift.shiftTemplateId,
+      // The role they were filling is the role now missing.
+      qualificationId: shift.slotQualificationId ?? null,
       qualifiedCount: 0,
       blockedBy: {},
       reason: `Nobody is on this shift since ${name} left the team.`,

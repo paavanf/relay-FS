@@ -39,14 +39,17 @@ const templateOf = (id) => TEMPLATES.find((template) => String(templateIdOf(temp
 const shiftLabel = (a) => `${DateTime.fromISO(a.date, { zone: 'utc' }).toFormat('ccc d LLL')}, ${templateOf(a.shiftTemplateId).name}`;
 
 function printSwaps(swaps) {
-  console.log(`\nSwap requests: ${swaps.offered} people have offered a shift in the weeks ahead. Sign in as one of these, open Swaps and choose Find swaps:`);
+  console.log(`\nSwap requests: ${swaps.offered} shifts are on offer in the weeks ahead. Sign in as one of these, open Swaps and choose Find swaps:`);
   const cases = [
-    [swaps.chain, 'only a three-person chain resolves it'],
+    [swaps.chain, `only a three-person chain - "only ${swaps.chain.filters?.categories[0]} shifts" rules out a direct swap`],
     [swaps.direct, 'a direct swap resolves it'],
-    [swaps.none, 'no options, and the reason why'],
+    [swaps.none, "no options: the other offers fall on days they can't work"],
+    [swaps.role, 'no options: nobody else offering holds the charge nurse role'],
   ];
   for (const [{ membershipId, assignment }, outcome] of cases) {
     const person = personOf(membershipId);
     console.log(`  ${emailOf(person).padEnd(20)} ${person.name.padEnd(15)} ${shiftLabel(assignment).padEnd(18)} ${outcome}`);
   }
+  const until = DateTime.fromISO(swaps.openUntil).setZone(WARD.timezone).toFormat('ccc d LLL, HH:mm');
+  console.log(`  The earliest of these shifts starts ${until}; requests close as their shifts start, so reseed after that.`);
 }

@@ -41,6 +41,9 @@ const fixture = {
     rules: cafe.scenario.rules,
     templates: cafe.scenario.shiftTemplates.map(({ id, name, startLocal, endLocal, category }) => ({ id, name, startLocal, endLocal, category })),
     members: membersOf(cafe.scenario),
+    // The roles each shift needs, so the grid's coverage row can count them.
+    coverage: cafe.scenario.coverageRequirements,
+    qualifications: cafe.scenario.qualifications.map(({ id, name }) => ({ id, name })),
     assignments: cafe.result.assignments,
     unfilledSlots: cafe.result.unfilledSlots,
     totals: totalsOf(cafe.scenario, cafe.result),

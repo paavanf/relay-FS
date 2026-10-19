@@ -9,6 +9,8 @@
  * @property {string} id
  * @property {string} membershipId
  * @property {string} assignmentId
+ * @property {{ categories?: string[], daysOfWeek?: number[] }} [filters]  what they would take
+ *   in return - kinds of shift, and weekdays (0 = Sunday) in the org's timezone; empty = any
  */
 
 /**

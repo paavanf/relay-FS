@@ -17,6 +17,7 @@ import { startTestServer, stopTestDb, testServerUri } from '../helpers/db.js';
 import { inDatabase } from '../helpers/demoSeed.js';
 import { main } from '../../scripts/demo/runSeed.js';
 import { createApp } from '../../src/app.js';
+import { User } from '../../src/models/index.js';
 import { DEMO_ACCOUNTS, DEMO_PASSWORD, DEMO_ORG_ID } from '../../../frontend/src/pages/auth/login/demoAccounts.js';
 
 beforeAll(async () => {
@@ -57,6 +58,11 @@ describe('the demo accounts the login page offers', () => {
 
         // The page signs in straight to this organisation, by the id it holds.
         expect(owner.membership).toMatchObject({ role: 'owner', isDemo: true, orgId: DEMO_ORG_ID });
+
+        // Seeded with the OWASP Argon2id settings (src/utils/passwords.js), so
+        // each of the page's one-click sign-ins reserves 19 MiB, not 64.
+        const seeded = await User.findOne({ email: DEMO_ACCOUNTS[0].email }).lean();
+        expect(seeded.passwordHash).toMatch(/^\$argon2id\$v=19\$m=19456,t=2,p=1\$/);
         expect((await owner.get('/swap-chains/summary')).body.awaitingApproval).toBe(1);
 
         expect((await waiting.get('/swap-chains/summary')).body.waitingForYou).toBe(1);

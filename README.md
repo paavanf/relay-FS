@@ -174,7 +174,7 @@ The performance target held: across 300 searches with all 100 people offering, t
 
 ## How it is tested
 
-At the time of writing: **598 backend tests** in 134 files (Vitest, every file against an in-memory MongoDB replica set of its own), **91 frontend tests** (Vitest, components in a browser-like DOM), and the end-to-end suite below. All of it runs on every push.
+At the time of writing: **608 backend tests** in 137 files (Vitest, every file against an in-memory MongoDB replica set of its own), **91 frontend tests** (Vitest, components in a browser-like DOM), and the end-to-end suite below. All of it runs on every push.
 
 - **Property-based tests with non-vacuity checks.** [fast-check](https://fast-check.dev) generates hundreds of organisations, rosters, teams, offers and chain histories per property - half-hour and 45-minute timezones, clock changes, shifts that end exactly when the next begins - and checks invariants that must hold for every one of them: whatever the generator produces is legal; removing a shift never adds a hard violation; `canAssign` agrees with `evaluate`; the swap finder only ever offers legal swaps; the chain state machine never commits twice. A property that passes because its cases never reach the situation it is about proves nothing, so separate **vacuity tests** sample the same generators and fail unless each outcome - a swap found, only a chain, nothing at all, each way a chain can end - turns up often enough.
 - **Concurrency tests.** Requests fired at the same moment (`Promise.all`), several rounds each from a fresh world: two proposals racing for one shift (exactly one wins, the other gets 409), two final acceptances at once (exactly one commit), a duplicate approval (one commit, both answered).

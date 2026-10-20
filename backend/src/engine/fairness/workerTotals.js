@@ -9,6 +9,7 @@
 // last digit of a total could depend on how a database happened to sort rows.
 
 import { localDate, durationHours } from '../time.js';
+import { compareByTime } from '../grouping.js';
 import { burdenOf, isWeekendShift } from './burdenOf.js';
 import { inWindow } from './fairnessWindow.js';
 
@@ -30,12 +31,15 @@ export function compareText(a, b) {
   return x < y ? -1 : x > y ? 1 : 0;
 }
 
-// A total order on assignments, so the sum never depends on input order.
+// A total order on assignments, so the sum never depends on input order:
+// by person, then the engine's chronological order (start instant, end
+// instant, id - grouping.js), then template for input that carries no ids.
+// Times used to be compared as text, which is only chronological when every
+// time is written with the same offset; and there was no id to settle a tie.
 function compareAssignments(a, b) {
   return (
     compareText(a.membershipId, b.membershipId) ||
-    compareText(a.startsAt, b.startsAt) ||
-    compareText(a.endsAt, b.endsAt) ||
+    compareByTime(a, b) ||
     compareText(a.shiftTemplateId, b.shiftTemplateId)
   );
 }

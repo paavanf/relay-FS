@@ -21,17 +21,37 @@ export function byMembership(assignments) {
   return groups;
 }
 
+/** Plain code-point comparison of two ids - unlike localeCompare, the same on every machine. */
+export function compareIds(a, b) {
+  const x = String(a);
+  const y = String(b);
+  return x < y ? -1 : x > y ? 1 : 0;
+}
+
+// A time that will not parse orders as the epoch, so bad data still sorts
+// the same way every time (evaluate() reports it separately).
+const orderMillis = (iso) => toMillis(iso) ?? 0;
+
 /**
- * Chronological order, by start instant. Ties break on id so the result is
- * stable no matter what order the caller passed things in - constraints must
- * be order-independent, and a wobbling sort would quietly break that.
+ * The engine's one chronological order: start instant, then end instant,
+ * then id. Every ordering of shifts or slots by time uses it (dates, which
+ * cannot tie, are sorted as plain strings). It has to be
+ * complete - two shifts can start at the same instant (a double booking), and
+ * a tie left to the input order makes the answer depend on the order the
+ * assignments arrived in, which the engine promises it never does.
+ * idOf names the stable id for things not keyed by `id` (a slot's slotId).
  */
+export function compareByTime(a, b, idOf = (item) => item.id) {
+  return (
+    orderMillis(a.startsAt) - orderMillis(b.startsAt) ||
+    orderMillis(a.endsAt) - orderMillis(b.endsAt) ||
+    compareIds(idOf(a), idOf(b))
+  );
+}
+
+/** Chronological order (compareByTime), as a new array. */
 export function sortByStart(assignments) {
-  return [...assignments].sort((a, b) => {
-    const diff = toMillis(a.startsAt) - toMillis(b.startsAt);
-    if (diff !== 0) return diff;
-    return String(a.id).localeCompare(String(b.id));
-  });
+  return [...assignments].sort((a, b) => compareByTime(a, b));
 }
 
 /** Indexes any array of objects by one of its string fields. */

@@ -201,7 +201,7 @@ That last row is the limit of any proxy count: a request sent straight to the `o
 | The Render build fails | `npm ci` refuses a `package.json` and `package-lock.json` that disagree. Or the build ran outside the repository root, where the only lockfile is. Or an old Node fails on `--env-file-if-exists` or argon2 | Run `npm install` locally and commit the lockfile. Leave Render's *Root Directory* empty. Keep `.node-version` at Node 22 |
 | Every request is refused with 429, "Too many requests from your network" | `TRUST_PROXY` too low: everyone looks like Vercel's few addresses and shares one count | Step 8. The counts are kept in memory and start again when the service restarts |
 | The demo's sign-in buttons say the email or password is wrong | The demo ward hasn't been seeded yet | Run the nightly workflow by hand (step 6) |
-| Render restarts the service, reporting it ran out of memory | The free plan has 512 MB. A password check (argon2) takes 64 MiB while it runs, and up to four run at once | See the numbers below. Adding `UV_THREADPOOL_SIZE=2` on Render allows only two password checks at a time |
+| Render restarts the service, reporting it ran out of memory | The free plan has 512 MB. A generation holds its whole problem in memory while it runs (one at a time), and a password check holds 19 MiB (two at a time; 64 MiB for a hash made before the OWASP settings) | See the numbers below, which leave over 300 MB spare. Check Render's metrics for what was running: a far larger organisation's generation is the likeliest cause |
 | The nightly workflow stopped running | GitHub turns off scheduled workflows in a repository with no commits for 60 days, after emailing a warning | Turn it back on from the *Actions* tab |
 | A blank page, with CSP errors in the console | The inline script in `index.html` changed without its hash | See *Later changes* |
 
@@ -211,10 +211,10 @@ That last row is the limit of any proxy count: a request sent straight to the `o
 | --- | --- |
 | Idle, after start | about 90 MB |
 | Generating a 40-person, 14-day roster in the worker thread (5.4 s, all 168 shifts filled) | peak 130 MB |
-| Peak since start, including one sign-in | 153 MB |
-| Four sign-ins at the same moment, during a generation | 386 MB |
+| Four sign-ins at the same moment, during a generation | peak 175 MB |
+| Ten sign-ins at the same moment, during a generation | peak 171 MB |
 
-That last row is the worst case: libuv's four threads all hashing a password at once. It leaves about 125 MB of the 512. Starting with `npm start` would keep npm itself running above the server, costing about 60 MB more, which is why `render.yaml` starts Node directly.
+Sign-ins barely move it. Each password check is Argon2id at the OWASP Password Storage Cheat Sheet's settings (19 MiB, 2 iterations, parallelism 1), and only two run at once while the rest wait their turn (`backend/src/utils/passwords.js`), so ten simultaneous sign-ins all finished within about 0.3 s. With the library's old defaults (64 MiB, up to four at once) the same moments peaked at 386 to 396 MB. Starting with `npm start` would keep npm itself running above the server, costing about 60 MB more, which is why `render.yaml` starts Node directly.
 
 ## Reference: every setting
 

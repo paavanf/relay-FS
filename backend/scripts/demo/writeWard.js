@@ -3,7 +3,7 @@
 // templates, coverage and availability. The rosters come after, from
 // writeRosters.js, because generating them reads all of this back.
 
-import argon2 from 'argon2';
+import { hashPassword } from '../../src/utils/passwords.js';
 import {
   Organisation,
   User,
@@ -27,10 +27,12 @@ import {
 export async function writeWard({ anchor }) {
   await Organisation.create(organisationDoc());
 
-  // Hashed exactly as registration hashes, so logging in cannot tell these
-  // accounts from real ones. One hash serves everyone: the password is shared
-  // and printed anyway, and argon2 is slow on purpose.
-  const passwordHash = await argon2.hash(DEMO_PASSWORD, { type: argon2.argon2id });
+  // Hashed exactly as registration hashes - the same function, so the same
+  // OWASP settings - and logging in cannot tell these accounts from real
+  // ones; each of the demo's one-click sign-ins then reserves 19 MiB, not 64.
+  // One hash serves everyone: the password is shared and printed anyway, and
+  // argon2 is slow on purpose.
+  const passwordHash = await hashPassword(DEMO_PASSWORD);
 
   const users = await User.insertMany(userDocs(passwordHash));
   await Membership.insertMany(membershipDocs(anchor));

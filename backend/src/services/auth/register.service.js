@@ -1,8 +1,8 @@
 // register.service.js
 // Registers a new user account.
 
-import argon2 from 'argon2';
 import { User } from '../../models/index.js';
+import { hashPassword } from '../../utils/passwords.js';
 import { AppError } from '../../errors/AppError.js';
 
 export async function registerUser({ name, email, password }) {
@@ -13,8 +13,9 @@ export async function registerUser({ name, email, password }) {
     throw AppError.conflict('An account with this email already exists');
   }
 
-  // argon2id: memory-hard, the current password-hashing recommendation.
-  const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
+  // argon2id: memory-hard, the current password-hashing recommendation - at
+  // the OWASP settings, two at a time (utils/passwords.js).
+  const passwordHash = await hashPassword(password);
 
   const user = await User.create({
     name,

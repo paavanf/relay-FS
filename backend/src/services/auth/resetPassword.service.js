@@ -1,8 +1,8 @@
 // resetPassword.service.js
 // Validates a reset token and sets a new password.
 
-import argon2 from 'argon2';
 import { User, PasswordResetToken, RefreshToken } from '../../models/index.js';
+import { hashPassword } from '../../utils/passwords.js';
 import { hashToken } from '../../utils/crypto.js';
 import { AppError } from '../../errors/AppError.js';
 
@@ -17,7 +17,8 @@ export async function resetPassword({ rawToken, newPassword }) {
   const user = await User.findById(tokenDoc.userId);
   if (!user) throw AppError.badRequest('Invalid reset link');
 
-  user.passwordHash = await argon2.hash(newPassword, { type: argon2.argon2id });
+  // The OWASP Argon2id settings, two hashes at a time (utils/passwords.js).
+  user.passwordHash = await hashPassword(newPassword);
 
   // Someone who forgot their password has usually just failed a few login
   // attempts, so clear the lockout too - otherwise the new password would be

@@ -7,7 +7,7 @@
 // Saturday, which is what the person working it would say - even though the
 // same instant is already Sunday in UTC.
 
-import { byMembership, isUsableLimit } from '../../grouping.js';
+import { byMembership, sortByStart, isUsableLimit } from '../../grouping.js';
 import { localDate, daysBetween } from '../../time.js';
 
 /**
@@ -23,8 +23,10 @@ export function checkMaxConsecutiveDays(assignments, context) {
 
   for (const [membershipId, own] of byMembership(assignments)) {
     // Several shifts can fall on one day; a day is worked or it is not.
+    // Taken in chronological order (start, end, id) so the shifts a run
+    // reports are listed the same way whatever order they arrived in.
     const byDay = new Map();
-    for (const assignment of own) {
+    for (const assignment of sortByStart(own)) {
       const day = localDate(assignment.startsAt, context.timezone);
       const ids = byDay.get(day);
       if (ids) ids.push(assignment.id);

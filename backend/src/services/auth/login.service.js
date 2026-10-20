@@ -1,8 +1,8 @@
 // login.service.js
 // Verifies email + password and returns the user document if valid.
 
-import argon2 from 'argon2';
 import { User } from '../../models/index.js';
+import { verifyPassword } from '../../utils/passwords.js';
 import { AppError } from '../../errors/AppError.js';
 import { assertNotLocked, recordFailedAttempt, clearLockout } from './lockout.service.js';
 
@@ -20,7 +20,8 @@ export async function loginUser({ email, password }) {
   // Checked before the password, so a locked account cannot be tested at all.
   assertNotLocked(user);
 
-  const validPassword = await argon2.verify(user.passwordHash, password);
+  // Through utils/passwords.js, which lets only two checks run at once.
+  const validPassword = await verifyPassword(user.passwordHash, password);
   if (!validPassword) {
     await recordFailedAttempt(user);
     throw AppError.unauthorized('Invalid email or password');

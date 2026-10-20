@@ -21,6 +21,7 @@
 import { findEligibleWorkers, toAssignment } from './eligibility.js';
 import { scoreCandidate } from './scoreCandidate.js';
 import { describeUnfilled } from './explainUnfilled.js';
+import { compareByTime } from '../grouping.js';
 
 export function construct({ slots, context, weights }) {
   const workers = context.workers ?? [];
@@ -80,12 +81,13 @@ function orderByScarcity(slots, workers) {
     );
   }
 
-  // Fewest qualified people first; then chronological, then by id so the
-  // ordering is total and the result reproducible.
+  // Fewest qualified people first; then the engine's chronological order -
+  // start, then end, then slotId - so the ordering is total and the result
+  // reproducible. (It used to skip the end time and compare ids with
+  // localeCompare, which can differ from one machine to the next.)
   return [...slots].sort((a, b) => {
     const scarcity = holdersOf.get(a.qualificationId) - holdersOf.get(b.qualificationId);
     if (scarcity !== 0) return scarcity;
-    if (a.startsAt !== b.startsAt) return a.startsAt < b.startsAt ? -1 : 1;
-    return a.slotId.localeCompare(b.slotId);
+    return compareByTime(a, b, (slot) => slot.slotId);
   });
 }

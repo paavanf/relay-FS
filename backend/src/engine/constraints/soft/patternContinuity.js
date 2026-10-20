@@ -9,7 +9,7 @@
 //
 // This is a preference, not a rule: it scores, it never blocks.
 
-import { byMembership, indexBy } from '../../grouping.js';
+import { byMembership, sortByStart, indexBy } from '../../grouping.js';
 import { localDate, daysBetween } from '../../time.js';
 
 const CATEGORY_SWITCH_PENALTY = 3;
@@ -25,18 +25,18 @@ export function scorePatternContinuity(assignments, context) {
 
   for (const [membershipId, own] of byMembership(assignments)) {
     // One entry per working day. Where someone has two shifts on one day, the
-    // earliest sets that day's character.
+    // earliest sets that day's character - taken in the engine's complete
+    // chronological order (start, end, id), so two shifts starting at the
+    // same instant give the same answer whatever order they arrived in.
+    // Comparing start times alone let the first one seen win such a tie.
     const days = new Map();
 
-    for (const assignment of own) {
+    for (const assignment of sortByStart(own)) {
       const day = localDate(assignment.startsAt, context.timezone);
       const category = templates.get(assignment.shiftTemplateId)?.category;
       if (!day || !category) continue;
 
-      const existing = days.get(day);
-      if (!existing || assignment.startsAt < existing.startsAt) {
-        days.set(day, { category, startsAt: assignment.startsAt, id: assignment.id });
-      }
+      if (!days.has(day)) days.set(day, { category, id: assignment.id });
     }
 
     const ordered = [...days.entries()].sort(([a], [b]) => a.localeCompare(b));

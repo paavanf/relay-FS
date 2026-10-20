@@ -1,56 +1,22 @@
 // ResetPasswordForm.jsx
-// New password + confirmation. Checks the two match before calling the API,
-// then sends the user to the login page to sign in with the new password.
+// New password + confirmation. useResetPassword.js checks the two match
+// before calling the API, then sends the user to the login page to sign in
+// with the new password.
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { Input } from '../../../components/ui/Input.jsx';
 import { PasswordInput } from '../../../components/ui/PasswordInput.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { Callout } from '../../../components/ui/Callout.jsx';
-import { submitNewPassword } from '../../../features/auth/api/passwordReset.js';
-import { useToast } from '../../../components/ui/toast/useToast.js';
+import { useResetPassword } from './useResetPassword.js';
 
 export function ResetPasswordForm({ token }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { submit, error, isSubmitting } = useResetPassword(token);
 
-  const { showToast } = useToast();
-  const navigate = useNavigate();
-
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault();
-    setError('');
-
-    // Checked here rather than on the server: the server never sees the
-    // confirmation field, it only takes the password itself.
-    if (password !== confirmPassword) {
-      setError('The two passwords do not match.');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      await submitNewPassword(token, password);
-
-      showToast({
-        type: 'success',
-        title: 'Password updated',
-        message: 'Log in with your new password.',
-      });
-
-      navigate('/login');
-    } catch (err) {
-      // Expired or already-used links land here with a readable message.
-      const message = err.message || 'Could not reset your password.';
-      setError(message);
-      showToast({ type: 'error', title: 'Reset failed', message });
-    } finally {
-      setIsSubmitting(false);
-    }
+    submit(password, confirmPassword);
   }
 
   return (
@@ -75,9 +41,7 @@ export function ResetPasswordForm({ token }) {
         required
       />
 
-      {error && (
-        <Callout variant="danger">{error}</Callout>
-      )}
+      {error && <Callout variant="danger">{error}</Callout>}
 
       <Button type="submit" size="lg" className="w-full" isLoading={isSubmitting}>
         Set new password

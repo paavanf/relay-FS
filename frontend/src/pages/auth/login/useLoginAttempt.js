@@ -14,7 +14,11 @@ import { parseLockoutSeconds } from './lockoutWait.js';
 
 const GENERIC_FAILURE = 'Invalid email or password.';
 
-/** next is a path already checked by safeReturnPath, or null for the app. */
+/**
+ * next is a path already checked by safeReturnPath, or null for the app. A
+ * single attempt may name its own destination instead - one RequireGuest has
+ * been told too, since it decides where a sign-in lands (see its comment).
+ */
 export function useLoginAttempt(next) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -23,14 +27,14 @@ export function useLoginAttempt(next) {
   const { secondsLeft, start } = useCountdown();
   const navigate = useNavigate();
 
-  async function attempt(email, password) {
+  async function attempt(email, password, destination = next) {
     setIsSubmitting(true);
     setErrorMessage(null);
 
     try {
       await login(email, password);
       // replace: pressing Back on the invite page should not land on a login form.
-      navigate(next ?? '/app', { replace: true });
+      navigate(destination ?? '/app', { replace: true });
     } catch (err) {
       const isRateLimited = err.status === 429;
 

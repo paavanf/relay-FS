@@ -8,6 +8,7 @@ import { Button } from '../../../components/ui/Button.jsx';
 import { deleteQualification } from '../../../features/catalog/api/qualifications.js';
 import { useOrg } from '../../../features/organisation/useOrg.js';
 import { useToast } from '../../../components/ui/toast/useToast.js';
+import { DemoLock } from '../../../features/demo/DemoLock.jsx';
 
 export function DeleteQualificationButton({ qualification }) {
   const [isConfirming, setIsConfirming] = useState(false);
@@ -28,14 +29,16 @@ export function DeleteQualificationButton({ qualification }) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setIsConfirming(true)}
-        className="rounded-sm p-1.5 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-danger-content"
-        aria-label={`Remove ${qualification.name}`}
-      >
-        <Trash2 className="size-4" />
-      </button>
+      <DemoLock>
+        <button
+          type="button"
+          onClick={() => setIsConfirming(true)}
+          className="rounded-sm p-1.5 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-danger-content"
+          aria-label={`Remove ${qualification.name}`}
+        >
+          <Trash2 className="size-4" />
+        </button>
+      </DemoLock>
 
       <Dialog isOpen={isConfirming} onClose={() => setIsConfirming(false)}>
         <DialogPanel>

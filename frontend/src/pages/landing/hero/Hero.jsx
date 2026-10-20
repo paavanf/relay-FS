@@ -3,8 +3,10 @@
 //
 // The heading names the promise and its honest limit together: rules are
 // kept, and a shift that cannot be filled within them is reported rather
-// than forced. The demonstration below is the real roster grid.
+// than forced. The demonstration below is the real roster grid. In the public
+// demo build the second button offers the shared demo instead of a login.
 import { ButtonLink } from '../../../components/ui/ButtonLink.jsx';
+import { DEMO_MODE } from '../../../features/demo/demoMode.js';
 import { HeroRosterDemo } from './HeroRosterDemo.jsx';
 
 export function Hero() {
@@ -26,7 +28,7 @@ export function Hero() {
             Create an organisation
           </ButtonLink>
           <ButtonLink to="/login" size="lg" variant="secondary">
-            Log in
+            {DEMO_MODE ? 'Try the demo' : 'Log in'}
           </ButtonLink>
         </div>
       </div>

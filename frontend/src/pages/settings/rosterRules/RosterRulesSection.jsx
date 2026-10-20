@@ -11,14 +11,16 @@ import { RulesImpactNote } from './RulesImpactNote.jsx';
 import { SaveRulesBar } from './SaveRulesBar.jsx';
 import { useRosterRules } from './useRosterRules.js';
 import { useOrg } from '../../../features/organisation/useOrg.js';
+import { DemoLockedNote } from '../../../features/demo/DemoLockedNote.jsx';
 
 export function RosterRulesSection() {
-  const { isManager } = useOrg();
+  const { isManager, isDemo } = useOrg();
   const { query, values, errors, isDirty, isSaving, handleChange, handleSave } = useRosterRules();
 
   return (
     <div className="space-y-4">
       <RulesImpactNote />
+      <DemoLockedNote />
 
       {query.isPending && <Skeleton className="h-64 w-full" />}
       {query.isError && <ErrorState message={query.error.message} onRetry={query.refetch} />}
@@ -27,12 +29,10 @@ export function RosterRulesSection() {
         <>
           <Card>
             <CardContent>
-              <RosterRulesForm
-                values={values}
-                errors={errors}
-                canEdit={isManager}
-                onChange={handleChange}
-              />
+              {/* Locked in the shared demo: the fields show, but cannot change. */}
+              <fieldset disabled={isDemo} className="m-0 min-w-0 border-0 p-0">
+                <RosterRulesForm values={values} errors={errors} canEdit={isManager} onChange={handleChange} />
+              </fieldset>
             </CardContent>
           </Card>
 

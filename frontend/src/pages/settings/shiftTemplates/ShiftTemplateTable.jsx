@@ -11,6 +11,7 @@ import {
 } from '../../../components/ui/table/index.js';
 import { Badge } from '../../../components/ui/Badge.jsx';
 import { DeleteShiftTemplateButton } from './DeleteShiftTemplateButton.jsx';
+import { DemoLock } from '../../../features/demo/DemoLock.jsx';
 
 // Category maps to an existing semantic token - no new colours.
 const categoryVariant = { day: 'info', evening: 'warning', night: 'brand' };
@@ -50,14 +51,16 @@ export function ShiftTemplateTable({ templates, onEdit }) {
 
             <TableCell>
               <div className="flex items-center justify-end gap-1">
-                <button
-                  type="button"
-                  onClick={() => onEdit(template)}
-                  className="rounded-sm p-1.5 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-content-primary"
-                  aria-label={`Edit ${template.name}`}
-                >
-                  <Pencil className="size-4" />
-                </button>
+                <DemoLock>
+                  <button
+                    type="button"
+                    onClick={() => onEdit(template)}
+                    className="rounded-sm p-1.5 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-content-primary"
+                    aria-label={`Edit ${template.name}`}
+                  >
+                    <Pencil className="size-4" />
+                  </button>
+                </DemoLock>
 
                 <DeleteShiftTemplateButton template={template} />
               </div>

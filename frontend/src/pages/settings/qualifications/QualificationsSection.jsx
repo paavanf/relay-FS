@@ -12,6 +12,7 @@ import { QualificationTable } from './QualificationTable.jsx';
 import { QualificationDialog } from './QualificationDialog.jsx';
 import { listQualifications } from '../../../features/catalog/api/qualifications.js';
 import { useOrg } from '../../../features/organisation/useOrg.js';
+import { DemoLock } from '../../../features/demo/DemoLock.jsx';
 
 export function QualificationsSection() {
   const { orgId } = useOrg();
@@ -29,10 +30,12 @@ export function QualificationsSection() {
           Skills a shift can require, such as Registered Nurse.
         </p>
 
-        <Button size="sm" onClick={() => setEditing({})}>
-          <Plus className="size-4" />
-          Add qualification
-        </Button>
+        <DemoLock>
+          <Button size="sm" onClick={() => setEditing({})}>
+            <Plus className="size-4" />
+            Add qualification
+          </Button>
+        </DemoLock>
       </div>
 
       {isPending && <Skeleton className="h-32 w-full" />}

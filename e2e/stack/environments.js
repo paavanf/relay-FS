@@ -37,6 +37,15 @@ export function dataEnv(mongoUri) {
   return { ...base(), NODE_ENV: 'test', MONGODB_URI: mongoUri };
 }
 
+/**
+ * For the frontend build: the public demo build. The seeded ward is the shared
+ * demo organisation (the seed's fixed id), so the suite sees what a visitor
+ * to the deployed demo sees - "Try the demo" on the login page included.
+ */
+export function buildEnv() {
+  return { ...base(), VITE_DEMO_MODE: 'true' };
+}
+
 /** For vite preview: where to proxy /api (read by frontend/vite.config.js). */
 export function previewEnv(apiOrigin) {
   return { ...base(), VITE_API_PROXY: apiOrigin };

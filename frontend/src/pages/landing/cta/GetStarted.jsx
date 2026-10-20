@@ -8,6 +8,7 @@
 // And notifications (Milestone 9): the bell, and email for exactly the three
 // events that send one - no push, no texts, nothing instant.
 import { ButtonLink } from '../../../components/ui/ButtonLink.jsx';
+import { DEMO_MODE } from '../../../features/demo/demoMode.js';
 import { LandingSection } from '../LandingSection.jsx';
 
 export function GetStarted() {
@@ -21,8 +22,9 @@ export function GetStarted() {
         <ButtonLink to="/register" size="lg">
           Create an organisation
         </ButtonLink>
+        {/* The public demo build offers the shared demo, on the login page, instead. */}
         <ButtonLink to="/login" size="lg" variant="secondary">
-          Log in
+          {DEMO_MODE ? 'Try the demo' : 'Log in'}
         </ButtonLink>
       </div>
 

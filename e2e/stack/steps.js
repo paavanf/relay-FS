@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { waitForPort } from './ports.js';
 import { start, run, stopTree, waitForLine, isRunning } from './processes.js';
-import { backendEnv, dataEnv, previewEnv } from './environments.js';
+import { backendEnv, buildEnv, dataEnv, previewEnv } from './environments.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(here, '../..');
@@ -38,7 +38,7 @@ export async function startDatabase(logs) {
 
 export function buildFrontend(logs) {
   if (process.env.E2E_SKIP_BUILD === '1') return Promise.resolve();
-  return run('build', 'npm', ['run', 'build'], { cwd: ROOT, env: process.env, logs });
+  return run('build', 'npm', ['run', 'build'], { cwd: ROOT, env: buildEnv(), logs });
 }
 
 /** Runs prepareData.js (the demo seed and the fixtures); resolves with the ids it printed. */

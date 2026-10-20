@@ -1,11 +1,10 @@
 // MemberRow - one person in the members table: who they are, their role,
 // what they are qualified for, their contract, and what this viewer may do.
-import { Pencil, UserMinus } from 'lucide-react';
 import { TableRow, TableCell } from '../../components/ui/table/index.js';
 import { Avatar } from '../../components/ui/Avatar.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
-import { Button } from '../../components/ui/Button.jsx';
 import { formatDate } from '../../lib/formatDate.js';
+import { MemberActions } from './MemberActions.jsx';
 
 // Owner is highlighted because it is the role that can change everything.
 const roleVariant = { owner: 'brand', manager: 'info', member: 'neutral' };
@@ -56,23 +55,7 @@ export function MemberRow({ member, codeOf, canDeactivate, onEdit, onDeactivate 
       </TableCell>
 
       <TableCell>
-        <div className="flex justify-end gap-1">
-          <Button variant="ghost" size="sm" onClick={() => onEdit(member)} aria-label={`Edit ${member.name}`}>
-            <Pencil className="size-4" aria-hidden="true" />
-            Edit
-          </Button>
-          {canDeactivate && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDeactivate(member)}
-              aria-label={`Deactivate ${member.name}`}
-              title="Deactivate"
-            >
-              <UserMinus className="size-4" aria-hidden="true" />
-            </Button>
-          )}
-        </div>
+        <MemberActions member={member} canDeactivate={canDeactivate} onEdit={onEdit} onDeactivate={onDeactivate} />
       </TableCell>
     </TableRow>
   );

@@ -9,6 +9,7 @@ import { Button } from '../../../components/ui/Button.jsx';
 import { deleteShiftTemplate } from '../../../features/catalog/api/shiftTemplates.js';
 import { useOrg } from '../../../features/organisation/useOrg.js';
 import { useToast } from '../../../components/ui/toast/useToast.js';
+import { DemoLock } from '../../../features/demo/DemoLock.jsx';
 
 export function DeleteShiftTemplateButton({ template }) {
   const [isConfirming, setIsConfirming] = useState(false);
@@ -30,14 +31,16 @@ export function DeleteShiftTemplateButton({ template }) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setIsConfirming(true)}
-        className="rounded-sm p-1.5 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-danger-content"
-        aria-label={`Retire ${template.name}`}
-      >
-        <Trash2 className="size-4" aria-hidden="true" />
-      </button>
+      <DemoLock>
+        <button
+          type="button"
+          onClick={() => setIsConfirming(true)}
+          className="rounded-sm p-1.5 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-danger-content"
+          aria-label={`Retire ${template.name}`}
+        >
+          <Trash2 className="size-4" aria-hidden="true" />
+        </button>
+      </DemoLock>
 
       <Dialog isOpen={isConfirming} onClose={() => setIsConfirming(false)}>
         <DialogPanel>

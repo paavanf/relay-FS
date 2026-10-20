@@ -60,11 +60,8 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    try {
-      await api.post('/auth/logout');
-    } catch {
-      // Ignore - we're logging out anyway.
-    }
+    // A failure is ignored - we're logging out anyway.
+    await api.post('/auth/logout').catch(() => {});
     clearToken();
     clearTabSession();
     setUser(null);

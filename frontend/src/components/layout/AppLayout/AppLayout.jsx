@@ -1,6 +1,7 @@
 // AppLayout - the shell for every signed-in page.
 // A fixed sidebar on the left, a thin top bar, and the page on the warm page
-// surface. Below lg the sidebar becomes a drawer. Pages load on demand, so
+// surface - and, in the shared demo organisation, a slim strip under the top
+// bar saying so. Below lg the sidebar becomes a drawer. Pages load on demand, so
 // while one's code arrives the shell stays and a page-shaped placeholder
 // shows where it will be.
 import { Suspense, useState } from 'react';
@@ -10,6 +11,7 @@ import { Sidebar } from './Sidebar.jsx';
 import { TopBar } from './TopBar.jsx';
 import { MobileNav } from './MobileNav.jsx';
 import { Logo } from '../../Logo.jsx';
+import { DemoBanner } from '../../../features/demo/DemoBanner.jsx';
 
 function PageLoading() {
   return (
@@ -36,6 +38,7 @@ function AppLayout() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar onOpenNav={() => setIsNavOpen(true)} />
+        <DemoBanner />
 
         <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8">
           <Suspense fallback={<PageLoading />}>

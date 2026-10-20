@@ -23,6 +23,9 @@ function OrgProvider({ children }) {
     role: membership.role,
     isManager: membership.role === 'manager' || membership.role === 'owner',
     isOwner: membership.role === 'owner',
+    // The shared demo organisation: its setup is locked on the server, and
+    // shown as locked here (features/demo/).
+    isDemo: membership.isDemo === true,
   };
 
   return <OrgContext.Provider value={value}>{children}</OrgContext.Provider>;

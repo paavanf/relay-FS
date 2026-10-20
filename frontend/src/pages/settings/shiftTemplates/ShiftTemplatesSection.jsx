@@ -11,6 +11,7 @@ import { ShiftTemplateTable } from './ShiftTemplateTable.jsx';
 import { ShiftTemplateDialog } from './ShiftTemplateDialog.jsx';
 import { listShiftTemplates } from '../../../features/catalog/api/shiftTemplates.js';
 import { useOrg } from '../../../features/organisation/useOrg.js';
+import { DemoLock } from '../../../features/demo/DemoLock.jsx';
 
 export function ShiftTemplatesSection() {
   const { orgId } = useOrg();
@@ -28,10 +29,12 @@ export function ShiftTemplatesSection() {
           Reusable shift patterns, such as Night 23:00 to 07:00.
         </p>
 
-        <Button size="sm" onClick={() => setEditing({})}>
-          <Plus className="size-4" />
-          Add shift template
-        </Button>
+        <DemoLock>
+          <Button size="sm" onClick={() => setEditing({})}>
+            <Plus className="size-4" />
+            Add shift template
+          </Button>
+        </DemoLock>
       </div>
 
       {isPending && <Skeleton className="h-32 w-full" />}

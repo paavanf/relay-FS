@@ -1,10 +1,9 @@
 // CoverageSection - how many of each qualification a shift needs per weekday.
 //
 // Coverage is written in terms of shift templates and qualifications, so this
-// loads all three and says plainly what is missing rather than showing an
-// empty form that could not be submitted.
+// loads all three (useCoverageData.js) and says plainly what is missing
+// (CoverageNeedsBasics.jsx) rather than showing a form that could not be sent.
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Plus, LayoutGrid } from 'lucide-react';
 import { Button } from '../../../components/ui/Button.jsx';
 import { Card } from '../../../components/ui/Card.jsx';
@@ -13,27 +12,13 @@ import { EmptyState } from '../../../components/ui/EmptyState.jsx';
 import { ErrorState } from '../../../components/ui/ErrorState.jsx';
 import { CoverageMatrix } from './CoverageMatrix.jsx';
 import { CoverageDialog } from './CoverageDialog.jsx';
-import { listCoverage } from '../../../features/catalog/api/coverage.js';
-import { listShiftTemplates } from '../../../features/catalog/api/shiftTemplates.js';
-import { listQualifications } from '../../../features/catalog/api/qualifications.js';
-import { useOrg } from '../../../features/organisation/useOrg.js';
+import { CoverageNeedsBasics } from './CoverageNeedsBasics.jsx';
+import { useCoverageData } from './useCoverageData.js';
+import { DemoLock } from '../../../features/demo/DemoLock.jsx';
 
 export function CoverageSection() {
-  const { orgId } = useOrg();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const coverage = useQuery({ queryKey: ['coverage', orgId], queryFn: () => listCoverage(orgId) });
-  const templates = useQuery({
-    queryKey: ['shiftTemplates', orgId],
-    queryFn: () => listShiftTemplates(orgId),
-  });
-  const qualifications = useQuery({
-    queryKey: ['qualifications', orgId],
-    queryFn: () => listQualifications(orgId),
-  });
-
-  const isPending = coverage.isPending || templates.isPending || qualifications.isPending;
-  const failed = [coverage, templates, qualifications].find((q) => q.isError);
+  const { coverage, templates, qualifications, isPending, failed } = useCoverageData();
 
   if (isPending) return <Skeleton className="h-32 w-full" />;
   if (failed) return <ErrorState message={failed.error.message} onRetry={failed.refetch} />;
@@ -42,18 +27,7 @@ export function CoverageSection() {
   const missing = [];
   if (templates.data.length === 0) missing.push('a shift template');
   if (qualifications.data.length === 0) missing.push('a qualification');
-
-  if (missing.length > 0) {
-    return (
-      <Card>
-        <EmptyState
-          icon={LayoutGrid}
-          title="Set up the basics first"
-          description={`Coverage says how many of each qualification a shift needs, so it needs ${missing.join(' and ')} to refer to. Add ${missing.length > 1 ? 'those' : 'that'} in the other tabs first.`}
-        />
-      </Card>
-    );
-  }
+  if (missing.length > 0) return <CoverageNeedsBasics missing={missing} />;
 
   return (
     <div>
@@ -62,10 +36,12 @@ export function CoverageSection() {
           How many people each shift needs, per day of the week.
         </p>
 
-        <Button size="sm" onClick={() => setIsDialogOpen(true)}>
-          <Plus className="size-4" />
-          Add coverage rule
-        </Button>
+        <DemoLock>
+          <Button size="sm" onClick={() => setIsDialogOpen(true)}>
+            <Plus className="size-4" />
+            Add coverage rule
+          </Button>
+        </DemoLock>
       </div>
 
       {coverage.data.length === 0 ? (

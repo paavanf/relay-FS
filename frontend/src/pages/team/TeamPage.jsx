@@ -21,6 +21,7 @@ import { listQualifications } from '../../features/catalog/api/qualifications.js
 import { useOrg } from '../../features/organisation/useOrg.js';
 import { useAuth } from '../../features/auth/useAuth.js';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
+import { DemoLock } from '../../features/demo/DemoLock.jsx';
 
 function TeamPage() {
   const { orgId, isOwner } = useOrg();
@@ -41,10 +42,12 @@ function TeamPage() {
         title="Team"
         description="The people in this organisation, what they are qualified for, and the hours they are contracted to work."
         actions={
-          <Button onClick={() => setDialog({ kind: 'invite' })}>
-            <UserPlus className="size-4" />
-            Invite member
-          </Button>
+          <DemoLock>
+            <Button onClick={() => setDialog({ kind: 'invite' })}>
+              <UserPlus className="size-4" />
+              Invite member
+            </Button>
+          </DemoLock>
         }
       />
 

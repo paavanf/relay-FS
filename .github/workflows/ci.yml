@@ -1,17 +1,40 @@
-# Lint, test, and build both workspaces on every push and pull request.
+# ci.yml
+# On every push and pull request:
+#   verify  install, scan for committed secrets, lint both workspaces, run
+#           the backend and frontend tests, build the frontend
+#   e2e     the end-to-end suite in a real browser - after verify passes
+#
+# Everything runs against in-memory databases (mongodb-memory-server); no
+# job needs, or is given, a real database or any secret. The mongod binary
+# and Playwright's browser are cached between runs, so a run does not depend
+# on downloading them, and the e2e suite runs on Playwright's own Chromium.
 name: CI
 
 on:
   push:
-    branches: [main, master]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Where mongodb-memory-server keeps the mongod binary, so it can be cached.
+  MONGOMS_DOWNLOAD_DIR: ${{ github.workspace }}/.cache/mongodb-binaries
 
 jobs:
   verify:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The secret scan reads the whole history, not just this commit.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -21,22 +44,83 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # mongodb-memory-server downloads a mongod binary the first time it runs.
-      # Caching it keeps later runs fast and avoids failing on a flaky download.
-      - name: Cache MongoDB binaries
+      - name: Scan for committed secrets
+        run: npm run scan:secrets
+
+      - name: Cache the MongoDB binary
         uses: actions/cache@v4
         with:
-          path: ~/.cache/mongodb-binaries
-          key: mongodb-binaries-${{ runner.os }}
+          path: .cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: mongodb-binaries-${{ runner.os }}-
 
-      - name: Lint
+      - name: Lint both workspaces
         run: npm run lint
 
-      # mongodb-memory-server downloads a mongod binary on first run and boots
-      # it as a single-node replica set, so the transaction tests work here
-      # without any external database service.
-      - name: Test
+      # Each test file boots its own in-memory replica set, so the transaction
+      # tests run here without any database service.
+      - name: Backend and frontend tests
         run: npm test
 
-      - name: Build frontend
+      - name: Build the frontend
         run: npm run build
+
+  e2e:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      E2E_CHANNEL: chromium
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            e2e/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm ci --prefix e2e
+
+      - name: Cache the MongoDB binary
+        uses: actions/cache@v4
+        with:
+          path: .cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: mongodb-binaries-${{ runner.os }}-
+
+      - name: Cache Playwright's browser
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('e2e/package-lock.json') }}
+
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx --prefix e2e playwright install chromium
+
+      # The browser itself is cached; the system libraries it needs are not.
+      - name: Install Chromium's system libraries
+        run: npx --prefix e2e playwright install-deps chromium
+
+      - name: End-to-end suite
+        run: npm run e2e
+
+      - name: Keep the report and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: |
+            e2e/artifacts/report
+            e2e/artifacts/screenshots
+            e2e/artifacts/numbers
+            e2e/artifacts/logs
+            e2e/artifacts/test-results
+          retention-days: 14

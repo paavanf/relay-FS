@@ -12,7 +12,8 @@
     "lint": "npm run lint -w backend && npm run lint -w frontend",
     "build": "npm run build -w frontend",
     "test": "npm run test -w backend && npm run test -w frontend",
-    "e2e": "npm --prefix e2e test --"
+    "e2e": "npm --prefix e2e test --",
+    "scan:secrets": "node .github/scripts/scan-secrets.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

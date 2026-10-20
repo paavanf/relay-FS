@@ -7,6 +7,7 @@ import { Button } from '../../../components/ui/Button.jsx';
 import { deleteCoverage } from '../../../features/catalog/api/coverage.js';
 import { useOrg } from '../../../features/organisation/useOrg.js';
 import { useToast } from '../../../components/ui/toast/useToast.js';
+import { DemoLock } from '../../../features/demo/DemoLock.jsx';
 
 export function DeleteCoverageButton({ coverage, dayLabel }) {
   const [isConfirming, setIsConfirming] = useState(false);
@@ -26,14 +27,16 @@ export function DeleteCoverageButton({ coverage, dayLabel }) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setIsConfirming(true)}
-        className="shrink-0 rounded-sm p-1.5 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-danger-content"
-        aria-label={`Remove the ${dayLabel} rule`}
-      >
-        <Trash2 className="size-4" />
-      </button>
+      <DemoLock>
+        <button
+          type="button"
+          onClick={() => setIsConfirming(true)}
+          className="shrink-0 rounded-sm p-1.5 text-content-tertiary transition-colors hover:bg-surface-hover hover:text-danger-content"
+          aria-label={`Remove the ${dayLabel} rule`}
+        >
+          <Trash2 className="size-4" />
+        </button>
+      </DemoLock>
 
       <Dialog isOpen={isConfirming} onClose={() => setIsConfirming(false)}>
         <DialogPanel>

@@ -1,4 +1,5 @@
-// ForgotPasswordForm - asks for an email and requests a reset link.
+// ForgotPasswordForm - asks for an email and requests a reset link
+// (useResetLinkRequest.js does the asking).
 //
 // The confirmation is identical whether or not the address is registered.
 // Saying "no such account" would let anyone check which emails have accounts.
@@ -10,53 +11,15 @@ import { useState } from 'react';
 import { Input } from '../../../components/ui/Input.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { ResetLinkSent } from './ResetLinkSent.jsx';
-import { requestReset } from '../../../features/auth/api/passwordReset.js';
-import { useToast } from '../../../components/ui/toast/useToast.js';
-import { useCountdown } from '../../../hooks/useCountdown.js';
-
-// Long enough to stop the endpoint being hammered, short enough that someone
-// waiting on a slow inbox does not give up.
-const RESEND_COOLDOWN_SECONDS = 60;
+import { useResetLinkRequest } from './useResetLinkRequest.js';
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSent, setIsSent] = useState(false);
-
-  const { showToast } = useToast();
-  const { secondsLeft, start } = useCountdown();
-
-  // Shared by the first send and every resend: the request, the cooldown, and
-  // the error handling are identical.
-  async function sendLink({ isResend }) {
-    setIsSubmitting(true);
-
-    try {
-      await requestReset(email);
-      setIsSent(true);
-      start(RESEND_COOLDOWN_SECONDS);
-
-      if (isResend) {
-        showToast({
-          type: 'success',
-          title: 'Link sent again',
-          message: 'Any earlier link has stopped working.',
-        });
-      }
-    } catch (err) {
-      showToast({
-        type: 'error',
-        title: 'Could not send the link',
-        message: err.message || 'Please try again in a moment.',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+  const { sendLink, isSubmitting, isSent, secondsLeft } = useResetLinkRequest();
 
   function handleSubmit(event) {
     event.preventDefault();
-    sendLink({ isResend: false });
+    sendLink(email, { isResend: false });
   }
 
   if (isSent) {
@@ -65,7 +28,7 @@ export function ForgotPasswordForm() {
         email={email}
         secondsLeft={secondsLeft}
         isSending={isSubmitting}
-        onResend={() => sendLink({ isResend: true })}
+        onResend={() => sendLink(email, { isResend: true })}
       />
     );
   }

@@ -5,12 +5,7 @@
 // anything slips past.
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  DialogDescription,
-} from '../../components/ui/dialog/index.js';
+import { Dialog, DialogPanel, DialogTitle, DialogDescription } from '../../components/ui/dialog/index.js';
 import { Button } from '../../components/ui/Button.jsx';
 import { CreateRosterFields } from './CreateRosterFields.jsx';
 import { createRoster } from '../../features/roster/api/rosters.js';

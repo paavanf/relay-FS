@@ -2,10 +2,10 @@
 // Reads the wait out of a 429 message so the form can hold the submit button
 // disabled for exactly that long.
 //
-// The backend phrases the account lockout as "Try again in 3 minutes" (or
-// "in a minute" when under two). A 429 from the IP rate limiter carries no
-// time at all, which is why zero is a valid answer: show the message, but
-// don't pretend to know when it lifts.
+// Every 429 the backend sends says when to try again: "in 3 minutes", "in a
+// minute", or - for the longer limits - "in about 2 hours". Hours read as
+// zero here on purpose: the message says it, and nobody wants a button
+// counting down for two hours.
 
 export function parseLockoutSeconds(message = '') {
   if (/in a minute/i.test(message)) return 60;

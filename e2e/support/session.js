@@ -5,6 +5,10 @@
 //
 // The login page's own ?next= support sends each person straight to the
 // page the spec wants, as an invite link would.
+//
+// Pages load under the production Content-Security-Policy (vite preview sends
+// vercel.json's headers). bypassCSP: true switches it off for one context -
+// only for a tool that makes requests of its own from inside the page.
 
 import { stack } from './stack.js';
 import { PASSWORD } from './people.js';
@@ -14,8 +18,8 @@ export const DESKTOP = { width: 1440, height: 900 };
 export const PHONE = { width: 375, height: 812 };
 
 /** who = null opens a signed-out context. */
-export async function openSession(browser, who, { path, viewport = DESKTOP, colorScheme = 'light' } = {}) {
-  const context = await browser.newContext({ baseURL: stack().baseURL, viewport, colorScheme });
+export async function openSession(browser, who, { path, viewport = DESKTOP, colorScheme = 'light', bypassCSP = false } = {}) {
+  const context = await browser.newContext({ baseURL: stack().baseURL, viewport, colorScheme, bypassCSP });
   const problems = watchProblems(context);
   const page = await context.newPage();
 

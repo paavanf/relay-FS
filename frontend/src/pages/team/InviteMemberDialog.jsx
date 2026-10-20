@@ -14,6 +14,7 @@ import { createInvite } from '../../features/organisation/api/invites.js';
 import { rememberInviteLink } from '../../features/organisation/inviteLinks.js';
 import { listQualifications } from '../../features/catalog/api/qualifications.js';
 import { useOrg } from '../../features/organisation/useOrg.js';
+import { useAppConfig } from '../../features/config/useAppConfig.js';
 import { useToast } from '../../components/ui/toast/useToast.js';
 
 export function InviteMemberDialog({ onClose }) {
@@ -22,6 +23,9 @@ export function InviteMemberDialog({ onClose }) {
   const { orgId } = useOrg();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
+  // Asked while the form is filled in, so the result can say at once why no
+  // email went out (InviteLinkResult.jsx).
+  useAppConfig();
 
   const qualifications = useQuery({
     queryKey: ['qualifications', orgId],

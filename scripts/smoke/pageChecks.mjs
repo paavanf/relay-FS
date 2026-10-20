@@ -1,0 +1,56 @@
+// pageChecks.mjs - what a visitor's browser gets before anyone signs in: the
+// page itself and its security headers, an app route served by the app, and
+// the API reached through Vercel's /api rewrite. Each check returns
+// { ok, detail } - or { warn } for something to act on that is not broken.
+import { timed } from './http.mjs';
+
+export async function landingPage(ctx) {
+  const { res, ms, text } = await timed(`${ctx.origin}/`);
+  ctx.landingHeaders = res.headers;
+  const isApp = res.status === 200 && text.includes('<div id="root">');
+  return { ok: isApp, detail: isApp ? `${ms} ms` : `${res.status}, not the app's page` };
+}
+
+export async function healthThroughApi(ctx) {
+  // The API sleeps when idle and takes up to a minute to wake: wait for it.
+  const { res, ms, json } = await timed(`${ctx.origin}/api/v1/health`, { timeoutMs: 120_000 });
+  const ok = res.status === 200 && json?.status === 'ok' && json?.database === 'connected';
+  const woke = ms > 10_000 ? ' - the API was asleep, and woke' : '';
+  if (ok && json.clientIp) {
+    return {
+      ok,
+      warn: `EXPOSE_CLIENT_IP is on: the API sees you as ${json.clientIp} (X-Forwarded-For held ${json.forwardedHops}). Check that is your address, then set it back to false.`,
+    };
+  }
+  return { ok, detail: ok ? `${ms} ms${woke}` : `${res.status} ${JSON.stringify(json)}` };
+}
+
+export async function publicConfig(ctx) {
+  const { res, json } = await timed(`${ctx.origin}/api/v1/config`);
+  const ok = res.status === 200 && typeof json?.emailEnabled === 'boolean';
+  return { ok, detail: ok ? `emailEnabled: ${json.emailEnabled}` : `${res.status} ${JSON.stringify(json)}` };
+}
+
+export async function securityHeaders(ctx) {
+  const headers = ctx.landingHeaders;
+  const csp = headers.get('content-security-policy') ?? '';
+  const scriptSrc = csp.split(';').find((part) => part.trim().startsWith('script-src')) ?? '';
+  const hsts = Number(headers.get('strict-transport-security')?.match(/max-age=(\d+)/)?.[1] ?? 0);
+  const problems = [
+    !csp.includes("frame-ancestors 'none'") && "CSP frame-ancestors 'none'",
+    !csp.includes("connect-src 'self'") && "CSP connect-src 'self'",
+    (!scriptSrc || scriptSrc.includes('unsafe-inline')) && "CSP script-src without 'unsafe-inline'",
+    hsts < 31_536_000 && 'Strict-Transport-Security of a year or more',
+    headers.get('x-content-type-options') !== 'nosniff' && 'X-Content-Type-Options: nosniff',
+    !headers.get('referrer-policy') && 'Referrer-Policy',
+    !headers.get('permissions-policy') && 'Permissions-Policy',
+  ].filter(Boolean);
+  return { ok: problems.length === 0, detail: problems.length ? `missing: ${problems.join(', ')}` : 'CSP, HSTS, nosniff, Referrer-Policy, Permissions-Policy' };
+}
+
+export async function appRoutes(ctx) {
+  // An invite link opened cold is a request for /invite/<token>: the app must answer it.
+  const { res, text } = await timed(`${ctx.origin}/login`);
+  const ok = res.status === 200 && text.includes('<div id="root">');
+  return { ok, detail: ok ? '/login is served by the app' : `/login answered ${res.status}` };
+}

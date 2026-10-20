@@ -7,6 +7,12 @@
 // e2e/artifacts/numbers/axe.json.
 //
 // Read-only: pages are opened and read, nothing is changed.
+//
+// axe fetches each stylesheet itself to read its rules - Google Fonts' too -
+// and the production Content-Security-Policy (connect-src 'self') rightly
+// refuses that connection. The app never makes it, so these pages are opened
+// with the policy off (bypassCSP); every other spec, 03-every-page among
+// them, opens the same pages under it.
 
 import { test, expect } from '../support/test.js';
 import { appPath } from '../support/stack.js';
@@ -31,17 +37,17 @@ async function checkEach(page, paths, theme) {
 
 for (const theme of THEMES) {
   test(`signed out, ${theme} theme: no serious accessibility problems`, async ({ sessions }) => {
-    const { page } = await sessions.anonymous({ path: '/', colorScheme: theme });
+    const { page } = await sessions.anonymous({ path: '/', colorScheme: theme, bypassCSP: true });
     await checkEach(page, PUBLIC_PAGES, theme);
   });
 
   test(`a worker, ${theme} theme: no serious accessibility problems`, async ({ sessions }) => {
-    const { page } = await sessions.open(asha, { path: appPath('schedule'), colorScheme: theme });
+    const { page } = await sessions.open(asha, { path: appPath('schedule'), colorScheme: theme, bypassCSP: true });
     await checkEach(page, WORKER_PAGES.map((p) => appPath(p)), theme);
   });
 
   test(`a manager, ${theme} theme: no serious accessibility problems`, async ({ sessions }) => {
-    const { page } = await sessions.open(manager, { path: appPath('schedule'), colorScheme: theme });
+    const { page } = await sessions.open(manager, { path: appPath('schedule'), colorScheme: theme, bypassCSP: true });
     await checkEach(page, MANAGER_PAGES.map((p) => appPath(p)), theme);
   });
 }

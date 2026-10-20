@@ -4,13 +4,18 @@
 // copy: the server stores a hash of it and cannot show it again. Email is an
 // addition on top, so the two states differ only in emphasis - when the email
 // was sent the link becomes the secondary option rather than disappearing.
+// When it was not, a note says why, as information: on a deployment that
+// sends no email (useAppConfig) the link simply is the invite.
 import { useState } from 'react';
-import { Check, Copy, MailCheck } from 'lucide-react';
+import { Check, Copy, Info, MailCheck } from 'lucide-react';
 import { Button } from '../../components/ui/Button.jsx';
+import { useAppConfig } from '../../features/config/useAppConfig.js';
 
 export function InviteLinkResult({ invite }) {
   const [copied, setCopied] = useState(false);
   const emailSent = invite.emailSent === true;
+  const config = useAppConfig();
+  const noEmail = config.data?.emailEnabled === false;
 
   async function handleCopy() {
     try {
@@ -53,10 +58,14 @@ export function InviteLinkResult({ invite }) {
       </div>
 
       {/* Informational, not an error: sharing the link is a complete answer,
-          and nothing has gone wrong if email was never set up. */}
-      {!emailSent && (
-        <p className="mt-3 text-xs text-content-tertiary">
-          Email delivery isn&apos;t configured, so the invite wasn&apos;t sent automatically.
+          and nothing has gone wrong if email was never set up. Shown once
+          the server's settings are known, so the reason given is the right one. */}
+      {!emailSent && !config.isPending && (
+        <p role="note" className="mt-3 flex items-start gap-1.5 text-xs text-content-secondary">
+          <Info className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+          {noEmail
+            ? 'This deployment doesn’t send email, so share the link with them yourself.'
+            : 'The email couldn’t be sent this time, so share the link with them yourself.'}
         </p>
       )}
     </div>

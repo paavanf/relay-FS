@@ -1,0 +1,100 @@
+# nightly.yml
+# Every night at 03:00 IST (21:30 UTC), and whenever "Run workflow" is
+# pressed on the Actions tab, two jobs look after the deployed demo:
+#
+#   reap        asks the API to let go of expired swap reservations
+#               (POST /api/v1/internal/reap-expired, with the shared secret)
+#   reset-demo  puts the shared demo ward back the way the seed builds it
+#               (npm run seed:demo, against the deployed demo database)
+#
+# Something touching the database every night also stops Atlas pausing the
+# free cluster after 30 idle days.
+#
+# Needs three repository secrets: RELAY_API_URL, INTERNAL_JOB_SECRET and
+# DEMO_MONGODB_URI (docs/deploy/DEPLOY.md). Until they are set, each job
+# says so and stops without failing; once they are, any failure fails the run.
+name: Nightly
+
+on:
+  schedule:
+    - cron: '30 21 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A manual run never overlaps the scheduled one.
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+jobs:
+  reap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      RELAY_API_URL: ${{ secrets.RELAY_API_URL }}
+      INTERNAL_JOB_SECRET: ${{ secrets.INTERNAL_JOB_SECRET }}
+    steps:
+      - name: Check the secrets are set
+        id: secrets
+        run: |
+          if [ -z "$RELAY_API_URL" ] || [ -z "$INTERNAL_JOB_SECRET" ]; then
+            echo "::notice title=Reap skipped::Set the RELAY_API_URL and INTERNAL_JOB_SECRET repository secrets to run this job (docs/deploy/DEPLOY.md)."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The API sleeps when idle, so the first try may spend a minute waking
+      # it; a failed try is retried, and the last failure fails the job.
+      - name: Release expired swap reservations
+        if: steps.secrets.outputs.ready == 'true'
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --retry 4 --retry-delay 20 --retry-all-errors --max-time 120 \
+            -X POST "${RELAY_API_URL%/}/api/v1/internal/reap-expired" \
+            -H "X-Internal-Job-Secret: $INTERNAL_JOB_SECRET"
+          echo
+
+  reset-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DEMO_MONGODB_URI: ${{ secrets.DEMO_MONGODB_URI }}
+    steps:
+      - name: Check the secret is set
+        id: secrets
+        run: |
+          if [ -z "$DEMO_MONGODB_URI" ]; then
+            echo "::notice title=Demo reset skipped::Set the DEMO_MONGODB_URI repository secret to run this job (docs/deploy/DEPLOY.md)."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.secrets.outputs.ready == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      # The seed logs through pino-pretty, one of the backend's dev tools, so
+      # those are installed too - all but the test database's binary, which
+      # this job never needs.
+      - name: Install the backend
+        if: steps.secrets.outputs.ready == 'true'
+        env:
+          MONGOMS_DISABLE_POSTINSTALL: '1'
+        run: npm ci --workspace backend
+
+      # The seed refuses any database whose name does not end in -demo, and
+      # replaces only the demo ward - found by its fixed ids - inside it.
+      - name: Reset the demo ward
+        if: steps.secrets.outputs.ready == 'true'
+        env:
+          MONGODB_URI: ${{ secrets.DEMO_MONGODB_URI }}
+        run: npm run seed:demo --workspace backend -- --yes

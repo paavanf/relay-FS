@@ -7,6 +7,8 @@
 // update before its email goes, so even two senders racing cannot send it
 // twice. Best-effort: it runs after the action has answered, and a failure
 // is logged, never thrown - a slow mail server must not slow a swap down.
+// On a server that sends no email (EMAIL_ENABLED off) nothing is claimed or
+// sent: the notifications stay in the app.
 
 import { Membership, Notification, User } from '../../models/index.js';
 import { MEMBERSHIP_STATUS } from '../../config/constants.js';
@@ -46,7 +48,7 @@ async function sendAll(notices) {
 /** Starts emailing the notices that carry an email, without waiting for it. */
 export function emailNotices(notices) {
   const toSend = notices.filter((notice) => notice.email);
-  if (!enabled || toSend.length === 0) return;
+  if (!enabled || !env.EMAIL_ENABLED || toSend.length === 0) return;
 
   const work = sendAll(toSend).catch((err) => logger.error({ err }, 'Could not send notification emails'));
   inFlight.add(work);

@@ -23,6 +23,7 @@ import { report } from '../engine/properties/report.js';
 const PUBLIC = new Set([
   'GET /api/health',
   'GET /api/v1/health',
+  'GET /api/v1/config',
   'POST /api/v1/auth/register',
   'POST /api/v1/auth/login',
   'POST /api/v1/auth/refresh',

@@ -21,6 +21,8 @@ import { API_PREFIX, API_V1_PREFIX, JSON_BODY_LIMIT } from './config/constants.j
 import { logger } from './utils/logger.js';
 import { requestForLog, responseForLog } from './utils/logSafety.js';
 
+const HEALTH_PATHS = [`${API_PREFIX}/health`, `${API_V1_PREFIX}/health`];
+
 export function createApp() {
   const app = express();
 
@@ -44,7 +46,8 @@ export function createApp() {
       logger,
       genReqId: (req) => req.id,
       serializers: { req: requestForLog, res: responseForLog },
-      autoLogging: { ignore: (req) => req.url === `${API_PREFIX}/health` },
+      // Not the health checks: the host asks every few seconds.
+      autoLogging: { ignore: (req) => HEALTH_PATHS.includes(req.url) },
     }),
   );
 

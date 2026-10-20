@@ -3,6 +3,7 @@
 
 import { Router } from 'express';
 import healthRoutes from './health.routes.js';
+import configRoutes from './config.routes.js';
 import authRoutes from './auth.routes.js';
 import organisationRoutes from './organisation.routes.js';
 import inviteRoutes from './invite.routes.js';
@@ -24,6 +25,8 @@ import internalRoutes from './internal.routes.js';
 const router = Router();
 
 router.use('/health', healthRoutes);
+// Public settings the frontend reads before sign-in, such as whether email works.
+router.use('/config', configRoutes);
 router.use('/auth', authRoutes);
 router.use('/orgs', organisationRoutes);
 

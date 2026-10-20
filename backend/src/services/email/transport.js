@@ -1,7 +1,9 @@
 // transport.js
 // Decides HOW an email leaves the building, and does the actual sending.
 //
-// Three options, checked in this order:
+// Off entirely when EMAIL_ENABLED is false - the deployed demo, whose host
+// blocks SMTP: no transport is built and nothing is sent. Otherwise three
+// options, checked in this order:
 //   smtp     - SMTP_USER is set. Reaches any real address, so this wins.
 //   resend   - RESEND_API_KEY is set but no SMTP. Note that Resend's default
 //              sender, onboarding@resend.dev, is a sandbox address: it only
@@ -19,6 +21,7 @@ import { env } from '../../config/env.js';
 import { logger } from '../../utils/logger.js';
 
 export function chooseTransport() {
+  if (!env.EMAIL_ENABLED) return 'off';
   if (env.SMTP_USER && env.SMTP_PASS) return 'smtp';
   if (env.RESEND_API_KEY) return 'resend';
   return 'console';
@@ -51,6 +54,9 @@ const isUndeliverable = (to) => /\.test$/i.test(String(to).split('@').pop());
  * @returns {Promise<{ delivered: boolean, reason?: string }>}
  */
 export async function deliver({ to, subject, html }) {
+  if (EMAIL_TRANSPORT === 'off') {
+    return { delivered: false, reason: 'Email is turned off on this server' };
+  }
   if (EMAIL_TRANSPORT === 'console') {
     return { delivered: false, reason: 'No email transport configured' };
   }

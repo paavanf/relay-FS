@@ -6,12 +6,15 @@
 // Outside production most values fall back to local defaults, so the API
 // starts before a .env exists. Production supplies every value, and refuses
 // to start when FRONTEND_URL is not https, when the two JWT secrets are
-// short or the same, or when INTERNAL_JOB_SECRET is missing.
+// short or the same, when INTERNAL_JOB_SECRET is missing, or when
+// EMAIL_ENABLED is true with no way to send email.
 
 import { z } from 'zod';
 
 const secret = z.string({ required_error: 'is required' }).min(32, 'must be at least 32 characters long');
 const blankIsUnset = (value) => (value === '' ? undefined : value);
+const onOff = z.enum(['true', 'false']);
+const hasTransport = (env) => Boolean((env.SMTP_USER && env.SMTP_PASS) || env.RESEND_API_KEY);
 
 const baseSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -38,6 +41,16 @@ const baseSchema = z.object({
   // Where links in emails point - the frontend, not the API.
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
 
+  // Whether this server sends email at all. Unset, production sends it only
+  // when SMTP or Resend is configured; elsewhere links are printed to the
+  // console, so every flow works locally. 'false' turns it off completely:
+  // no transport, no password reset by email, no notification emails.
+  EMAIL_ENABLED: z.preprocess(blankIsUnset, onOff.optional()),
+
+  // A temporary check of TRUST_PROXY after a deploy: 'true' makes the health
+  // endpoint also report the client address the server sees. Off by default.
+  EXPOSE_CLIENT_IP: onOff.default('false').transform((value) => value === 'true'),
+
   // The shared secret a scheduled job sends to POST /api/v1/internal/*.
   // Optional outside production, where those endpoints then answer 503.
   INTERNAL_JOB_SECRET: z.preprocess(blankIsUnset, secret.optional()),
@@ -58,12 +71,21 @@ const productionSchema = baseSchema
     if (env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
       ctx.addIssue({ code: 'custom', path: ['JWT_REFRESH_SECRET'], message: 'must be different from JWT_ACCESS_SECRET' });
     }
+    if (env.EMAIL_ENABLED === 'true' && !hasTransport(env)) {
+      ctx.addIssue({ code: 'custom', path: ['EMAIL_ENABLED'], message: 'is true, but no email can be sent: set SMTP_USER and SMTP_PASS, or RESEND_API_KEY' });
+    }
   });
+
+// EMAIL_ENABLED as a boolean: what was said, or else the default described above.
+function emailEnabled(env) {
+  if (env.EMAIL_ENABLED !== undefined) return env.EMAIL_ENABLED === 'true';
+  return env.NODE_ENV === 'production' ? hasTransport(env) : true;
+}
 
 /** { ok: true, data } or { ok: false, issues: ['FRONTEND_URL: must be ...'] }. */
 export function parseEnv(source) {
   const schema = source.NODE_ENV === 'production' ? productionSchema : devSchema;
   const parsed = schema.safeParse(source);
-  if (parsed.success) return { ok: true, data: parsed.data };
+  if (parsed.success) return { ok: true, data: { ...parsed.data, EMAIL_ENABLED: emailEnabled(parsed.data) } };
   return { ok: false, issues: parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`) };
 }

@@ -46,8 +46,10 @@ export async function createInvite({ orgId, email, role, qualificationIds, creat
 }
 
 // Everything here is best-effort. The invite already exists and the link
-// already works, so nothing in this function is allowed to throw.
+// already works, so nothing in this function is allowed to throw. A server
+// that sends no email does not try: the link is the invite.
 async function tryToEmailInvite({ orgId, createdBy, email, inviteLink }) {
+  if (!env.EMAIL_ENABLED) return false;
   try {
     const [org, names] = await Promise.all([
       Organisation.findById(orgId).select('name').lean(),

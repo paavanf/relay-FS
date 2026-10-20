@@ -12,6 +12,14 @@ import { EMAIL_TRANSPORT } from './transport.js';
 const SANDBOX_SENDER = 'onboarding@resend.dev';
 
 export function logEmailConfiguration() {
+  if (EMAIL_TRANSPORT === 'off') {
+    logger.info(
+      'Email is turned off (EMAIL_ENABLED=false): invites are shared by copying their link, ' +
+        'password reset by email is unavailable, and notifications stay in the app.',
+    );
+    return;
+  }
+
   if (EMAIL_TRANSPORT === 'console') {
     logger.warn(
       'Email disabled - reset and invite links will be printed to the console. ' +

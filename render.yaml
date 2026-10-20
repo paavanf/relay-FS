@@ -1,0 +1,62 @@
+# render.yaml - the Render Blueprint for Relay's API.
+#
+# One free web service, built from the repository root, where the npm
+# workspaces and the only package-lock.json live. Render reads the Node
+# version from .node-version. Every setting the server reads is declared
+# here; the secret and deployment-specific ones are `sync: false`, so Render
+# asks for them when the Blueprint is created and this file never holds a
+# value. docs/deploy/DEPLOY.md goes through each one.
+services:
+  - type: web
+    name: relay-api
+    runtime: node
+    plan: free
+    # Render cannot move a service after it is created: change this to the
+    # region nearest your Atlas cluster before creating the Blueprint.
+    region: singapore
+    branch: main
+    # The backend's own dependencies, exactly as locked, without dev tools -
+    # so no test-database binary is downloaded and nothing unused is installed.
+    buildCommand: npm ci --workspace backend --omit=dev
+    # Node itself rather than `npm start`: npm would stay running above the
+    # server, holding about 60 MB of the free plan's 512 MB for nothing (the
+    # start script only adds reading a .env file, and Render has none).
+    startCommand: node backend/src/server.js
+    healthCheckPath: /api/v1/health
+    # A push that changes only the frontend or the docs does not redeploy the API.
+    buildFilter:
+      paths:
+        - backend/**
+        - package.json
+        - package-lock.json
+        - .node-version
+        - render.yaml
+      ignoredPaths:
+        - backend/tests/**
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render sets PORT itself, and the server listens on it.
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: INTERNAL_JOB_SECRET
+        sync: false
+      # The Vercel address, https://<project>.vercel.app - both of them.
+      - key: FRONTEND_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      # Two proxies stand in front of the server: Vercel's, then Render's own.
+      - key: TRUST_PROXY
+        value: "2"
+      # Render blocks outgoing SMTP, so this deployment sends no email:
+      # invites are shared as links, and notifications stay in the app.
+      - key: EMAIL_ENABLED
+        value: "false"
+      # "true" only for a few minutes after a deploy, to confirm TRUST_PROXY.
+      - key: EXPOSE_CLIENT_IP
+        value: "false"

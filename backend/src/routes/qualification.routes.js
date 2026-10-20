@@ -3,7 +3,8 @@
 //
 // mergeParams so :orgId from the mount path reaches validate and
 // resolveMembership. Every member can read the config; only managers and
-// owners can change it.
+// owners can change it - and nobody can in the shared demo organisation
+// (middleware/refuseInDemo.js).
 
 import { Router } from 'express';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -11,6 +12,7 @@ import { validate } from '../middleware/validate.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { resolveMembership } from '../middleware/resolveMembership.js';
 import { authorize } from '../middleware/authorize.js';
+import { refuseInDemo } from '../middleware/refuseInDemo.js';
 import { MANAGER_ROLES } from '../config/constants.js';
 import {
   createQualificationSchema,
@@ -36,6 +38,7 @@ router.post(
   validate({ params: orgIdParamSchema, body: createQualificationSchema }),
   resolveMembership,
   authorize(MANAGER_ROLES),
+  refuseInDemo,
   asyncHandler(create),
 );
 
@@ -45,6 +48,7 @@ router.patch(
   validate({ params: qualIdParamSchema, body: updateQualificationSchema }),
   resolveMembership,
   authorize(MANAGER_ROLES),
+  refuseInDemo,
   asyncHandler(update),
 );
 
@@ -54,6 +58,7 @@ router.delete(
   validate({ params: qualIdParamSchema }),
   resolveMembership,
   authorize(MANAGER_ROLES),
+  refuseInDemo,
   asyncHandler(remove),
 );
 

@@ -37,6 +37,10 @@ const inviteSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// One organisation's invites, newest first: the daily invite limit counts them
+// (services/limits/windowLimit.js).
+inviteSchema.index({ orgId: 1, createdAt: -1 });
+
 export const Invite = mongoose.models.Invite ?? mongoose.model('Invite', inviteSchema);
 
 export default Invite;

@@ -20,6 +20,7 @@
 import { MOVES } from './moves.js';
 import { randomIndex } from './random.js';
 import { scoreRoster } from './objective.js';
+import { isBetter, outOfTime } from './acceptance.js';
 
 const STALL_LIMIT = 60;
 
@@ -88,20 +89,4 @@ export function improve({
   }
 
   return { ...best, iterations, improvementSteps, objectiveScore: bestScore };
-}
-
-// A candidate is only better if it is both legal AND lower scoring. Legality
-// is asked of the constraint engine, never inferred from the move.
-//
-// scoreRoster already evaluates the roster and reports isValid, so both
-// questions come from one evaluation rather than two - which halves the cost
-// of the hot loop.
-function isBetter(candidate, bestScore, context, weights) {
-  const scored = scoreRoster({ ...candidate, context, weights });
-  return scored.isValid && scored.score < bestScore;
-}
-
-function outOfTime(now, deadlineAt) {
-  if (typeof now !== 'function' || !Number.isFinite(deadlineAt)) return false;
-  return now() >= deadlineAt;
 }

@@ -4,15 +4,38 @@
 // Setting availability replaces the whole set for a membership rather than
 // editing entries one at a time. That keeps the client simple: it sends the
 // complete picture and the server makes the stored state match.
+//
+// A manager names the member by id, and could name anyone's - so the member
+// must be one of this organisation's, and so must every shift template the
+// entries name. Another organisation's is "not found" (404), as everywhere.
 
 import mongoose from 'mongoose';
-import { Availability } from '../../models/index.js';
+import { Availability, Membership, ShiftTemplate } from '../../models/index.js';
+import { AppError } from '../../errors/AppError.js';
+
+async function assertMemberOf(orgId, membershipId) {
+  if (!(await Membership.exists({ _id: membershipId, orgId }))) throw AppError.notFound('Member not found');
+}
+
+async function assertOwnTemplates(orgId, entries) {
+  const ids = [...new Set(entries.map((entry) => entry.shiftTemplateId).filter(Boolean).map(String))];
+  if (ids.length === 0) return;
+  const found = await ShiftTemplate.countDocuments({ orgId, _id: { $in: ids } });
+  if (found !== ids.length) throw AppError.notFound('Shift template not found');
+}
+
+const readAvailability = (orgId, membershipId) =>
+  Availability.find({ orgId, membershipId }).sort({ dayOfWeek: 1, date: 1 }).lean();
 
 export async function getAvailability(orgId, membershipId) {
-  return Availability.find({ orgId, membershipId }).sort({ dayOfWeek: 1, date: 1 }).lean();
+  await assertMemberOf(orgId, membershipId);
+  return readAvailability(orgId, membershipId);
 }
 
 export async function setAvailability(orgId, membershipId, entries) {
+  await assertMemberOf(orgId, membershipId);
+  await assertOwnTemplates(orgId, entries);
+
   const documents = entries.map((entry) => ({
     orgId,
     membershipId,
@@ -41,5 +64,5 @@ export async function setAvailability(orgId, membershipId, entries) {
     await session.endSession();
   }
 
-  return getAvailability(orgId, membershipId);
+  return readAvailability(orgId, membershipId);
 }

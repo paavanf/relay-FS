@@ -59,13 +59,7 @@ describe('checkQualificationMatch', () => {
 
   it('only applies the rule to the matching weekday', () => {
     // The rule covers Monday; this shift is on the Tuesday.
-    const tuesday = localShift({
-      id: 'b',
-      shiftTemplateId: 't-night',
-      date: '2026-03-03',
-      start: '09:00',
-      end: '17:00',
-    });
+    const tuesday = localShift({ id: 'b', shiftTemplateId: 't-night', date: '2026-03-03', start: '09:00', end: '17:00' });
     expect(checkQualificationMatch([tuesday], ctxWith({ qualificationIds: [] }))).toEqual([]);
   });
 

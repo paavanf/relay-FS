@@ -60,7 +60,7 @@ describe('the demo seed', () => {
       const app = createApp();
       const owner = await login(app, 'owner@relay.test');
       expect(owner.status).toBe(200);
-      expect(owner.body.memberships).toEqual([expect.objectContaining({ orgName: WARD.name, role: 'owner' })]);
+      expect(owner.body.memberships).toEqual([expect.objectContaining({ orgName: WARD.name, role: 'owner', isDemo: true })]);
 
       const asha = await login(app, 'asha@relay.test');
       const fairness = await request(app)

@@ -12,6 +12,10 @@ const organisationSchema = new mongoose.Schema(
     // IANA timezone. Rosters are generated and displayed in this zone.
     timezone: { type: String, required: true, default: 'Asia/Kolkata' },
 
+    // The account that created it - what the limit on organisations per
+    // account counts. Null for organisations created before it was recorded.
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
+
     // The working-time rules every roster for this organisation is generated
     // against. Defaults are deliberately conservative: the constraint engine
     // skips a limit it cannot read, so leaving these unset would silently

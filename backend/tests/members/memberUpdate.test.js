@@ -67,7 +67,7 @@ describe('changing a member', () => {
     const otherOwner = await signUp(app, 'Other Owner', 'other@example.com');
     const foreign = await qualificationIn(await createOrg(app, otherOwner, 'Ward B'), otherOwner, 'RN');
 
-    expect((await patch(org.worker.membershipId, org.owner.token, { qualificationIds: [foreign] })).status).toBe(400);
+    expect((await patch(org.worker.membershipId, org.owner.token, { qualificationIds: [foreign] })).status).toBe(404);
   });
 
   it('rejects unknown fields, out-of-range hours and an empty change', async () => {

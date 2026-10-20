@@ -8,19 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { toFairnessDebt } from '../../../src/engine/index.js';
-import { RUNS, POLICY, TIMEZONES, ledgerInput, ledgerFor, pattern, terms, toAssignment, toWorker, weekendNight } from './fairnessArbitraries.js';
-
-// A seeded shuffle, so a failing case can be replayed exactly.
-function shuffled(list, seed) {
-  const copy = [...list];
-  let state = seed >>> 0;
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    state = (state * 1_664_525 + 1_013_904_223) >>> 0;
-    const j = state % (i + 1);
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
+import { RUNS, POLICY, TIMEZONES, ledgerInput, ledgerFor, pattern, terms, toAssignment, toWorker, weekendNight, shuffled } from './fairnessArbitraries.js';
 
 const finite = (n) => typeof n === 'number' && Number.isFinite(n);
 

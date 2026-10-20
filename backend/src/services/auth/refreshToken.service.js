@@ -6,7 +6,7 @@
 import crypto from 'node:crypto';
 import { RefreshToken } from '../../models/index.js';
 import { generateToken, hashToken } from '../../utils/crypto.js';
-import { constants } from '../../config/constants.js';
+import { REFRESH_TOKEN_EXPIRY_DAYS } from '../../config/constants.js';
 import { AppError } from '../../errors/AppError.js';
 
 // Create a new refresh token, store its hash, return the raw token.
@@ -16,7 +16,7 @@ export async function createRefreshToken(userId, meta = {}) {
   const tokenHash = hashToken(rawToken);
 
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + constants.REFRESH_TOKEN_EXPIRY_DAYS);
+  expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_EXPIRY_DAYS);
 
   await RefreshToken.create({
     userId,

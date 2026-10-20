@@ -40,6 +40,12 @@ const smtp =
 
 const resend = EMAIL_TRANSPORT === 'resend' ? new Resend(env.RESEND_API_KEY) : null;
 
+// .test is reserved (RFC 2606) and can never receive mail - the shared demo's
+// accounts live on relay.test. Visitors' actions in the demo would otherwise
+// send them real emails that only bounce, and a stream of bounces damages the
+// sender's standing with the mail provider.
+const isUndeliverable = (to) => /\.test$/i.test(String(to).split('@').pop());
+
 /**
  * Sends one message. Always resolves.
  * @returns {Promise<{ delivered: boolean, reason?: string }>}
@@ -47,6 +53,9 @@ const resend = EMAIL_TRANSPORT === 'resend' ? new Resend(env.RESEND_API_KEY) : n
 export async function deliver({ to, subject, html }) {
   if (EMAIL_TRANSPORT === 'console') {
     return { delivered: false, reason: 'No email transport configured' };
+  }
+  if (isUndeliverable(to)) {
+    return { delivered: false, reason: 'A reserved .test address, which cannot receive mail' };
   }
 
   try {

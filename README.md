@@ -1,99 +1,72 @@
 # Relay
 
-Shift rostering, swaps, and fairness tracking. npm workspaces monorepo: `backend` (Express + MongoDB) and `frontend` (React + Vite).
+Relay builds staff rosters that keep every scheduling rule - rest between shifts, consecutive days, weekly hours, qualifications, declared unavailability - and explains, in plain words, any shift it cannot fill without breaking one. Staff then swap shifts directly or through a chain of colleagues, with every swap checked against the same rules before it happens, and Relay keeps a running record of who has carried the nights and weekends so the next roster evens it out.
 
-> **Working on this repo with an AI agent?** Read [AGENTS.md](AGENTS.md) first.
-> It sets the hard rules - no curl, no live database, no test data - and the
-> project conventions. Those rules exist because the dev database is shared
-> and real.
+**Live demo:** _placeholder - the link is added here once Relay is deployed._
 
-## Getting started
+> **Working on this repo with an AI agent?** Read [AGENTS.md](AGENTS.md) first. It sets the hard rules - no curl, no live database, no test data - and the project conventions.
 
-```bash
-npm install
-cp backend/.env.example backend/.env   # optional in development
-npm run dev                            # backend :4917 + frontend :5173
+- [What it does](#what-it-does)
+- [Architecture](#architecture)
+- [How the engine works](#how-the-engine-works)
+- [Measured results](#measured-results-generated-scenarios)
+- [How it is tested](#how-it-is-tested)
+- [The public demo, and keeping it safe](#the-public-demo-and-keeping-it-safe)
+- [Known gaps](#known-gaps)
+- [Running it locally](#running-it-locally)
+
+## What it does
+
+- **Rosters.** A manager describes the work - qualifications, shift templates, how many people each shift needs on each weekday - and the rules. Relay generates a roster in the background, lists every slot it could not fill with the rule that stopped each person, and checks every hand edit against the same rules before saving it. Publishing shows the roster to the team.
+- **Fairness.** Each person's share of nights, evenings and weekends over the last 12 weeks of published rosters, compared per full-time week, so a part-timer is not measured against a full-timer's total. Managers see everyone; a worker sees only themselves against the team average, enforced on the server. The generator steers heavy shifts away from whoever is above their share.
+- **Swaps.** A worker offers a shift they cannot work. Relay finds direct swaps and chains of up to four people in which each takes the next one's shift, ranked and drawn as a diagram. The person who offered proposes one; everyone in it accepts; a manager approves if the organisation asks for that; then every shift changes hands at once, or none does.
+- **Notifications.** A bell in the app for rosters published and swaps at each step, and email for the three that cannot wait: a swap proposed to you, a swap waiting for your approval, and a roster with your shifts on it.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  browser["Browser<br/>React single-page app<br/>(frontend/)"]
+  api["Express API<br/>route → validator → controller → service → model<br/>(backend/src)"]
+  engine["Pure engine<br/>constraints · generation · fairness<br/>swap finder · chain state machine<br/>(backend/src/engine)"]
+  worker["Worker thread<br/>roster generation"]
+  db[("MongoDB<br/>replica set - transactions")]
+  mail["Email<br/>SMTP · Resend · console"]
+
+  browser -- "JSON over HTTPS, /api/v1" --> api
+  api -- "plain objects in, results out" --> engine
+  api -- "a generation job" --> worker
+  worker --> engine
+  api --> db
+  api --> mail
 ```
 
-`/api` is proxied from the Vite dev server to the backend, so the frontend calls relative paths.
+- **The engine is pure.** Everything under `backend/src/engine/` takes plain objects and returns plain objects: no database, no configuration, no I/O, no clock reads, no randomness except a seeded generator. Time is injected as a `now()` function. An ESLint rule enforces it - importing Mongoose, a model, config or a service, or calling `Date.now()`, `new Date()` or `Math.random()` there fails the lint. So the generator, manual edits and the swap finder all ask the same code the same question, and nothing can drift between them.
+- **Generation runs off the request.** Starting a generation answers at once with a job id; a worker thread does the work within a time and iteration budget, and the frontend polls the job.
+- **Every refusal is the server's.** The frontend hides what a person may not do, but every rule - roles, tenancy, the demo's locks, the limits - is enforced on the server.
+- **Multi-tenant by organisation.** Every organisation-scoped request is checked against the caller's membership, and another organisation's anything is "not found" - never "forbidden", which would confirm it exists. A fuzzer proves it for every route ([How it is tested](#how-it-is-tested)).
 
-### If the database is paused
+## How the engine works
 
-Atlas pauses a free cluster after 30 days without connections, and the API then fails to reach it. In Atlas, open **Database** and click **Resume** on the cluster; it can take a few minutes to accept connections afterwards. Then run `cd backend && npm run db:check` - a read-only check that connects, reports whether the cluster is a replica set, lists the collections with their counts (add `-- relay-demo` to list the demo database too), and explains any failure in plain English.
+### Constraints
 
-## Scripts
+`evaluate(assignments, context)` is the single entry point (`backend/src/engine/constraints/evaluate.js`), and it never throws: malformed input becomes a violation, not an exception. Six **hard** constraints decide legality - qualification match (the person holds the role the slot needs), declared unavailability, no double booking, minimum rest, maximum consecutive days, and maximum hours in any rolling seven days. Three **soft** ones score a legal roster - preferences (avoid / prefer), pattern continuity, and fairness debt. Durations come from real instants in the organisation's timezone, so a night across a clock change counts its real 7 or 9 hours.
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Runs both workspaces via concurrently |
-| `npm run build` | Production build of the frontend |
-| `npm run lint` | ESLint across both workspaces |
-| `npm test` | Backend tests (Vitest + mongodb-memory-server), then the frontend's unit tests |
-| `npm run e2e` | End-to-end suite in a real browser, against an in-memory database (see below) |
+### Generation
 
-Add `-w backend` / `-w frontend` to target a single workspace.
+Coverage rules are expanded into concrete slots; a greedy pass fills them, preferring to leave a slot empty rather than break a rule; then a seeded hill-climbing search with restarts improves the result within the budget, asking `evaluate()` about every candidate rather than assuming a move is legal. Every unfilled slot comes back with the reason - which rule stopped how many people - in a sentence a manager can act on.
 
-## Demo data
+### Fairness feedback
 
-`backend/scripts/seed-demo.js` fills a database of its own with a realistic hospital ward to click around in: an owner, a manager and twelve nurses and healthcare assistants on the reserved `relay.test` domain, three qualifications, day, evening and night shifts with coverage every day, availability with hard limits and soft wishes, five published weeks generated by the real engine - the three up to this one and the next two, since wards publish ahead - so the Fairness page has history to show, a two-week draft after them, six open swap requests for the weeks ahead that show each kind of answer the swap finder gives, and two proposed swaps - one waiting for its second person to accept, one waiting for a manager's approval - so every state a swap passes through can be seen. Their notifications are written too, so the person still to accept and the managers find them under the bell straight away; nobody is emailed, since the demo's addresses are not real. Every shift records the role it fills (charge nurse, registered nurse or healthcare assistant).
+Publishing a roster recomputes each member's burden over the last 12 weeks of published rosters: weighted shift counts (nights, evenings and weekends heavier), normalised per full-time week. The difference from the team average becomes **fairness debt**, which the next generation reads as a soft constraint - so whoever carried more is given less, and the spread narrows period by period ([the table below](#fairness-convergence)).
 
-1. In `backend/.env`, change the database name in `MONGODB_URI` from `relay-dev` to `relay-demo` - the part between the last `/` and the `?`. Your Atlas database user needs read and write access to it; the default "Read and write to any database" role has that.
-2. `cd backend && npm run seed:demo -- --yes`
-3. Start the app (`npm run dev` from the root) and log in as `owner@relay.test`. Every demo account's password is `relay-demo-2026`, and the script prints them all; `asha@relay.test` shows a worker's view.
-   For swaps, the script also prints who to sign in as: `dara@relay.test`, whose request only a three-person chain resolves because she said she would only take day shifts in return; `elif@relay.test`, who has a direct swap; `grace@relay.test`, with no options because of the days she cannot work; and `bilal@relay.test`, whose charge nurse shift nobody else offering could take. Open **Swaps** and choose **Find swaps**.
-   It prints the two proposed swaps too: who has one waiting on **Swaps** to accept or decline, and the swap waiting for `owner@relay.test` or `manager@relay.test` on **Swap approvals**. Their people are picked by the engine from those not already in a swap case, so the names can differ from week to week.
-4. Switch `MONGODB_URI` back to `relay-dev` when you are done.
+### The swap chain finder
 
-The script refuses to run unless the database name ends in `-demo`, and without `--yes`. Each run deletes the previous run's demo ward - found by its fixed id, never by anything other data could share - and builds it again, so rerunning is safe. The data is the same on every run; only the dates move, so the published weeks always run from two weeks ago to two weeks ahead. The swap requests are picked so the earliest of their shifts is as late as possible - the script prints when that is; with the current data, the Tuesday night of the week after next - and a request closes once its shift starts, so reseed after that. The demo ward gives people a week to accept a proposed swap (the longest the swap rules allow), so the two proposals stay open for a week after seeding, or until one of their shifts starts - the script prints when.
+An offered shift becomes a node in a graph of who could take whose shift; chains are cycles in it, up to the organisation's longest-chain setting (four people). Every candidate hand-over is checked with the same constraint engine on each person's **whole week after the swap**, so a swap that is only legal because of what that person gives away is found, and one that breaks a rule once the rest of their week counts is refused. The search is capped - nodes, cycles, and a 400 ms budget on an injected clock - and says when it was cut short. Options are ranked by size, then avoid/prefer wishes, then fairness; when there are none, the reasons come with counts.
 
-## End-to-end tests
+### Atomic commit and the chain state machine
 
-`e2e/` drives the real app in a browser with Playwright: the built frontend (`npm run build`, served by `npm run preview`) and the backend, both on free ports, against an **in-memory** MongoDB that the demo seed fills. It never touches Atlas, `relay-dev` or `relay-demo`. It covers the Milestone 5 and 6 checklist - polling, illegal assignments, privacy of the raw JSON, two managers saving at once, keyboard use, publishing with holes, the fairness numbers, every page's console, and phone widths - the Milestone 7 swap flows: offering and withdrawing a shift, the demo's three-person chain with its diagram, a direct swap, and the no-options explanation - and Milestone 7.5: choosing which role someone fills when assigning them by hand, an offer that only takes some shifts and is left with only a chain (then widened until a direct swap appears), and a swap refused because nobody else offering holds the shift's role - and Milestone 8: the demo's three-person chain proposed, accepted by the other two in browsers of their own (one on a phone), approved by the manager after the impact preview, and then on every participant's My Shifts; a proposal declined; and one expired (its deadline moved into the past in the in-memory database, rather than waited for) - and Milestone 9: the proposed chain found under a participant's bell on a phone, its notification opening the proposal and clearing its dot; a published roster under a worker's bell, leading to My Shifts; "Mark all as read"; the panel opened and closed from the keyboard; and accessibility checks with axe (WCAG 2.1 A and AA) on the main pages in both themes, which fail on any serious or critical problem. It takes screenshots for a person to review. It is not in CI yet; run it locally before each milestone.
-
-```bash
-npm install --prefix e2e   # once
-npm run e2e                # build, start everything, run, tear it all down (about 5 minutes)
-```
-
-- It uses the Microsoft Edge already on the machine. Without Edge: `npx --prefix e2e playwright install chromium`, then run with `E2E_CHANNEL=chromium`.
-- `E2E_SKIP_BUILD=1` reuses the last `frontend/dist`, which is quicker while working on specs.
-- One spec: `npm run e2e -- specs/09-polling.spec.js`.
-- Everything it produces lands in `e2e/artifacts/`, which git ignores: the HTML report (`report/index.html`), `screenshots/`, measured figures in `numbers/` (with everything axe found, by page and theme, in `numbers/axe.json`), and each server's log in `logs/`.
-- The specs share one seeded database and run in file order: read-only checks first, then the ones that change data, then publishing, and the swaps that change hands last. There are no retries - a flaky test should be explained, not repeated.
-- Run one at a time. Playwright empties `e2e/artifacts/test-results/` as each run starts, so a second run started alongside deletes the first one's traces mid-test.
-
-## Status
-
-Milestones 0 to 9, plus the landing page, are complete:
-
-- **M0 - Foundations** - config, logging, error handling, request context, validation, `GET /api/health`, and the frontend design system (see [frontend/DESIGN.md](frontend/DESIGN.md))
-- **M1 - Auth and multi-tenancy** - argon2id, access/refresh tokens, invites, password reset, account lockout
-- **M2 - Configuration and team** - qualifications, shift templates, coverage requirements, availability, and the scheduling rules each organisation is rostered against, with the frontend pages for each
-- **M3 - Constraint engine** - the pure engine in `backend/src/engine/`, with unit and property-based tests
-- **M4 - Roster generation** - greedy construction plus time-boxed local search, run off the main thread as an async job. `npm run evaluate` prints the benchmark table.
-- **M5 - Roster UI** - roster CRUD and assignment endpoints, the roster grid with per-day coverage, manual assignment validated against the same constraint engine the generator uses, the unfilled-slots panel, the publish flow, and My Shifts.
-- **M6 - Fairness ledger** - the pure ledger in `backend/src/engine/fairness/`: each member's burden over the last 12 weeks of published rosters (weekend shifts weighted 1.5x, compared per full-time week so a part-timer is not measured against a full-timer's total), recomputed from scratch whenever a roster is published, and fed back into the generator as fairness debt. The Fairness page shows managers every member, and everyone else only themselves against the team average - enforced on the server. `npm run evaluate:fairness` prints the table below.
-- **M6.5 - Team completion** - invite links work end to end: a public preview, accepting only with the invited email, and login and register that bring the invitee back through a `?next=` path checked against open redirects. Pending invites can be revoked. Managers edit qualifications, employment type and contracted hours; only owners change roles, and the last owner can never step down. Deactivating someone is a soft change that takes their shifts off draft rosters as unfilled and keeps published history. Workers in a team with fewer than three measured people no longer see the team average, since with two it gives away the other person's figure. Plus the demo seed above.
-- **M7 - Swap chain finder** - a worker offers a shift from My Shifts, and Relay finds direct swaps and chains of up to four people (the organisation's `swapPolicy.maxChainLength`) in which each person takes the next one's shift. The pure finder in `backend/src/engine/swaps/` checks every candidate with the same constraint engine as generation and manual edits, on each participant's whole week after the swap - so a hand-over that is only legal because of what that person gives away is found, and one that only breaks once the rest of their week is counted is refused. The search is capped (nodes, cycles, and a 400 ms budget on an injected clock) and says when it was cut short; it skips chains that could not make the top five without changing the answer. Options are ranked by size, then avoid/prefer wishes, then fairness (the M6 debt), and when there are none the reasons come with counts. Looking at options reserves nothing and tells nobody. The Swaps page shows each option as sentences and a diagram. `npm run benchmark:swaps` prints the tables below.
-- **M7.5 - Slot roles and an honest swap benchmark** - every assignment records the role it fills on its shift (`slotQualificationId`). The generator writes it, and the engine checks that whoever holds a shift holds exactly that role - so the role stays with the shift through a swap, and a swap can no longer leave a day shift without its charge nurse. Assignments saved before this milestone have no role and keep the old check (any qualification the shift's coverage asks for); there is no migration, and the coverage row counts their days by headcount. Assigning someone by hand means choosing which role they fill: only roles they hold are offered, each with how many of its places are open, and when only one fits it is already chosen. The coverage row counts each role, so a day with an extra nurse and no charge nurse is not green, and its tooltip names what is missing. An offer can say what its owner would take in return - shift types and weekdays, in the organisation's timezone, or any shift they are free for - and change it later from the Swaps page; the finder only hands them a shift that matches, and when that is what rules out every option, the explanation says so. The swap benchmark was rebuilt around scenarios fixed before it ran: a mixed-role ward, and a sweep of how choosy people are.
-- **M8 - Swaps made real** - the person who offered a shift proposes one of its options; everyone else in it accepts or declines within the organisation's acceptance window; a manager approves, where the organisation's swap rules ask for that; and then every shift changes hands at once, or none does. The client's chain is never trusted: proposing searches again, and refuses with "These options have changed — search again." if the option has gone. Proposing reserves every shift in one transaction - each only if no unexpired proposal holds it and it is the very version the search checked - so two proposals racing for a shift cannot both win. Every status change goes through a pure state machine (`backend/src/engine/swaps/chainStateMachine.js`, table below), and every write names the status and revision it read, so of two people making the final acceptance at the same moment exactly one moves the chain on, and nothing is committed twice. The commit is one transaction: it re-reads every shift and refuses if any has changed since the proposal or is no longer held for it, if anyone in it has left the team, or if the constraint engine finds a broken rule in anyone's week after the swap; then it hands each shift over, keeping its role and raising its version. A refused commit leaves every shift where it was and tells everyone why. The fairness ledger is recomputed afterwards, and a failure there never undoes the swap. Expiry is read from stored deadlines, never timers: every read and action expires a proposal past its time on the spot, and `POST /api/v1/internal/reap-expired` (guarded by `INTERNAL_JOB_SECRET`) lets go of any left - for a scheduler to call once deployed; nothing schedules it yet. Shifts saved before roles were recorded cannot be offered, found or proposed, and the reason says so. Managers approve on **Swap approvals** after a preview: coverage per role on every shift involved (unchanged, and counted rather than assumed), each person's fairness figures before and after - the ledger counts published shifts up to the end of the latest published roster, so these shifts count already and "after" is what the Fairness page will show - and the rule check. Every change writes an audit entry and tells the people it concerns (M9), and the sidebar counts what is waiting for each person. The swap rules - acceptance window, approval, longest chain - are in Settings, and shown to everyone on the Swaps page.
-- **M9 - Notifications and polish** - one notify service (`backend/src/services/notification/`) that every feature calls, so the wording lives in one place. A published roster tells each worker with a shift on it how many they have. A swap tells the people it concerns at each step: proposed (everyone in it but the proposer), accepted or declined (the proposer), waiting for approval (every manager and owner), done, failed or expired (everyone in it), and cancelled or rejected (everyone in it but whoever did it). An accepted invite tells the new member's managers. Each notification stores its type, a plain sentence, the page it leads to and the ids it is about. It is written after the change is saved, and a failure to write it is logged and never undoes the change; a unique key per event and person means a repeated action never writes, or emails, the same one twice. Three events send an email too, because missing them costs something: a swap proposed to you (it expires), a swap waiting for your approval, and a published roster. They use the existing transport (SMTP, then Resend, then the console), link to the page through `FRONTEND_URL`, are best-effort, and go only to people who leave **Email me about swaps and rosters** on - it is on by default, under **Preferences** in the user menu. The API - `GET /orgs/:orgId/notifications` (newest first, `?unread=true`, cursor-paged), `GET .../unread-count`, `POST .../:id/read` and `POST .../read-all` - only ever reads or marks the caller's own. In the app, the bell in the top bar shows the unread count ("9+" past nine), checked every 30 seconds while the tab is visible and again when it regains focus. It opens a panel of the latest - unread ones with a dot and bold text - each opening its page and marking itself read, with **Mark all as read** and **View all**; Enter opens it, focus stays inside, and Escape closes it back to the bell; on a phone it is a full-width sheet. The **Notifications** page has the full list, a page at a time. The polish pass added a recoverable error page for a crash in any route, instead of a white screen; a "Starting the server, this can take a moment" banner when a request takes more than 3 seconds (not for generation, which shows its own progress); and a bundle split by route with `React.lazy`, so the landing page loads 461 kB of JavaScript (147 kB gzipped) instead of the whole app's 637 kB (186 kB), and the login page 347 kB (113 kB). The axe checks found three serious problems - faint shift times on the roster grid, a user menu named differently from what it shows, and a scrolling grid that a keyboard could not reach - all fixed. Buttons and the toasts they produce use the same verb.
-- **Landing page** - the logged-out home page at `/`, built from the real roster grid, unfilled-slots panel and rule check, fed by real engine output (`cd backend && node scripts/export-landing-fixture.js` regenerates it). It makes no API calls.
-
-Known gaps:
-
-- The generator does not hold anyone to their contracted hours. Only the organisation's maximum hours per week is a hard limit; contracts act through fairness debt, so a part-timer given too much one week gets less in the next rather than never being over.
-- An invite link can be copied again only in the browser tab that created it. The server keeps just a hash of each link, so after a reload the way to resend one is to revoke it and invite again.
-- Swap ranking measures fairness as how far the people in a swap together sit from a fair share. Moving burden between people who are all over their share (or all under) counts as no change, even when it evens them out among themselves.
-- Notifications arrive through the bell, which checks every 30 seconds while the tab is visible, and by email; nothing is pushed to a phone or a closed browser.
-- Each email is sent once, in the background after the change is saved, and never retried: if sending fails, or the server stops first, that email is lost - the notification itself is not. Real delivery needs SMTP or Resend set up at deployment; until then emails are printed to the backend console.
-- When someone declines a swap, only its proposer is notified, as the events table for M9 asks; anyone else in a chain sees it under History on the Swaps page, with their offer open again.
-- Notifications are kept forever; nothing deletes old ones yet.
-- Nothing schedules the reaper yet. Until a scheduler calls `POST /api/v1/internal/reap-expired`, a proposal nobody looks at stays stored as proposed after its deadline - though anyone who reads it, or acts on it, finds it expired, and its shifts are let go then.
-
-### Swap chain states (Milestone 8)
-
-Every change to a proposed swap goes through one pure function, `transition(chain, event, now)` in `backend/src/engine/swaps/chainStateMachine.js`; the services store what it returns and never set a status themselves. A chain is `proposed` or `awaiting_approval` while it is under way, and ends `committed`, `declined`, `cancelled`, `expired` or `failed`. The proposer's own leg counts as accepted from the start. Ending without happening lets go of every reserved shift and reopens the offers.
+Proposing searches again from scratch - the client's chain is never trusted - and reserves every shift in one transaction, each only if no unexpired proposal holds it and it is the very version the search checked. Every status change goes through one pure function, `transition(chain, event, now)` in `backend/src/engine/swaps/chainStateMachine.js`; services store what it returns and never set a status themselves, and every write names the status and revision it read, so two simultaneous final acceptances commit exactly once. The commit is one transaction that re-checks every shift and every rule, then hands each shift over; a refused commit leaves everything where it was and says why. Expiry is read from stored deadlines, never timers.
 
 | From | Event | Condition | To |
 | --- | --- | --- | --- |
@@ -114,9 +87,27 @@ Every change to a proposed swap goes through one pure function, `transition(chai
 | a terminal state | the action that ended it again (or accept on committed) | - | no change, same answer |
 | a terminal state | anything else | - | refused |
 
-### Fairness convergence (generated scenario)
+## Measured results (generated scenarios)
 
-The 40-person ward from `backend/scripts/scenarios.js`, rostered for four consecutive 14-day periods. After each period its roster is treated as published history and the resulting fairness debt is fed into the next, exactly as the app does. Both runs use the same seeds; the spread is the standard deviation and the max - min of normalised burden (burden per full-time week) over all history so far. Every slot was filled in every period, both ways.
+Every number here comes from generated scenarios defined in code (`backend/scripts/`), not from a real ward or real users. Each scenario uses a fixed seed, so a change in a table comes from a change in the code.
+
+### Generation harness
+
+`npm run evaluate` runs the generator over five fixed scenarios with the default weights. Times are milliseconds on a laptop and vary from run to run; every other column is the same on every run.
+
+| Scenario | Slots | Filled | Unfilled | Objective | Iterations | ms | Legal |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Hospital ward (40 staff, 14 days) | 168 | 168 | 0 | 4 | 4000 | 1657 | yes |
+| Ward with heavy availability constraints | 168 | 154 | 14 | 140002 | 4000 | 3099 | yes |
+| Understaffed ward (infeasible on purpose) | 168 | 144 | 24 | 240115 | 4000 | 1278 | yes |
+| Small cafe (8 staff, 7 days) | 28 | 28 | 0 | 0 | 4000 | 200 | yes |
+| Ward across a DST change (28 days) | 336 | 336 | 0 | 45 | 4000 | 2536 | yes |
+
+Every roster is legal, including the understaffed one, which leaves 24 slots empty rather than break a rule.
+
+### Fairness convergence
+
+The 40-person ward, rostered for four consecutive 14-day periods. After each period its roster is treated as published history and the resulting fairness debt is fed into the next, exactly as the app does. Both runs use the same seeds; the spread is the standard deviation and the max - min of normalised burden (burden per full-time week) over all history so far. Every slot was filled in every period, both ways (`npm run evaluate:fairness`).
 
 | Period | Feedback on: std dev | max - min | Feedback off: std dev | max - min |
 | --- | ---: | ---: | ---: | ---: |
@@ -125,23 +116,21 @@ The 40-person ward from `backend/scripts/scenarios.js`, rostered for four consec
 | 3 (30 Mar - 12 Apr) | 0.302 | 1.316 | 0.431 | 2.116 |
 | 4 (13 - 26 Apr) | 0.220 | 1.020 | 0.407 | 1.687 |
 
-With feedback the spread narrows every period, ending at 54% of the spread without it, and does not oscillate. It works by making each new roster deliberately uneven in favour of whoever carried less before, so in the first corrected period 5 of the 40 people swing from more than 5% over the average to more than 5% under; after that, one per period. These are generated scenarios, not data from a real ward.
+With feedback the spread narrows every period, ending at 54% of the spread without it, and does not oscillate. It works by making each new roster deliberately uneven in favour of whoever carried less before, so in the first corrected period 5 of the 40 people swing from more than 5% over the average to more than 5% under; after that, one per period.
 
-### Swap options benchmark (generated scenarios)
+### Swap options benchmark
 
-`npm run benchmark:swaps` measures how often a swap request can be resolved - by a direct swap, or by a chain of up to L people - how often **only** a chain resolves it, and how long a search takes. These are generated scenarios, not data from a real ward.
+`npm run benchmark:swaps` measures how often a swap request can be resolved - by a direct swap, or by a chain of up to L people - how often **only** a chain resolves it, and how long a search takes.
 
-**The scenarios, written down before the first run and not changed after seeing the results** (they are also in `backend/scripts/swapBenchmarkWards.js` and `swapBenchmarkPools.js`):
+**The scenarios, written down before the first run and not changed after seeing the results** (`backend/scripts/swapBenchmarkWards.js` and `swapBenchmarkPools.js`):
 
-- **The harness wards** from `backend/scripts/scenarios.js`, as they are: the 40-person hospital ward, the ward with heavy availability constraints, and the understaffed 12-person ward. Offers take any shift.
-- **The mixed-role ward**: 40 people - 8 charge nurses (who are also registered nurses), 16 registered nurses and 16 healthcare assistants - where every shift needs particular roles: Day 1 charge nurse + 3 RN + 3 HCA, Evening 1 + 2 + 2, Night 1 + 1 + 2. The same shifts, rules, dates and timezone as the harness's 40-person ward, and no declared availability.
-- **The willingness sweep**, on the mixed-role ward: every offer says it would take a share of shift types and weekdays in return - 100%, 60%, 30% or 15%. For a share below 100%, it names the k types and m weekdays whose k x m / 21 comes nearest the share (a tie drawn at random), each chosen at random, so 60% is 12 of the 21 type-and-weekday pairs (57%), 30% is 6 (29%) and 15% is 3 (14%). Every share asks about exactly the same pools; only the filters differ.
-- **For each**: 30 random pools of 5, 10 and 20 offers (never more than the team has), every offer asking at a maximum chain length of 2, 3 and 4, exactly as the options endpoint searches. Each ward is rostered once by the real generator with a fixed seed.
-- **The performance target**: the hospital ward with 100 staff (its demand scaled up 2.5 times), all 100 offering a shift at once, L = 4, with fairness debts and preferences for the ranking to weigh - each search under 500 ms.
+- **The harness wards**: the 40-person hospital ward, the ward with heavy availability constraints, and the understaffed 12-person ward. Offers take any shift.
+- **The mixed-role ward**: 40 people - 8 charge nurses (who are also registered nurses), 16 registered nurses and 16 healthcare assistants - where every shift needs particular roles: Day 1 charge nurse + 3 RN + 3 HCA, Evening 1 + 2 + 2, Night 1 + 1 + 2.
+- **The willingness sweep**, on the mixed-role ward: every offer says it would take a share of shift types and weekdays in return - 100%, 60%, 30% or 15% (12, 6 and 3 of the 21 type-and-weekday pairs for the last three). Every share asks about exactly the same pools; only the filters differ.
+- **For each**: 30 random pools of 5, 10 and 20 offers, every offer asking at a maximum chain length of 2, 3 and 4, exactly as the options endpoint searches.
+- **The performance target**: the hospital ward with 100 staff, all 100 offering a shift at once, L = 4, with fairness debts and preferences to weigh - each search under 500 ms.
 
-Performance was measured on a laptop. It needs measuring again on the deployed free-tier instance, which has much less CPU.
-
-**Results.** The columns are the share of requests with a direct swap, with any option once chains of up to three or four people count, and with an option **only** a chain gives (at L = 4); times are per search at L = 4. The script prints every L. The times are from a laptop (an Intel Core i7-1255U) running on battery; plugged in, the same laptop ran the same searches about three times faster. The percentages do not depend on the machine - every run gives the same ones.
+The columns are the share of requests with a direct swap, with any option once chains of up to three or four people count, and with an option **only** a chain gives (at L = 4); times are per search at L = 4, from a laptop (an Intel Core i7-1255U) on battery. The percentages do not depend on the machine.
 
 The harness wards, offers taking any shift:
 
@@ -175,10 +164,61 @@ The mixed-role ward, by how much of what is on offer each person would take:
 
 What it says, plainly:
 
-- **Where anyone can take almost anything, chains add little.** In the harness wards most people can take most shifts, so a direct swap usually exists, and chains add 1 to 5 points. In the understaffed ward everyone is at their limits and chains add nothing: a full week blocks every route, short or long.
-- **Roles alone make chains worth having.** In the mixed-role ward a charge nurse's shift can go to only 8 people, so direct swaps drop to 36% with five offers (73% in the hospital ward), and chains add 6 to 11 points.
-- **Choosy people are where chains matter most.** With everyone taking 60% of what is on offer and 20 offers out, chains resolve 22 points more than direct swaps alone (51% to 73%); at 30%, they almost double it (18% to 31%). Three-person chains do most of that; four-person ones add another 1 to 6 points in the bigger pools.
-- **The limit is the pool, not the search.** With five offers and choosy people almost nothing resolves however long a chain may be, and at 15% even twenty offers resolve only 12%.
-- **Why** (the script prints it for every row): in the mixed-role ward the role check rules out more than half of all possible hand-overs before any timing rule is asked, and at 30% willingness only 13% get past the role check and the filters together.
+- **Where anyone can take almost anything, chains add little.** In the harness wards a direct swap usually exists, and chains add 1 to 5 points. In the understaffed ward everyone is at their limits and chains add nothing.
+- **Roles alone make chains worth having.** In the mixed-role ward a charge nurse's shift can go to only 8 people, so direct swaps drop to 36% with five offers, and chains add 6 to 11 points.
+- **Choosy people are where chains matter most.** With everyone taking 60% of what is on offer and 20 offers out, chains resolve 22 points more than direct swaps alone (51% to 73%); at 30%, they almost double it (18% to 31%).
+- **The limit is the pool, not the search.** With five offers and choosy people almost nothing resolves however long a chain may be.
 
-The performance target held: across 300 searches with all 100 people offering, the median was 181 ms, p95 251 ms and the slowest 360 ms on battery (60, 80 and 97 ms plugged in), and none reached the 400 ms budget. A free-tier instance has far less CPU than either, so this still needs measuring there.
+The performance target held: across 300 searches with all 100 people offering, the median was 181 ms, p95 251 ms and the slowest 360 ms on battery (60, 80 and 97 ms plugged in), and none reached the 400 ms budget. A free-tier server has far less CPU, so this still needs measuring there.
+
+## How it is tested
+
+At the time of writing: **585 backend tests** in 131 files (Vitest, every file against an in-memory MongoDB replica set of its own), **78 frontend tests** (Vitest, components in a browser-like DOM), and the end-to-end suite below. All of it runs on every push.
+
+- **Property-based tests with non-vacuity checks.** [fast-check](https://fast-check.dev) generates hundreds of organisations, rosters, teams, offers and chain histories per property - half-hour and 45-minute timezones, clock changes, shifts that end exactly when the next begins - and checks invariants that must hold for every one of them: whatever the generator produces is legal; removing a shift never adds a hard violation; `canAssign` agrees with `evaluate`; the swap finder only ever offers legal swaps; the chain state machine never commits twice. A property that passes because its cases never reach the situation it is about proves nothing, so separate **vacuity tests** sample the same generators and fail unless each outcome - a swap found, only a chain, nothing at all, each way a chain can end - turns up often enough.
+- **Concurrency tests.** Requests fired at the same moment (`Promise.all`), several rounds each from a fresh world: two proposals racing for one shift (exactly one wins, the other gets 409), two final acceptances at once (exactly one commit), a duplicate approval (one commit, both answered).
+- **The tenancy fuzzer.** It reads the route list from the Express router itself - 72 routes - builds two organisations with something of everything, and for every organisation-scoped route calls it as organisation A's owner with organisation B's id, and again with B's records under A's id, expecting 404 every time: never 200, never 403, never 500. Every non-public route must answer 401 without a token, and the test fails if a route exists that it did not exercise, so a new route cannot slip past it. On its first run it found two routes that accepted another organisation's member id; both now answer 404.
+- **Planted-bug checks.** A safety net is trusted only after it has been seen to fail: with the organisation filter removed from revoking an invite, the fuzzer fails, naming that route; and code planted in the engine that imports Mongoose, a model, config or a service, or reads the clock or `Math.random()`, fails the lint on every one of those lines.
+- **Abuse limits and security.** Each limit is tested to refuse with 429 and a sentence saying when to try again; production settings that would be unsafe stop the server starting; production error responses carry no stack traces or internal details; request logs never hold a token, a reset or invite link, or the refresh cookie; and the refresh cookie is checked as a production server sets it.
+- **End to end, and accessibility.** **52 end-to-end tests** in 20 spec files. [Playwright](https://playwright.dev) drives the built app in a real browser against an in-memory database filled by the demo seed: signing in, the roster grid by keyboard, illegal edits refused, two managers saving at once, publishing with holes, the fairness numbers against the raw ledger, swaps proposed, accepted and approved in separate browsers (one on a phone), notifications, the public demo's accounts and locks, and no sideways scrolling at 375px. [axe](https://github.com/dequelabs/axe-core) checks the main pages in light and dark themes against WCAG 2.1 A and AA - 28 page-and-theme checks, which at the time of writing find nothing at any severity - and the run fails on any serious or critical problem.
+- **CI.** GitHub Actions runs a secret scan of the whole history, lint, the backend and frontend tests and the build on every push and pull request, then the end-to-end suite on Playwright's Chromium.
+
+## The public demo, and keeping it safe
+
+Visitors share one demo organisation - a hospital ward built by `npm run seed:demo` - which is reseeded every night once Relay is deployed (the schedule is part of the deployment, not of this repository). With `VITE_DEMO_MODE=true` at build time, the login page lists three of its accounts with a button that signs straight in: the owner, a worker with a swap waiting, and a worker with a direct swap. Its setup is locked on the server - invites, members, the scheduling and swap rules, qualifications, shift templates and coverage answer `DEMO_LOCKED` - while everything it is for stays open: generating and editing drafts, publishing, availability, swaps, notifications, fairness. Its accounts cannot create or join other organisations, are never locked out by wrong passwords (their password is public), and are never sent real email (`relay.test` is a reserved domain that cannot receive it). The reseed touches only the demo organisation and its accounts: a test seeds the demo beside a real organisation, reseeds, and finds the real one unchanged, document for document.
+
+Limits for strangers, each answering 429 with when to try again: per address across the API and on the sign-in endpoints; five new accounts per address per hour; three reset emails per email address per hour; 20 invites per organisation per day; five organisations per account, ever; ten swap proposals per person per hour; ten swap searches per person per minute. The server takes the client's address from `X-Forwarded-For` only as far as `TRUST_PROXY` says proxies stand in front of it. In production it refuses to start unless `FRONTEND_URL` is https, the two JWT secrets are long and different, and the job secret is set; answers cross-origin requests from the frontend alone; and keeps the refresh cookie `HttpOnly`, `Secure`, `SameSite=Strict`, host-only and scoped to `/api/v1/auth`.
+
+## Known gaps
+
+- The generator does not hold anyone to their contracted hours. Only the maximum hours per week is a hard limit; contracts act through fairness debt.
+- An invite link can be copied again only in the browser tab that created it: the server keeps just a hash of each link.
+- Swap ranking measures fairness as how far the people in a swap together sit from a fair share, so moving burden among people who are all over (or all under) their share counts as no change.
+- Nothing schedules the reaper for expired swap reservations yet; until a scheduler calls `POST /api/v1/internal/reap-expired`, an expired proposal nobody looks at stays stored as proposed - though anyone who reads or acts on it finds it expired.
+- Notifications arrive through the bell, which checks every 30 seconds while the tab is visible, and by email; nothing is pushed. Each email is sent once and never retried, and real delivery needs SMTP or Resend set up at deployment. Notifications are deleted 90 days after they are written.
+- The per-request limits are counted in memory, per server process, and start again after a restart; the ones that matter most for abuse (invites, proposals, organisations) are counted in the database.
+- Search and generation times were measured on a laptop, not on the deployed server.
+
+## Running it locally
+
+```bash
+npm install
+cp backend/.env.example backend/.env   # optional in development
+npm run dev                            # backend :4917 + frontend :5173
+```
+
+`/api` is proxied from the Vite dev server to the backend, so the frontend calls relative paths. The database needs to be a replica set (Atlas is one), since organisation creation and swaps use transactions; `cd backend && npm run db:check` is a read-only check that explains any connection failure. `backend/.env.example` and `frontend/.env.example` describe every setting.
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Runs both workspaces |
+| `npm test` | Backend tests (Vitest + mongodb-memory-server), then the frontend's |
+| `npm run lint` | ESLint across both workspaces |
+| `npm run build` | Production build of the frontend |
+| `npm run e2e` | The end-to-end suite in a real browser, against an in-memory database |
+| `npm run scan:secrets` | The secret scan CI runs, over the whole git history |
+| `npm run evaluate`, `evaluate:fairness`, `benchmark:swaps` (in `backend/`) | The measured results above |
+
+**Demo data.** `cd backend && npm run seed:demo -- --yes` fills a database whose name ends in `-demo` with the demo ward: an owner, a manager and twelve nurses and healthcare assistants on `relay.test` addresses (password `relay-demo-2026`, printed by the script), five published weeks generated by the real engine, a two-week draft, six open swap requests showing each kind of answer the finder gives, and two proposed swaps. The data is the same on every run - only the dates move - and so are the people in each story: `dara@relay.test` has a request only a three-person chain resolves, `elif@relay.test` a direct swap, `grace@relay.test` none because of the days she cannot work, `bilal@relay.test` a charge nurse shift nobody offering could take, `jonas@relay.test` a proposed swap to answer, and the owner or manager a swap to approve. It refuses to run without `--yes` or against a database not named `...-demo`, and each run removes only what the last run made - found by fixed ids, never by anything another organisation could share.
+
+**End-to-end tests.** `npm install --prefix e2e` once, then `npm run e2e` - it builds the frontend in demo mode, starts the backend and a preview server on free ports against an in-memory database filled by the demo seed, runs every spec in order, and tears it all down (about six minutes). It uses the Microsoft Edge already on the machine; without Edge, `npx --prefix e2e playwright install chromium` and run with `E2E_CHANNEL=chromium`. Reports, screenshots and measured figures land in `e2e/artifacts/`, which git ignores.

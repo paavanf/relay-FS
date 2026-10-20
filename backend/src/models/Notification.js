@@ -13,8 +13,12 @@
 //   readAt       when its reader opened it, or marked everything read
 //   emailedAt    when it was claimed for email - the claim is what makes
 //                "never two emails for the same event" hold
+//
+// Each one is deleted NOTIFICATION_TTL_DAYS (90) after it was written, by the
+// TTL index on createdAt below.
 
 import mongoose from 'mongoose';
+import { NOTIFICATION_TTL_DAYS } from '../config/constants.js';
 
 const { ObjectId } = mongoose.Schema.Types;
 
@@ -59,6 +63,10 @@ notificationSchema.index({ membershipId: 1, _id: -1 });
 notificationSchema.index({ membershipId: 1, readAt: 1 });
 // Each person hears about each event once, enforced by the database.
 notificationSchema.index({ dedupeKey: 1 }, { unique: true, partialFilterExpression: { dedupeKey: { $type: 'string' } } });
+// Old ones go: MongoDB's TTL monitor (it wakes about once a minute) deletes a
+// notification once createdAt is NOTIFICATION_TTL_DAYS old. Its dedupeKey goes
+// with it, which is harmless - every event is reported when it happens.
+notificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: NOTIFICATION_TTL_DAYS * 24 * 60 * 60 });
 
 export const Notification = mongoose.models.Notification ?? mongoose.model('Notification', notificationSchema);
 

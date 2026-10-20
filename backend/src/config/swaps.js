@@ -36,10 +36,6 @@ export const SWAP_SEARCH = Object.freeze({
   contextDays: 14,
 });
 
-// Searching is expensive, so the options endpoint gets a tighter budget than
-// ordinary reads: per person, per minute.
-export const SWAP_OPTIONS_RATE_LIMIT = Object.freeze({ windowMs: 60_000, max: 20 });
-
 export const SWAP_NOTE_MAX_LENGTH = 280;
 
 // The kinds of shift an offer can say it would take in return - the shift

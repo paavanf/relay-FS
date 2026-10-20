@@ -6,9 +6,14 @@
 // Every function here takes a user document that is known to exist. Nothing
 // in this file may run for an unknown email, or the timing and the messages
 // would reveal which addresses are registered.
+//
+// The shared demo accounts are never locked: their password is published on
+// the login page, so a lock protects nothing - it only lets one visitor shut
+// every later visitor out with five wrong guesses.
 
 import { MAX_FAILED_LOGIN_ATTEMPTS, ACCOUNT_LOCKOUT_MINUTES } from '../../config/constants.js';
 import { AppError } from '../../errors/AppError.js';
+import { isDemoUser } from '../../config/demo.js';
 
 // "in 3 minutes" reads better than "in 174 seconds", and rounding up never
 // tells someone to come back before the lock has actually lifted.
@@ -18,7 +23,7 @@ function describeWait(lockedUntil) {
 }
 
 export function isLocked(user) {
-  return Boolean(user.lockedUntil && user.lockedUntil > new Date());
+  return !isDemoUser(user._id) && Boolean(user.lockedUntil && user.lockedUntil > new Date());
 }
 
 // Called before the password is verified, so a locked account cannot be
@@ -26,13 +31,14 @@ export function isLocked(user) {
 export function assertNotLocked(user) {
   if (!isLocked(user)) return;
 
-  throw AppError.tooManyRequests(
-    `Too many failed attempts. Try again in ${describeWait(user.lockedUntil)}.`,
-  );
+  throw AppError.tooManyRequests(`Too many failed attempts. Try again in ${describeWait(user.lockedUntil)}.`, {
+    retryAfterMs: user.lockedUntil.getTime() - Date.now(),
+  });
 }
 
 // One wrong password. Locks the account on the attempt that hits the limit.
 export async function recordFailedAttempt(user) {
+  if (isDemoUser(user._id)) return;
   const attempts = (user.failedLoginAttempts ?? 0) + 1;
 
   if (attempts >= MAX_FAILED_LOGIN_ATTEMPTS) {

@@ -1,5 +1,6 @@
 // coverage.routes.js
-// Mounted under /orgs/:orgId/coverage.
+// Mounted under /orgs/:orgId/coverage. Changes are for managers and owners,
+// and locked in the shared demo organisation (refuseInDemo.js).
 //
 // PUT rather than POST because the write is an upsert of one rule, keyed by
 // (shift template, day of week): sending it twice leaves the same state.
@@ -10,6 +11,7 @@ import { validate } from '../middleware/validate.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { resolveMembership } from '../middleware/resolveMembership.js';
 import { authorize } from '../middleware/authorize.js';
+import { refuseInDemo } from '../middleware/refuseInDemo.js';
 import { MANAGER_ROLES } from '../config/constants.js';
 import {
   upsertCoverageSchema,
@@ -34,6 +36,7 @@ router.put(
   validate({ params: orgIdParamSchema, body: upsertCoverageSchema }),
   resolveMembership,
   authorize(MANAGER_ROLES),
+  refuseInDemo,
   asyncHandler(upsert),
 );
 
@@ -43,6 +46,7 @@ router.delete(
   validate({ params: coverageIdParamSchema }),
   resolveMembership,
   authorize(MANAGER_ROLES),
+  refuseInDemo,
   asyncHandler(remove),
 );
 

@@ -55,14 +55,14 @@ describe('who hears about what', () => {
     expect(wrens.link).toBe(`/app/${world.orgId}/my-shifts`);
   });
 
-  it('a proposal: everyone in it but the proposer; acceptances go to the proposer, and so does a decline', async () => {
+  it('a proposal: everyone in it but the proposer; acceptances go to the proposer, a decline to everyone else in it', async () => {
     const chain = await wrenProposes(api, world);
     expect(await told('swap_proposed')).toEqual(['sam', 'tess']);
 
     await api.act(world.people.sam, chain.id, 'accept');
     expect(await told('swap_accepted')).toEqual(['wren']);
     await api.act(world.people.tess, chain.id, 'decline');
-    expect(await told('swap_declined')).toEqual(['wren']);
+    expect(await told('swap_declined')).toEqual(['sam', 'wren']);
   });
 
   it('waiting for approval: every manager and owner - then, approved, everyone in it, once', async () => {

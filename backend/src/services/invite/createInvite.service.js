@@ -9,13 +9,18 @@
 
 import { Invite, Organisation } from '../../models/index.js';
 import { generateToken, hashToken } from '../../utils/crypto.js';
-import { constants } from '../../config/constants.js';
+import { INVITE_EXPIRY_HOURS, INVITE_LIMIT } from '../../config/constants.js';
 import { env } from '../../config/env.js';
 import { sendInviteEmail } from '../email/email.service.js';
 import { assertOwnQualifications } from '../qualification/assertOwnQualifications.js';
 import { inviterNames } from './inviterNames.js';
+import { assertUnderLimit } from '../limits/windowLimit.js';
 
 export async function createInvite({ orgId, email, role, qualificationIds, createdBy }) {
+  // Each invite is an email to an address someone typed in: a daily cap per
+  // organisation keeps invites from becoming a spam channel. Revoked ones count.
+  await assertUnderLimit(Invite, { orgId }, INVITE_LIMIT, `This organisation has sent ${INVITE_LIMIT.max} invites in the last 24 hours, the most it can send in a day.`);
+
   // The qualifications travel onto the membership when the invite is accepted,
   // so they must be this organisation's.
   await assertOwnQualifications(orgId, qualificationIds);
@@ -26,7 +31,7 @@ export async function createInvite({ orgId, email, role, qualificationIds, creat
   const tokenHash = hashToken(rawToken);
 
   const expiresAt = new Date();
-  expiresAt.setHours(expiresAt.getHours() + constants.INVITE_EXPIRY_HOURS);
+  expiresAt.setHours(expiresAt.getHours() + INVITE_EXPIRY_HOURS);
 
   const invite = await Invite.create({ orgId, email, role, qualificationIds, tokenHash, expiresAt, createdBy });
 

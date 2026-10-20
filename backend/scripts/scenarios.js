@@ -8,47 +8,15 @@
 // Shared by evaluate-generation.js and export-landing-fixture.js, so the
 // numbers printed by `npm run evaluate` and the landing-page demo come from
 // identical runs. Change them here and both move together. The swap
-// benchmark (benchmark-swaps.js) builds its wards from the same staff and rules.
+// benchmark (benchmark-swaps.js) builds its wards from the same staff and
+// rules, which live in scenarioParts.js.
 export const SEED = 20260309;
 export const MAX_ITERATIONS = 4000;
 
-const DAY = { id: 't-day', name: 'Day', startLocal: '07:00', endLocal: '15:00', crossesMidnight: false, category: 'day', burdenWeight: 1 };
-const EVE = { id: 't-eve', name: 'Evening', startLocal: '15:00', endLocal: '23:00', crossesMidnight: false, category: 'evening', burdenWeight: 1.3 };
-const NIGHT = { id: 't-night', name: 'Night', startLocal: '23:00', endLocal: '07:00', crossesMidnight: true, category: 'night', burdenWeight: 1.8 };
+import { DAY, EVE, NIGHT, QUALS, WARD_RULES, staff, everyDay } from './scenarioParts.js';
 
-const QUALS = [
-  { id: 'RN', name: 'Registered Nurse' },
-  { id: 'CN', name: 'Charge Nurse' },
-  { id: 'HCA', name: 'Healthcare Assistant' },
-  { id: 'PHLEB', name: 'Phlebotomist' },
-];
-
-// Deterministic staff list - index decides who holds what, so no randomness.
-export function staff(count, prefix = 'w') {
-  return Array.from({ length: count }, (_, i) => {
-    const qualificationIds = ['RN'];
-    if (i % 4 === 0) qualificationIds.push('CN');
-    if (i % 3 === 0) qualificationIds.push('HCA');
-    if (i % 7 === 0) qualificationIds.push('PHLEB');
-    return { membershipId: `${prefix}${i}`, qualificationIds, contractedHoursPerWeek: 37.5 };
-  });
-}
-
-export function everyDay(requirementsByTemplate) {
-  const rules = [];
-  for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek += 1) {
-    for (const [shiftTemplateId, requirements] of Object.entries(requirementsByTemplate)) {
-      rules.push({ shiftTemplateId, dayOfWeek, requirements });
-    }
-  }
-  return rules;
-}
-
-const WARD_RULES = everyDay({
-  't-day': [{ qualificationId: 'RN', count: 4 }, { qualificationId: 'CN', count: 1 }],
-  't-eve': [{ qualificationId: 'RN', count: 3 }, { qualificationId: 'CN', count: 1 }],
-  't-night': [{ qualificationId: 'RN', count: 2 }, { qualificationId: 'CN', count: 1 }],
-});
+// The swap benchmark (swapBenchmarkWards.js) builds its wards from these too.
+export { staff, everyDay };
 
 export const SCENARIOS = [
   {

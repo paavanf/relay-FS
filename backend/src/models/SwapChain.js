@@ -70,6 +70,8 @@ swapChainSchema.index({ orgId: 1, status: 1, expiresAt: 1 });
 swapChainSchema.index({ 'legs.membershipId': 1, status: 1 });
 // The reaper's sweep across every organisation.
 swapChainSchema.index({ status: 1, expiresAt: 1 });
+// One person's proposals, newest first: the hourly proposal limit counts them.
+swapChainSchema.index({ proposerId: 1, createdAt: -1 });
 
 export const SwapChain = mongoose.models.SwapChain ?? mongoose.model('SwapChain', swapChainSchema);
 

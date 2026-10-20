@@ -1,13 +1,15 @@
 import { ERROR_CODES } from '../config/constants.js';
 
 export class AppError extends Error {
-  constructor(message, statusCode = 500, { code, details, cause, isOperational = true } = {}) {
+  constructor(message, statusCode = 500, { code, details, cause, isOperational = true, retryAfterMs } = {}) {
     super(message, { cause });
     this.name = 'AppError';
     this.statusCode = statusCode;
     this.code = code ?? ERROR_CODES.INTERNAL;
     this.details = details;
     this.isOperational = isOperational;
+    // For a 429: how long until trying again can work. Sent as Retry-After.
+    this.retryAfterMs = retryAfterMs;
     Error.captureStackTrace?.(this, AppError);
   }
 
@@ -31,10 +33,18 @@ export class AppError extends Error {
     return new AppError(message, 409, { code: ERROR_CODES.CONFLICT, ...options });
   }
 
-  // Used for per-account lockout as well as the IP rate limiter, so the
-  // caller can tell the difference between "slow down" and "wrong password".
+  // Every limit uses this - the lockout, the address limits and the abuse
+  // limits - so a client can tell "slow down" from "wrong password". The
+  // message says when to try again; options.retryAfterMs says it to machines.
   static tooManyRequests(message = 'Too many requests', options) {
     return new AppError(message, 429, { code: ERROR_CODES.RATE_LIMITED, ...options });
+  }
+
+  // The shared demo organisation's locked setup, and its accounts kept in it
+  // (config/demo.js has the messages). A 403 with a code of its own, so the
+  // frontend can tell "locked in the demo" from "not your role".
+  static demoLocked(message) {
+    return new AppError(message, 403, { code: ERROR_CODES.DEMO_LOCKED });
   }
 
   static validation(details, message = 'Validation failed') {

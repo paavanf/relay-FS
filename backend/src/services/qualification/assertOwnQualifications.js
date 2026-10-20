@@ -5,6 +5,9 @@
 // attach another organisation's qualification to a member, an invite or a
 // coverage rule - and a coverage rule demanding a qualification nobody here
 // can ever hold leaves its slot unfillable for good.
+//
+// A 404, like any other organisation's record named under this one: from
+// here it does not exist, and saying more would confirm that it does.
 
 import { Qualification } from '../../models/index.js';
 import { AppError } from '../../errors/AppError.js';
@@ -15,6 +18,6 @@ export async function assertOwnQualifications(orgId, qualificationIds = []) {
 
   const found = await Qualification.countDocuments({ orgId, _id: { $in: unique } });
   if (found !== unique.length) {
-    throw AppError.badRequest('One or more qualifications do not belong to this organisation.');
+    throw AppError.notFound('Qualification not found');
   }
 }

@@ -13,9 +13,7 @@ beforeAll(async () => {
   app = createApp();
 }, 120_000);
 
-afterAll(async () => {
-  await stopTestDb();
-});
+afterAll(stopTestDb);
 
 beforeEach(async () => {
   await clearTestDb();

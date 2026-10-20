@@ -5,7 +5,8 @@
 // action: the person who proposes, cancels or rejects is not notified of it.
 //
 //   proposed            everyone in it except the proposer       (emailed)
-//   accepted, declined  the proposer
+//   accepted            the proposer
+//   declined            everyone in it but whoever declined
 //   awaiting_approval   the organisation's managers and owners   (emailed)
 //   committed, failed, expired   everyone in it
 //   cancelled, rejected          everyone in it but whoever did it
@@ -23,7 +24,10 @@ const EVENTS = {
     email: (w) => ({ subject: `${w.actor} proposed a shift swap to you`, label: 'See the proposal' }),
   },
   swap_accepted: { to: 'proposer', say: (w) => `${w.actor} accepted your swap proposal.` },
-  swap_declined: { to: 'proposer', say: (w) => `${w.actor} declined your swap proposal, so it is off. Your offer is open again.` },
+  swap_declined: {
+    to: 'others',
+    say: (w) => `${w.actor} declined ${w.yours ? 'your swap proposal' : `the swap ${w.proposer} proposed`}, so it is off. Your offer is open again.`,
+  },
   swap_awaiting_approval: {
     to: 'managers',
     page: 'swaps/approvals',
@@ -70,6 +74,8 @@ export async function swapNotices(event, { chain, actorId = null }) {
     const words = {
       actor: names.get(actor) ?? 'Someone',
       approver: approverId ? names.get(String(approverId)) : null,
+      proposer: names.get(String(chain.proposerId)) ?? 'someone',
+      yours: membershipId === String(chain.proposerId),
       people: listWords(chain.legs.map((l) => names.get(String(l.membershipId)) ?? 'a team member')),
       gives: leg ? shiftWords(shifts.get(String(leg.givesAssignmentId))) : '',
       takes: leg ? shiftWords(shifts.get(String(leg.receivesAssignmentId))) : '',

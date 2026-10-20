@@ -1,6 +1,8 @@
 // organisation.routes.js
 // Wires organisation endpoints. Middleware order matters here:
 // authenticate -> validate -> resolveMembership -> authorize -> controller.
+// Changing the rules is locked in the shared demo organisation
+// (middleware/refuseInDemo.js), after authorize.
 //
 // Members (member.routes.js) and invites (invite.routes.js and
 // orgInvite.routes.js) have routers of their own.
@@ -11,6 +13,7 @@ import { validate } from '../middleware/validate.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { resolveMembership } from '../middleware/resolveMembership.js';
 import { authorize } from '../middleware/authorize.js';
+import { refuseInDemo } from '../middleware/refuseInDemo.js';
 import { MANAGER_ROLES } from '../config/constants.js';
 import {
   createOrgSchema,
@@ -48,6 +51,7 @@ router.put(
   validate({ params: orgIdParamSchema, body: updateRosterRulesSchema }),
   resolveMembership,
   authorize(MANAGER_ROLES),
+  refuseInDemo,
   asyncHandler(saveRosterRules),
 );
 
@@ -61,6 +65,7 @@ router.put(
   validate({ params: orgIdParamSchema, body: updateSwapRulesSchema }),
   resolveMembership,
   authorize(MANAGER_ROLES),
+  refuseInDemo,
   asyncHandler(saveSwapRules),
 );
 

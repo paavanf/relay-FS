@@ -1,31 +1,49 @@
+// app.js
+// Builds the Express app: security headers, CORS, body parsing, the request
+// log, the address-wide rate limit, every route, and the error handler.
+// server.js starts it; the tests build their own with createApp().
+
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import pinoHttp from 'pino-http';
 
 import routes from './routes/index.js';
 import healthRoutes from './routes/health.routes.js';
 import { requestContext } from './middleware/requestContext.js';
+import { apiLimiter } from './middleware/rateLimiters.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { env } from './config/env.js';
-import { API_PREFIX, API_V1_PREFIX, JSON_BODY_LIMIT, RATE_LIMIT } from './config/constants.js';
+import { API_PREFIX, API_V1_PREFIX, JSON_BODY_LIMIT } from './config/constants.js';
 import { logger } from './utils/logger.js';
+import { requestForLog, responseForLog } from './utils/logSafety.js';
 
 export function createApp() {
   const app = express();
 
   app.disable('x-powered-by');
-  app.set('trust proxy', 1);
+
+  // How many proxies stand between the internet and this server (TRUST_PROXY,
+  // off by default). Express then takes the client's address from
+  // X-Forwarded-For, counting that many hops back from the right, and req.ip -
+  // so every per-address rate limit - uses it.
+  //   too low  - 0 behind a proxy: every request seems to come from the proxy,
+  //              so all visitors share one count and run out together.
+  //   too high - more hops than there are proxies: the extra entries are
+  //              whatever the client wrote in the header, so anyone can claim a
+  //              fresh address per request and walk past every limit.
+  // Set it to exactly the number of proxies the deployment runs behind.
+  app.set('trust proxy', env.TRUST_PROXY || false);
 
   app.use(requestContext);
   app.use(
     pinoHttp({
       logger,
       genReqId: (req) => req.id,
+      serializers: { req: requestForLog, res: responseForLog },
       autoLogging: { ignore: (req) => req.url === `${API_PREFIX}/health` },
     }),
   );
@@ -37,18 +55,6 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true, limit: JSON_BODY_LIMIT }));
   app.use(cookieParser());
   app.use(mongoSanitize());
-
-  const apiLimiter = rateLimit({
-    windowMs: RATE_LIMIT.windowMs,
-    max: RATE_LIMIT.max,
-    standardHeaders: true,
-    legacyHeaders: false,
-    // Off in test mode, like the auth limiter: an automated run drives the
-    // whole API from one address, and the end-to-end suite makes more than
-    // 300 requests in a run, so it would fail on 429s that say nothing about
-    // the code under test.
-    skip: () => env.isTest,
-  });
 
   // Unversioned liveness probe. Kept at /api/health so uptime checks and the
   // frontend status indicator never have to follow the API version.

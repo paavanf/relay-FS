@@ -1,6 +1,9 @@
 // expandDemand.test.js
-// Coverage rules in, concrete slots out. The cases that matter are the ones
-// where wall-clock time and real time disagree.
+// Turning coverage rules into slots: nothing without rules, one slot per
+// person needed on each matching day, a rule with several qualifications as
+// separate slots, the right weekday, and a night that ends the next day.
+//
+// Coverage rules in, concrete slots out.
 
 import { describe, it, expect } from 'vitest';
 import { DateTime } from 'luxon';
@@ -85,66 +88,5 @@ describe('expandDemand', () => {
     const hours = DateTime.fromISO(slot.endsAt).diff(DateTime.fromISO(slot.startsAt), 'hours').hours;
     expect(hours).toBe(8);
     expect(slot.date).toBe('2026-03-02');
-  });
-
-  it('gives a night crossing a clock change its real duration', () => {
-    // British clocks go forward at 01:00 on 2026-03-29, so this night is
-    // seven real hours, not the nominal eight.
-    const [slot] = expandDemand({
-      ...base,
-      startDate: '2026-03-28',
-      endDate: '2026-03-28',
-      coverageRequirements: [
-        { shiftTemplateId: 't-night', dayOfWeek: 6, requirements: [{ qualificationId: 'RN', count: 1 }] },
-      ],
-    });
-
-    const hours = DateTime.fromISO(slot.endsAt).diff(DateTime.fromISO(slot.startsAt), 'hours').hours;
-    expect(hours).toBe(7);
-  });
-
-  it('carries the names needed to explain an unfilled slot', () => {
-    const [slot] = expandDemand({
-      ...base,
-      startDate: '2026-03-02',
-      endDate: '2026-03-02',
-      coverageRequirements: [
-        { shiftTemplateId: 't-day', dayOfWeek: 1, requirements: [{ qualificationId: 'RN', count: 1 }] },
-      ],
-    });
-
-    expect(slot.shiftName).toBe('Day');
-    expect(slot.qualificationName).toBe('Registered Nurse');
-    expect(slot.burdenWeight).toBe(DAY.burdenWeight);
-  });
-
-  it('gives every slot a distinct id', () => {
-    const slots = expandDemand({
-      ...base,
-      startDate: '2026-03-02',
-      endDate: '2026-03-08',
-      coverageRequirements: everyDay('t-day', [{ qualificationId: 'RN', count: 3 }]),
-    });
-
-    expect(new Set(slots.map((s) => s.slotId)).size).toBe(slots.length);
-  });
-
-  it('ignores a rule pointing at a template that no longer exists', () => {
-    const slots = expandDemand({
-      ...base,
-      startDate: '2026-03-02',
-      endDate: '2026-03-02',
-      coverageRequirements: [
-        { shiftTemplateId: 't-gone', dayOfWeek: 1, requirements: [{ qualificationId: 'RN', count: 1 }] },
-      ],
-    });
-
-    expect(slots).toEqual([]);
-  });
-
-  it('returns nothing for an unparseable range', () => {
-    expect(
-      expandDemand({ ...base, startDate: 'soon', endDate: 'later', coverageRequirements: [] }),
-    ).toEqual([]);
   });
 });

@@ -4,7 +4,8 @@
 // Any member may list the team, and read or change their own preferences
 // (/me/preferences - "Email me about swaps and rosters"). Changing or
 // deactivating someone is for managers and owners - and which of the two
-// may do what (roles are owner-only) is enforced in the services.
+// may do what (roles are owner-only) is enforced in the services. Both are
+// locked in the shared demo organisation (middleware/refuseInDemo.js).
 //
 // mergeParams so :orgId survives the mount path and reaches resolveMembership.
 
@@ -14,6 +15,7 @@ import { validate } from '../middleware/validate.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { resolveMembership } from '../middleware/resolveMembership.js';
 import { authorize } from '../middleware/authorize.js';
+import { refuseInDemo } from '../middleware/refuseInDemo.js';
 import { MANAGER_ROLES } from '../config/constants.js';
 import { orgIdParamSchema } from '../validators/organisation.validators.js';
 import { membershipIdParamSchema, updateMemberSchema } from '../validators/member.validators.js';
@@ -41,6 +43,7 @@ router.patch(
   validate({ params: membershipIdParamSchema, body: updateMemberSchema }),
   resolveMembership,
   authorize(MANAGER_ROLES),
+  refuseInDemo,
   asyncHandler(update),
 );
 
@@ -51,6 +54,7 @@ router.delete(
   validate({ params: membershipIdParamSchema }),
   resolveMembership,
   authorize(MANAGER_ROLES),
+  refuseInDemo,
   asyncHandler(deactivate),
 );
 

@@ -41,6 +41,7 @@ describe('accepting an invite', () => {
       orgTimezone: 'Europe/London',
       role: 'member',
       qualificationIds: [],
+      isDemo: false,
     });
     const me = await request(app).get('/api/v1/auth/me').set(auth(nurse));
     expect(me.body.memberships.map((m) => m.orgId)).toContain(orgId);

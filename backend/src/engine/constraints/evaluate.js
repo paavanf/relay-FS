@@ -13,13 +13,13 @@
 //   a search loop - none of which can usefully catch.
 //
 //   Constraints only ever see well-formed data. Anything unusable is filtered
-//   out here and reported, so each constraint can be a short, total function
-//   instead of defending itself. There is no blanket try/catch around them: a
+//   out here (cleanInput.js) and reported, so each constraint can be a short,
+//   total function instead of defending itself. There is no blanket try/catch around them: a
 //   genuine bug should fail a test loudly, not hide behind a swallowed error.
 
 import { HARD_CONSTRAINTS } from './hard/index.js';
 import { SOFT_CONSTRAINTS } from './soft/index.js';
-import { isValidInstant, isValidZone, toMillis } from '../time.js';
+import { partition, malformedViolation, normaliseContext } from './cleanInput.js';
 
 /**
  * @param {import('../types.js').EngineAssignment[]} assignments
@@ -85,74 +85,4 @@ export function canAssign(candidateAssignment, existingAssignments, context) {
 
   const violations = hardViolations.filter((v) => v.assignmentIds.includes(candidate.id));
   return { allowed: violations.length === 0, violations };
-}
-
-// An assignment is usable if we can place it on a timeline and attribute it to
-// someone. Anything else cannot be reasoned about at all.
-function partition(assignments) {
-  const usable = [];
-  const malformed = [];
-
-  for (const assignment of assignments) {
-    const problem = describeProblem(assignment);
-    if (problem) malformed.push(malformedViolation(assignment, problem));
-    else usable.push(assignment);
-  }
-
-  return { usable, malformed };
-}
-
-function describeProblem(assignment) {
-  if (!assignment || typeof assignment !== 'object') return 'Not an assignment object.';
-  if (typeof assignment.membershipId !== 'string' || assignment.membershipId.length === 0) {
-    return 'Missing membershipId.';
-  }
-  if (typeof assignment.id !== 'string' || assignment.id.length === 0) return 'Missing id.';
-  if (!isValidInstant(assignment.startsAt)) return 'startsAt is not a valid instant.';
-  if (!isValidInstant(assignment.endsAt)) return 'endsAt is not a valid instant.';
-  if (toMillis(assignment.endsAt) <= toMillis(assignment.startsAt)) {
-    return 'Ends at or before it starts.';
-  }
-  return null;
-}
-
-function malformedViolation(assignment, reason) {
-  return {
-    code: 'MALFORMED_ASSIGNMENT',
-    severity: 'hard',
-    membershipId: typeof assignment?.membershipId === 'string' ? assignment.membershipId : '',
-    assignmentIds: typeof assignment?.id === 'string' ? [assignment.id] : [],
-    message: `Assignment cannot be evaluated: ${reason}`,
-    details: { reason },
-  };
-}
-
-// Fills in whatever the caller left out, so every constraint can read
-// context.workers, context.coverage and so on without guarding first.
-function normaliseContext(context) {
-  const given = context && typeof context === 'object' ? context : {};
-  const rules = given.rules && typeof given.rules === 'object' ? given.rules : {};
-
-  return {
-    workers: asArray(given.workers),
-    shiftTemplates: asArray(given.shiftTemplates),
-    availability: asArray(given.availability),
-    coverage: asArray(given.coverage),
-    // An unusable limit means "not configured": each constraint sits out
-    // rather than inventing a default and rejecting a roster for a rule
-    // nobody actually set.
-    rules: {
-      minRestHours: rules.minRestHours,
-      maxConsecutiveDays: rules.maxConsecutiveDays,
-      maxHoursPerWeek: rules.maxHoursPerWeek,
-    },
-    // A bad timezone would make every date calculation silently wrong, so fall
-    // back to UTC rather than producing confident nonsense.
-    timezone: isValidZone(given.timezone) ? given.timezone : 'utc',
-    fairnessDebt: given.fairnessDebt,
-  };
-}
-
-function asArray(value) {
-  return Array.isArray(value) ? value.filter((item) => item && typeof item === 'object') : [];
 }

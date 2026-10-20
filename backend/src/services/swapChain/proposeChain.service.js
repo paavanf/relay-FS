@@ -8,13 +8,17 @@
 // roles were recorded can never be part of a chain: the finder leaves such
 // offers out, and one offered by the proposer is refused here.
 //
-// Then reserveChain.js holds every shift in it, in one transaction.
+// Then reserveChain.js holds every shift in it, in one transaction. First,
+// though, the hourly limit: each proposal notifies, and emails, everyone in
+// it, so one person's burst of proposals is a burst of messages to others.
 
-import { Assignment, Organisation, SwapRequest } from '../../models/index.js';
+import { Assignment, Organisation, SwapChain, SwapRequest } from '../../models/index.js';
 import { AppError } from '../../errors/AppError.js';
 import { findSwapOptions } from '../../engine/index.js';
 import { isManagerRole } from '../../utils/roles.js';
 import { DEFAULT_SWAP_POLICY } from '../../config/swaps.js';
+import { SWAP_PROPOSAL_LIMIT } from '../../config/constants.js';
+import { assertUnderLimit } from '../limits/windowLimit.js';
 import { loadSwapSearch } from '../swap/loadSwapSearch.service.js';
 import { optionKeyOf, OPTIONS_CHANGED, ROLELESS_SHIFT } from '../swap/optionKey.js';
 import { expireDueChains } from './expireDueChains.js';
@@ -33,7 +37,10 @@ async function offerToPropose({ orgId, membership, swapRequestId, now }) {
   return request;
 }
 
+const TOO_MANY = `You have proposed ${SWAP_PROPOSAL_LIMIT.max} swaps in the last hour, the most anyone can in an hour.`;
+
 export async function proposeChain({ orgId, membership, swapRequestId, optionKey, now = new Date() }) {
+  await assertUnderLimit(SwapChain, { proposerId: membership._id }, SWAP_PROPOSAL_LIMIT, TOO_MANY);
   await expireDueChains({ orgId, now });
   const request = await offerToPropose({ orgId, membership, swapRequestId, now });
 

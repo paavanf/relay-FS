@@ -74,3 +74,15 @@ export function weekendNight(membershipId, timezone) {
   const startsAt = DateTime.fromISO('2026-03-14T23:00', { zone: timezone });
   return { membershipId, shiftTemplateId: 't-night', startsAt: startsAt.toUTC().toISO(), endsAt: startsAt.plus({ hours: 8 }).toUTC().toISO() };
 }
+
+// A seeded shuffle, so a failing case can be replayed exactly.
+export function shuffled(list, seed) {
+  const copy = [...list];
+  let state = seed >>> 0;
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    state = (state * 1_664_525 + 1_013_904_223) >>> 0;
+    const j = state % (i + 1);
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}

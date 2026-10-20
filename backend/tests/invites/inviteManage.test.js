@@ -86,6 +86,6 @@ describe('managing invites', () => {
       qualificationIds: [String(foreign.body.qualification._id)],
     });
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(404);
   });
 });

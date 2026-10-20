@@ -8,29 +8,8 @@
 // documents it made.
 //
 // The organisation's id is the marker the reset looks for. Everything the
-// demo owns hangs off it, and nothing else in the database carries it.
+// demo owns hangs off it, and nothing else in the database carries it. The
+// scheme lives in src/config/demo.js, because the server uses the same
+// marker to lock the demo's setup and keep its accounts in it.
 
-import mongoose from 'mongoose';
-
-const PREFIX = '64656d6f';
-
-const KINDS = {
-  org: 1,
-  user: 2,
-  membership: 3,
-  qualification: 4,
-  template: 5,
-  coverage: 6,
-  availability: 7,
-  roster: 8,
-  assignment: 9,
-  swapRequest: 10,
-};
-
-/** demoId('user', 3) -> ObjectId('64656d6f0200000000000003') */
-export function demoId(kind, n) {
-  const kindHex = KINDS[kind].toString(16).padStart(2, '0');
-  return new mongoose.Types.ObjectId(PREFIX + kindHex + n.toString(16).padStart(14, '0'));
-}
-
-export const DEMO_ORG_ID = demoId('org', 1);
+export { demoId, DEMO_ORG_ID } from '../../src/config/demo.js';

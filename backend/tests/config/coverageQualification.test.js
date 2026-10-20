@@ -53,6 +53,6 @@ describe('coverage qualifications', () => {
     const otherOwner = await signUp(app, 'Other Owner', 'other@example.com');
     const foreign = await qualificationIn(await createOrg(app, otherOwner, 'Ward B'), otherOwner);
 
-    expect((await putCoverage(foreign)).status).toBe(400);
+    expect((await putCoverage(foreign)).status).toBe(404);
   });
 });

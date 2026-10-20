@@ -3,7 +3,7 @@
 
 import jwt from 'jsonwebtoken';
 import { env } from '../../config/env.js';
-import { constants } from '../../config/constants.js';
+import { ACCESS_TOKEN_EXPIRY } from '../../config/constants.js';
 import { AppError } from '../../errors/AppError.js';
 
 // Sign an access token with just the user ID as the subject.
@@ -11,7 +11,7 @@ import { AppError } from '../../errors/AppError.js';
 // DB so that role changes take effect immediately instead of at next login.
 export function signAccessToken(userId) {
   return jwt.sign({ sub: userId.toString() }, env.JWT_ACCESS_SECRET, {
-    expiresIn: constants.ACCESS_TOKEN_EXPIRY,
+    expiresIn: ACCESS_TOKEN_EXPIRY,
   });
 }
 

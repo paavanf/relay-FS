@@ -5,7 +5,7 @@
 //   fulfilled, the fairness ledger is recomputed, and the audit log and
 //   notifications tell the story in order
 //   declined or rejected: it ends at once, the shifts are let go and the
-//   offers open again, and those it concerns are told why
+//   offers open again, and everyone else in it is told why
 //   while it waits, the people in it see where everyone stands, and the
 //   sidebar counts what is waiting for each of them
 
@@ -67,7 +67,7 @@ describe('a swap from proposal to the end', () => {
     await expectInvariants(before);
   });
 
-  it('declined: it ends at once, the shifts are let go, and the proposer is told', async () => {
+  it('declined: it ends at once, the shifts are let go, and everyone else in it is told', async () => {
     const holders = await holdersNow();
     const chain = await wrenProposes(api, world);
 
@@ -76,9 +76,9 @@ describe('a swap from proposal to the end', () => {
     expect(res.body.chain).toMatchObject({ status: 'declined', endedBy: { action: 'decline', by: { name: 'Tess Third' } } });
     expect(res.body.chain.participants.map((p) => p.state)).toEqual(['accepted', 'waiting', 'declined']);
     await expectNothingChanged(chain.id, 'declined', holders, 3);
-    const told = await Notification.find({ chainId: chain.id, type: 'swap_declined' }).lean();
-    expect(told.map((n) => String(n.membershipId))).toEqual([world.people.wren.membershipId]);
-    expect(told[0].message).toBe('Tess Third declined your swap proposal, so it is off. Your offer is open again.');
+    const told = new Map((await Notification.find({ chainId: chain.id, type: 'swap_declined' }).lean()).map((n) => [String(n.membershipId), n.message]));
+    expect(told.get(world.people.wren.membershipId)).toBe('Tess Third declined your swap proposal, so it is off. Your offer is open again.');
+    expect(told.get(world.people.sam.membershipId)).toBe('Tess Third declined the swap Wren Worker proposed, so it is off. Your offer is open again.');
     await expectInvariants(before);
   });
 

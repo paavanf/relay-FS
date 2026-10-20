@@ -1,18 +1,20 @@
 // emailDelivery.test.js
-// Email is best-effort. These tests pin down what that means in practice: a
-// transport that is broken, or absent entirely, must never turn a password
-// reset or an invite into a failed request.
+// A password reset with a broken email transport still answers 200, and still
+// creates the token, so the link printed to the console works.
 //
-// The transport is mocked to blow up on every send - the worst case, worse
-// than the real one, since deliver() normally catches its own errors. If the
-// flows survive this they survive anything.
+// Email is best-effort: a broken transport must never turn this into a
+// failed request. The transport is mocked to blow up on every send - worse
+// than the real one, since deliver() catches its own errors - so if the flow
+// survives this it survives anything.
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { startTestDb, stopTestDb, clearTestDb } from '../helpers/db.js';
-import { createApp } from '../../src/app.js';
-import { PasswordResetToken, Invite } from '../../src/models/index.js';
-import { env } from '../../src/config/env.js';
+import { PasswordResetToken } from '../../src/models/index.js';
+import { useEmptyDb } from '../helpers/apiTest.js';
+
+const world = useEmptyDb();
+let app;
+beforeEach(() => ({ app } = world));
 
 vi.mock('../../src/services/email/transport.js', () => ({
   EMAIL_TRANSPORT: 'console',
@@ -22,30 +24,7 @@ vi.mock('../../src/services/email/transport.js', () => ({
   }),
 }));
 
-let app;
-
 const owner = { name: 'Owner', email: 'owner@example.com', password: 'password123' };
-
-async function signIn() {
-  await request(app).post('/api/v1/auth/register').send(owner);
-  const login = await request(app)
-    .post('/api/v1/auth/login')
-    .send({ email: owner.email, password: owner.password });
-  return login.body.accessToken;
-}
-
-beforeAll(async () => {
-  await startTestDb();
-  app = createApp();
-}, 120_000);
-
-afterAll(async () => {
-  await stopTestDb();
-});
-
-beforeEach(async () => {
-  await clearTestDb();
-});
 
 describe('password reset with a broken email transport', () => {
   it('still answers 200', async () => {
@@ -65,55 +44,5 @@ describe('password reset with a broken email transport', () => {
     // The reset is usable even though nothing was delivered - which is the
     // whole point of logging the link.
     expect(await PasswordResetToken.countDocuments()).toBe(1);
-  });
-});
-
-describe('invites with a broken email transport', () => {
-  it('still creates the invite and returns a usable link', async () => {
-    const token = await signIn();
-    const org = await request(app)
-      .post('/api/v1/orgs')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Ward B', timezone: 'Asia/Kolkata' });
-
-    const res = await request(app)
-      .post(`/api/v1/orgs/${org.body.id}/invites`)
-      .set('Authorization', `Bearer ${token}`)
-      .send({ email: 'nurse@example.com', role: 'member' });
-
-    expect(res.status).toBe(201);
-    expect(res.body.inviteLink).toContain('/invite/');
-    expect(await Invite.countDocuments()).toBe(1);
-  });
-
-  it('reports emailSent false rather than pretending', async () => {
-    const token = await signIn();
-    const org = await request(app)
-      .post('/api/v1/orgs')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Ward B', timezone: 'Asia/Kolkata' });
-
-    const res = await request(app)
-      .post(`/api/v1/orgs/${org.body.id}/invites`)
-      .set('Authorization', `Bearer ${token}`)
-      .send({ email: 'nurse@example.com', role: 'member' });
-
-    expect(res.body.emailSent).toBe(false);
-  });
-
-  it('builds the link from FRONTEND_URL', async () => {
-    const token = await signIn();
-    const org = await request(app)
-      .post('/api/v1/orgs')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Ward B', timezone: 'Asia/Kolkata' });
-
-    const res = await request(app)
-      .post(`/api/v1/orgs/${org.body.id}/invites`)
-      .set('Authorization', `Bearer ${token}`)
-      .send({ email: 'nurse@example.com', role: 'member' });
-
-    // Not a hardcoded host, and not corsOrigins[0].
-    expect(res.body.inviteLink.startsWith(`${env.FRONTEND_URL}/invite/`)).toBe(true);
   });
 });

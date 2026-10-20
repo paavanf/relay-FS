@@ -1,3 +1,14 @@
+// errorHandler.js
+// Turns anything thrown into the API's one error shape:
+//   { error: { code, message, details?, requestId } }
+//
+// In production nothing internal leaves in a response: a 5xx says only
+// "Internal server error" with no details, no stack trace is sent, a
+// duplicate-key error does not echo the clashing values, and a malformed id
+// does not name the field it was read for. The whole error is still logged,
+// with its request id, for whoever runs the server. A 429 also says when to
+// try again in a Retry-After header.
+
 import { ZodError } from 'zod';
 import mongoose from 'mongoose';
 import { AppError } from '../errors/AppError.js';
@@ -28,13 +39,11 @@ function normalise(err) {
   }
 
   if (err instanceof mongoose.Error.CastError) {
-    return AppError.badRequest(`Invalid value for "${err.path}"`);
+    return AppError.badRequest(env.isProduction ? 'A value in this request is not valid' : `Invalid value for "${err.path}"`);
   }
 
   if (err?.code === 11000) {
-    return AppError.conflict('A record with those details already exists', {
-      details: err.keyValue,
-    });
+    return AppError.conflict('A record with those details already exists', env.isProduction ? {} : { details: err.keyValue });
   }
 
   if (err?.type === 'entity.parse.failed') {
@@ -69,11 +78,13 @@ export function errorHandler(err, req, res, next) {
     log.warn({ requestId: req.id, code: error.code }, error.message);
   }
 
+  const hidden = env.isProduction && error.statusCode >= 500;
+  if (error.retryAfterMs > 0) res.set('Retry-After', String(Math.ceil(error.retryAfterMs / 1000)));
   res.status(error.statusCode).json({
     error: {
       code: error.code,
-      message: error.statusCode >= 500 && env.isProduction ? 'Internal server error' : error.message,
-      ...(error.details ? { details: error.details } : {}),
+      message: hidden ? 'Internal server error' : error.message,
+      ...(error.details && !hidden ? { details: error.details } : {}),
       requestId: req.id,
       ...(env.isProduction ? {} : { stack: error.stack }),
     },

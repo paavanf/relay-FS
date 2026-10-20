@@ -6,31 +6,19 @@
 // see - the services decide whose is whose.
 //
 // The options search is expensive, so it has its own, tighter rate limit,
-// counted per person rather than per address. Off in test mode, like the
-// other limiters: an automated run makes many requests from one place.
+// counted per person rather than per address (middleware/rateLimiters.js).
 
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { validate } from '../middleware/validate.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { resolveMembership } from '../middleware/resolveMembership.js';
-import { env } from '../config/env.js';
-import { SWAP_OPTIONS_RATE_LIMIT } from '../config/swaps.js';
+import { swapSearchLimiter } from '../middleware/rateLimiters.js';
 import { orgIdParamSchema } from '../validators/organisation.validators.js';
 import { createSwapRequestSchema, updateSwapRequestSchema, swapRequestParamSchema } from '../validators/swapRequest.validators.js';
 import { create, list, cancel, update, options } from '../controllers/swapRequest.controller.js';
 
 const router = Router({ mergeParams: true });
-
-const optionsLimiter = rateLimit({
-  windowMs: SWAP_OPTIONS_RATE_LIMIT.windowMs,
-  max: SWAP_OPTIONS_RATE_LIMIT.max,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => `user:${req.userId}`,
-  skip: () => env.isTest,
-});
 
 router.get('/', authenticate, validate({ params: orgIdParamSchema }), resolveMembership, asyncHandler(list));
 
@@ -55,7 +43,7 @@ router.delete('/:requestId', authenticate, validate({ params: swapRequestParamSc
 router.get(
   '/:requestId/options',
   authenticate,
-  optionsLimiter,
+  swapSearchLimiter,
   validate({ params: swapRequestParamSchema }),
   resolveMembership,
   asyncHandler(options),

@@ -19,7 +19,7 @@ export function FairnessImpact({ fairness }) {
 
   return (
     <section aria-label="Fairness">
-      <h4 className="text-label text-content-secondary">Fairness</h4>
+      <h4 className="font-sans text-label text-content-secondary">Fairness</h4>
       <ul className="mt-1 space-y-1.5 text-body-sm">
         {fairness.people.map((person) => (
           <li key={person.membershipId}>

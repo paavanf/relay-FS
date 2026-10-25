@@ -11,7 +11,7 @@ import { formatShortDate } from '../format.js';
 export function UnfilledSlotRow({ slot, onJumpTo }) {
   return (
     <li className="flex items-start gap-3 py-3">
-      <CalendarX className="mt-0.5 size-4 shrink-0 text-warning-content" aria-hidden="true" />
+      <CalendarX className="mt-0.5 size-4 shrink-0 text-danger-content" aria-hidden="true" />
 
       <div className="min-w-0 flex-1">
         <p className="text-body-sm font-medium text-content-primary">

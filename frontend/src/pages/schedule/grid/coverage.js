@@ -34,6 +34,16 @@ export function coverageOn(date, { coverage, templates, qualificationsById, assi
   return { filled: onDay.length, required, short, unrecorded };
 }
 
+/**
+ * 'covered', 'thin' (three quarters or more of the places) or 'short' - the
+ * rule the coverage row has always coloured by, kept here so the Schedule
+ * summary strip says exactly the same thing.
+ */
+export function coverageStatus({ filled, required, short }) {
+  if (short.length === 0 && filled >= required) return 'covered';
+  return filled / required >= 0.75 ? 'thin' : 'short';
+}
+
 /** The coverage cell's full sentence, for its tooltip and for screen readers. */
 export function describeCoverage({ filled, required, short, unrecorded }) {
   if (required === 0) return `${filled} shifts, and no coverage rule for this day.`;

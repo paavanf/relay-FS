@@ -2,7 +2,6 @@
 // organisation, newest first, twenty at a time ("Show older" fetches the
 // next page by cursor, so a new arrival never shuffles the list). Unread ones
 // have a dot and bold text; following one opens its page and marks it read.
-import { BellOff } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { Card } from '../../components/ui/Card.jsx';
@@ -35,7 +34,7 @@ function NotificationsPage() {
         {pages.error && <ErrorState message={pages.error.message} onRetry={pages.refetch} />}
         {pages.data && notifications.length === 0 && (
           <Card>
-            <EmptyState icon={BellOff} title="You're all caught up" description="When a roster is published or a swap needs you, it shows up here." />
+            <EmptyState illustration="bell" title="You're all caught up" description="When a roster is published or a swap needs you, it shows up here." />
           </Card>
         )}
 

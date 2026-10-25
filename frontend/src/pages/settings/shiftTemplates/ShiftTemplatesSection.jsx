@@ -1,7 +1,7 @@
 // ShiftTemplatesSection - the shift patterns this organisation runs.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Clock } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '../../../components/ui/Button.jsx';
 import { Card } from '../../../components/ui/Card.jsx';
 import { Skeleton } from '../../../components/ui/Skeleton.jsx';
@@ -45,7 +45,7 @@ export function ShiftTemplatesSection() {
         (data.length === 0 ? (
           <Card>
             <EmptyState
-              icon={Clock}
+              illustration="setup"
               title="No shift templates yet"
               description="Add one to get started. Coverage rules are set per shift template."
             />

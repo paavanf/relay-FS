@@ -2,15 +2,17 @@
 // How a proposed swap is talked about on the page:
 //
 //   STATUS_WORDS  a short status for its badge - named for what it means,
-//                 like the Badge variants it uses
+//                 like the Badge variants it uses: waiting for someone is
+//                 warning, done is success, an end nobody acted on is
+//                 neutral (DESIGN.md, "Colour")
 //   howItEnded    once it has ended, one sentence saying how: who declined,
 //                 who approved, or why it could not be completed
 //   diagramLabel  the one label its diagram carries for screen readers
 //                 (the sentences beside it say the rest)
 
 export const STATUS_WORDS = {
-  proposed: { label: 'Waiting for everyone to accept', variant: 'brand' },
-  awaiting_approval: { label: 'Waiting for a manager', variant: 'info' },
+  proposed: { label: 'Waiting for everyone to accept', variant: 'warning' },
+  awaiting_approval: { label: 'Waiting for a manager', variant: 'warning' },
   committed: { label: 'Done', variant: 'success' },
   declined: { label: 'Declined', variant: 'neutral' },
   cancelled: { label: 'Cancelled', variant: 'neutral' },

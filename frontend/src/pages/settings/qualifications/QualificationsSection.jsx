@@ -2,7 +2,7 @@
 // manager add, edit, or remove them.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Award } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '../../../components/ui/Button.jsx';
 import { Card } from '../../../components/ui/Card.jsx';
 import { Skeleton } from '../../../components/ui/Skeleton.jsx';
@@ -46,7 +46,7 @@ export function QualificationsSection() {
         (data.length === 0 ? (
           <Card>
             <EmptyState
-              icon={Award}
+              illustration="setup"
               title="No qualifications yet"
               description="Add one to get started. Coverage rules are written in terms of these."
             />

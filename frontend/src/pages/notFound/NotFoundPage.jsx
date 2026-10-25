@@ -11,7 +11,7 @@ function NotFoundPage() {
       <Logo size="md" />
 
       <p className="data mt-8 text-body-sm text-content-tertiary">404</p>
-      <h1 className="mt-2 text-h1 tracking-[-0.01em] text-content-primary">Page not found</h1>
+      <h1 className="mt-2 text-h1 text-content-primary">Page not found</h1>
       <p className="mt-1.5 max-w-sm text-sm text-content-secondary">
         That link does not point anywhere in Relay. It may have moved, or never existed.
       </p>

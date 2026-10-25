@@ -13,7 +13,7 @@ export function SwapRulesNote() {
 
   return (
     <section aria-label="Swap rules" className="rounded-lg border border-line-subtle bg-surface-sunken px-4 py-3">
-      <h2 className="text-label text-content-secondary">Swap rules</h2>
+      <h2 className="font-sans text-label text-content-secondary">Swap rules</h2>
       <ul className="mt-1 space-y-0.5 text-body-sm text-content-secondary">
         {swapRuleSentences(rules.data).map((sentence) => (
           <li key={sentence}>{sentence}</li>

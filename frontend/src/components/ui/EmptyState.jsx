@@ -1,11 +1,17 @@
 // EmptyState - shown when a list has nothing in it yet.
-// `icon` is a lucide component, passed as icon={Calendar}.
+// `illustration` names one of the small drawings in components/illustrations
+// ('calendar', 'swap', 'scale', 'bell', 'setup'); `icon`, a lucide component,
+// is the plainer fallback for places that have no drawing.
+import { ILLUSTRATIONS } from '../illustrations/index.js';
 import { cn } from '../../lib/utils.js';
 
-export function EmptyState({ icon: Icon, title, description, action, className }) {
+export function EmptyState({ illustration, icon: Icon, title, description, action, className }) {
+  const Illustration = ILLUSTRATIONS[illustration];
+
   return (
     <div className={cn('flex flex-col items-center px-6 py-12 text-center', className)}>
-      {Icon && (
+      {Illustration && <Illustration className="mb-5" />}
+      {!Illustration && Icon && (
         <div className="mb-4 rounded-md border border-line-subtle bg-surface-sunken p-2.5">
           <Icon className="size-5 text-content-tertiary" aria-hidden="true" />
         </div>

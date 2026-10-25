@@ -4,6 +4,10 @@
 // real rule check, all rendered from engine output in ./fixtures. It makes no
 // network requests. Logged-in visitors never reach it - RootRedirect sends
 // them into the app.
+//
+// The nav and the hero sit on a full-width band in the rail's deep tone (the
+// same structure as the signed-in app), with the sample roster raised over
+// the band's edge; the sections below sit on the page.
 import { LandingNav } from './nav/index.js';
 import { Hero } from './hero/index.js';
 import { UnfilledStory } from './gaps/index.js';
@@ -20,12 +24,15 @@ function LandingPage() {
     <div className="min-h-full bg-surface-base">
       <LandingNav />
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <main>
         <Hero />
-        <UnfilledStory />
-        <EditCheckSection />
-        <HowItWorks />
-        <GetStarted />
+
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <UnfilledStory />
+          <EditCheckSection />
+          <HowItWorks />
+          <GetStarted />
+        </div>
       </main>
 
       <LandingFooter />

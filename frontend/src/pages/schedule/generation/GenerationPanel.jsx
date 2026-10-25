@@ -3,9 +3,11 @@
 // Generating REPLACES every assignment on the draft, so a roster that
 // already has shifts asks first. Losing an afternoon of manual work to a
 // mis-click is not something to find out about afterwards.
+//
+// A toolbar strip rather than a card: at rest it is one line - what it
+// does, and the button - so it does not compete with the grid below.
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card.jsx';
 import { GenerationStart } from './GenerationStart.jsx';
 import { GenerationProgress } from './GenerationProgress.jsx';
 import { GenerationResult } from './GenerationResult.jsx';
@@ -48,20 +50,14 @@ export function GenerationPanel({ rosterId, assignmentCount }) {
   const isRunning = job?.status === 'queued' || job?.status === 'running' || start.isPending;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Generate</CardTitle>
-      </CardHeader>
+    <div className="space-y-3 rounded-lg border border-line-subtle bg-surface-raised px-4 py-3 elevation-sm">
+      {!isRunning && job?.status !== 'completed' && job?.status !== 'failed' && (
+        <GenerationStart onStart={() => (assignmentCount > 0 ? setConfirming(true) : begin())} />
+      )}
 
-      <CardContent className="space-y-3">
-        {!isRunning && job?.status !== 'completed' && job?.status !== 'failed' && (
-          <GenerationStart onStart={() => (assignmentCount > 0 ? setConfirming(true) : begin())} />
-        )}
-
-        {isRunning && <GenerationProgress job={job} />}
-        {job?.status === 'completed' && <GenerationResult metrics={job.metrics} />}
-        {job?.status === 'failed' && <GenerationError message={job.error} onRetry={begin} />}
-      </CardContent>
+      {isRunning && <GenerationProgress job={job} />}
+      {job?.status === 'completed' && <GenerationResult metrics={job.metrics} />}
+      {job?.status === 'failed' && <GenerationError message={job.error} onRetry={begin} />}
 
       {confirming && (
         <ReplaceWarningDialog
@@ -70,6 +66,6 @@ export function GenerationPanel({ rosterId, assignmentCount }) {
           onClose={() => setConfirming(false)}
         />
       )}
-    </Card>
+    </div>
   );
 }

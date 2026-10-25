@@ -29,7 +29,7 @@ export function Logo({ size = 'md', showText = true, className }) {
       {showText && (
         <span
           className={cn(
-            'font-display font-semibold tracking-[-0.01em] text-content-primary',
+            'font-display font-bold font-stretch-semi-expanded text-content-primary',
             textSizes[size],
           )}
         >

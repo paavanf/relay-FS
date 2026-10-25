@@ -4,7 +4,7 @@
 // loads all three (useCoverageData.js) and says plainly what is missing
 // (CoverageNeedsBasics.jsx) rather than showing a form that could not be sent.
 import { useState } from 'react';
-import { Plus, LayoutGrid } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '../../../components/ui/Button.jsx';
 import { Card } from '../../../components/ui/Card.jsx';
 import { Skeleton } from '../../../components/ui/Skeleton.jsx';
@@ -47,7 +47,7 @@ export function CoverageSection() {
       {coverage.data.length === 0 ? (
         <Card>
           <EmptyState
-            icon={LayoutGrid}
+            illustration="setup"
             title="No coverage rules yet"
             description="Add one to say how many people a shift needs on a given day."
           />

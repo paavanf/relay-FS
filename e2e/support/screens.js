@@ -26,14 +26,18 @@ async function contentHeight(page) {
   });
 }
 
-/** target: capture this element instead of the page. dialog: capture the window as it is. */
-export async function captureAll(page, subject, { target, dialog = false } = {}) {
+/**
+ * target: capture this element instead of the page. dialog: capture the window as it is.
+ * folder: where under e2e/artifacts/ the files go - a design review keeps
+ * its "before" and "after" sets apart (specs/design-review.spec.js).
+ */
+export async function captureAll(page, subject, { target, dialog = false, folder = 'screenshots' } = {}) {
   for (const viewport of [DESKTOP, PHONE]) {
     for (const theme of ['light', 'dark']) {
       await page.setViewportSize(viewport);
       await page.emulateMedia({ colorScheme: theme });
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-      const path = artifactPath('screenshots', `${subject}-${theme}-${viewport.width}.png`);
+      const path = artifactPath(folder, `${subject}-${theme}-${viewport.width}.png`);
 
       if (target) await target.screenshot({ path });
       else if (dialog) await page.screenshot({ path });

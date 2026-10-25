@@ -26,7 +26,7 @@ export function ShiftList({ assignments, templatesById, timezone, offersByAssign
     <div className="space-y-6">
       {groupByWeek(assignments).map(([key, group]) => (
         <section key={key}>
-          <h2 className="mb-2 text-label text-content-secondary">{group.label}</h2>
+          <h2 className="mb-2.5 text-h3 text-content-primary">{group.label}</h2>
 
           <ul className="space-y-2">
             {group.shifts.map((assignment) => {

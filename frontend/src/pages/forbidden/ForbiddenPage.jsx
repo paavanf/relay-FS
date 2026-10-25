@@ -12,7 +12,7 @@ function ForbiddenPage() {
       <ShieldAlert className="size-6 text-warning-content" aria-hidden="true" />
 
       <p className="data mt-6 text-body-sm text-content-tertiary">403</p>
-      <h1 className="mt-2 text-h1 tracking-[-0.01em] text-content-primary">
+      <h1 className="mt-2 text-h1 text-content-primary">
         You cannot open this page
       </h1>
       <p className="mt-1.5 max-w-sm text-sm text-content-secondary">

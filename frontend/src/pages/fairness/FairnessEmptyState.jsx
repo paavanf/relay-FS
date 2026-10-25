@@ -2,7 +2,6 @@
 //
 // Says why it is empty rather than just that it is: fairness is measured from
 // published rosters only, so a team that has only drafts has nothing to show.
-import { Scale } from 'lucide-react';
 import { Card } from '../../components/ui/Card.jsx';
 import { EmptyState } from '../../components/ui/EmptyState.jsx';
 import { RecomputeButton } from './RecomputeButton.jsx';
@@ -13,7 +12,7 @@ export function FairnessEmptyState({ isManager, windowDays }) {
   return (
     <Card>
       <EmptyState
-        icon={Scale}
+        illustration="scale"
         title="Nothing to measure yet"
         description={
           `Fairness is measured from published rosters. Once one is published, this shows how the nights, ` +

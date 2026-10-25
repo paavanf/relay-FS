@@ -6,7 +6,6 @@
 // Fetched every 15 seconds while open, like the Swaps page, so a swap that
 // expires or is called off while a manager is looking drops out on its own.
 // A notification links here with ?chain=<id>, and that swap is outlined.
-import { ShieldCheck } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
 import { Card } from '../../components/ui/Card.jsx';
@@ -36,7 +35,7 @@ function SwapApprovalsPage() {
         {chains.error && <ErrorState message={chains.error.message} onRetry={chains.refetch} />}
         {chains.data && waiting.length === 0 && (
           <Card>
-            <EmptyState icon={ShieldCheck} title="Nothing to approve" description="When everyone in a swap has accepted it, it waits for you here." />
+            <EmptyState illustration="swap" title="Nothing to approve" description="When everyone in a swap has accepted it, it waits for you here." />
           </Card>
         )}
         {waiting.length > 0 && (

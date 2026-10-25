@@ -6,7 +6,7 @@ import { CircleCheck, CircleX } from 'lucide-react';
 export function RuleCheck({ rules }) {
   return (
     <section aria-label="Rule check">
-      <h4 className="text-label text-content-secondary">Rule check</h4>
+      <h4 className="font-sans text-label text-content-secondary">Rule check</h4>
       <ul className="mt-1 space-y-1 text-body-sm">
         {rules.map((person) => {
           const clear = person.hardViolations.length === 0;

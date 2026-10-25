@@ -5,7 +5,7 @@
 //   ChooseAnOffer  where the options will appear, until an offer is chosen
 //                  (wide screens only: on a phone it would only repeat the
 //                  list above it)
-import { ArrowLeftRight, MousePointerClick } from 'lucide-react';
+import { MousePointerClick } from 'lucide-react';
 import { Card } from '../../components/ui/Card.jsx';
 import { EmptyState } from '../../components/ui/EmptyState.jsx';
 import { ButtonLink } from '../../components/ui/ButtonLink.jsx';
@@ -14,7 +14,7 @@ export function NoOffers({ orgId }) {
   return (
     <Card>
       <EmptyState
-        icon={ArrowLeftRight}
+        illustration="swap"
         title="You have not offered any shifts"
         description="Offer a shift you cannot work from My shifts, then come back here to find swaps for it."
         action={

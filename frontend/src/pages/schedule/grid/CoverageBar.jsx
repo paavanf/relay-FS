@@ -1,22 +1,23 @@
 // CoverageBar - places filled versus places needed, per day, role by role.
 //
-// This is how a manager spots a problem without reading a single cell: a
-// column of green means the day is covered, amber means thin, red means
-// something is badly wrong. The number stays short ("5/6"); the cell's
-// tooltip, and what a screen reader hears, say which role is missing - "1
-// Charge Nurse on Day" - which is the difference between a full count and a
-// covered shift. A day with an extra nurse and no charge nurse is not green.
+// This is how a manager spots a problem without reading a single cell: each
+// day is a meter in its status colour - green covered, amber thin, red
+// short - with the count beside it ("5/6"). The cell's tooltip, and what a
+// screen reader hears, say which role is missing - "1 Charge Nurse on Day" -
+// which is the difference between a full count and a covered shift. A day
+// with an extra nurse and no charge nurse is not green.
 //
 // Needed comes from the coverage rules (grid/coverage.js), the same demand
 // the generator was given, so a hand-edited roster is counted honestly too.
 // A day with shifts saved before roles were recorded is judged by headcount.
 import { cn } from '../../../lib/utils.js';
-import { coverageOn, describeCoverage } from './coverage.js';
+import { coverageOn, coverageStatus, describeCoverage } from './coverage.js';
 
-function toneFor({ filled, required, short }) {
-  if (short.length === 0 && filled >= required) return 'bg-success-surface text-success-content';
-  return filled / required >= 0.75 ? 'bg-warning-surface text-warning-content' : 'bg-danger-surface text-danger-content';
-}
+const tones = {
+  covered: { fill: 'bg-success-solid', text: 'text-success-content' },
+  thin: { fill: 'bg-warning-solid', text: 'text-warning-content' },
+  short: { fill: 'bg-danger-solid', text: 'text-danger-content' },
+};
 
 export function CoverageBar({ columns, templates, roles }) {
   return (
@@ -31,14 +32,18 @@ export function CoverageBar({ columns, templates, roles }) {
       {columns.map((column) => {
         const day = coverageOn(column.date, { ...roles, templates });
         const detail = describeCoverage(day);
+        const tone = tones[coverageStatus(day)];
+        const percent = day.required === 0 ? 100 : Math.min(100, Math.round((day.filled / day.required) * 100));
 
         return (
-          <td key={column.date} className="border-b border-l border-line-subtle p-1">
-            <span
-              className={cn('block rounded-sm px-1 py-0.5 text-center text-[11px] font-medium tabular-nums', toneFor(day))}
-              title={detail}
-            >
-              <span aria-hidden="true">{day.required === 0 ? day.filled : `${day.filled}/${day.required}`}</span>
+          <td key={column.date} className="border-b border-l border-line-subtle px-2 py-2">
+            <span className="flex items-center gap-2" title={detail}>
+              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-sunken" aria-hidden="true">
+                <span className={cn('block h-full rounded-full', tone.fill)} style={{ width: `${percent}%` }} />
+              </span>
+              <span className={cn('text-[11px] font-semibold tabular-nums', tone.text)} aria-hidden="true">
+                {day.required === 0 ? day.filled : `${day.filled}/${day.required}`}
+              </span>
               <span className="sr-only">{detail}</span>
             </span>
           </td>

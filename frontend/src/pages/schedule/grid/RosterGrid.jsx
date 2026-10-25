@@ -5,6 +5,7 @@
 // Sticky header and sticky name column; the whole grid renders at once.
 // When nothing in it can be edited - so no cell takes focus - the scrolling
 // panel itself does, so a keyboard can still scroll a wide roster sideways.
+// The grid is the page's one big raised panel (elevation-sm).
 import { buildColumns, indexAssignments, indexTemplates } from './dates.js';
 import { GridHeader } from './GridHeader.jsx';
 import { GridRow } from './GridRow.jsx';
@@ -17,7 +18,7 @@ export function RosterGrid({ roster, assignments, roles, members, templates, can
 
   return (
     <div
-      className="overflow-x-auto rounded-lg border border-line-subtle bg-surface-raised focus-visible:outline-2 focus-visible:outline-line-focus"
+      className="overflow-x-auto rounded-lg border border-line-subtle bg-surface-raised elevation-sm focus-visible:outline-2 focus-visible:outline-line-focus"
       {...(canEdit ? {} : { tabIndex: 0, role: 'region', 'aria-label': `${roster.name} roster` })}
     >
       <table className="w-full border-collapse text-left text-sm tabular-nums">

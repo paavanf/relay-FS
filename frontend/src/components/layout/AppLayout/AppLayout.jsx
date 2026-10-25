@@ -27,7 +27,12 @@ function AppLayout() {
 
   return (
     <div className="flex h-full bg-surface-base">
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-line-subtle bg-surface-raised lg:flex">
+      {/* data-surface="rail": the refreshed design gives the rail its own
+          deep tone (index.css); today's design ignores it. */}
+      <aside
+        data-surface="rail"
+        className="hidden w-60 shrink-0 flex-col border-r border-line-subtle bg-surface-raised lg:flex"
+      >
         <div className="flex h-14 shrink-0 items-center border-b border-line-subtle px-4">
           <Logo size="sm" />
         </div>

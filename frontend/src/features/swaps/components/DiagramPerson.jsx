@@ -6,7 +6,7 @@
 // In a proposed swap each person also shows where they stand - accepted,
 // waiting or declined - as a small badge on their circle AND a word under
 // their name. Never colour alone: the badge's shape (a tick, a clock, a
-// cross) and the word say it too.
+// cross) and the word say it too. Initials are set in the display face.
 
 import { NODE_RADIUS, NAME_BELOW, STATE_BELOW } from './chainLayout.js';
 
@@ -53,7 +53,7 @@ export function DiagramPerson({ person, place, isYou, state }) {
         y={place.y}
         textAnchor="middle"
         dominantBaseline="central"
-        className={`text-[12px] font-semibold ${isYou ? 'fill-content-inverse' : 'fill-brand-content'}`}
+        className={`font-display text-[12px] font-bold ${isYou ? 'fill-content-inverse' : 'fill-brand-content'}`}
       >
         {initialsOf(name)}
       </text>

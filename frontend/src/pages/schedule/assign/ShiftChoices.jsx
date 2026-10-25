@@ -3,6 +3,7 @@
 // Radio buttons rather than a select: there are rarely more than four, and
 // seeing the times side by side is the whole decision.
 import { cn } from '../../../lib/utils.js';
+import { CATEGORY_ICONS, CATEGORY_ICON_COLOURS } from '../../../components/ui/shiftCategories.js';
 
 export function ShiftChoices({ templates, chosenId, onChoose }) {
   if (templates.length === 0) {
@@ -21,6 +22,8 @@ export function ShiftChoices({ templates, chosenId, onChoose }) {
         {templates.map((template) => {
           const id = String(template._id ?? template.id);
           const isChosen = id === chosenId;
+          // The category's icon, in its colour, as on the roster grid.
+          const Icon = CATEGORY_ICONS[template.category];
 
           return (
             <label
@@ -40,6 +43,7 @@ export function ShiftChoices({ templates, chosenId, onChoose }) {
                 onChange={() => onChoose(id)}
                 className="size-4"
               />
+              {Icon && <Icon className={cn('size-4 shrink-0', CATEGORY_ICON_COLOURS[template.category])} aria-hidden="true" />}
               <span className="flex-1 text-body-sm text-content-primary">{template.name}</span>
               <span className="data text-xs text-content-secondary">
                 {template.startLocal}-{template.endLocal}

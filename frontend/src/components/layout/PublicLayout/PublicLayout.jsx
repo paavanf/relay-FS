@@ -1,9 +1,10 @@
 // PublicLayout - the shell for signed-out pages (login, register, password
 // reset, invites).
 //
-// A split layout: the form on the left, a restrained brand panel on the right
-// that shows what the product does. Below lg the brand panel is dropped and
-// only the form remains.
+// A split layout: the form on the left, a brand panel on the right that shows
+// what the product does. The panel sits on the rail's deep tone (data-surface
+// "rail" in index.css), the same structure as the signed-in app. Below lg the
+// brand panel is dropped and only the form remains.
 
 import { Suspense } from 'react';
 import { Outlet } from 'react-router';
@@ -32,11 +33,14 @@ function PublicLayout() {
       </div>
 
       {/* Brand panel. Hidden on small screens, where the form is the point. */}
-      <aside className="hidden w-1/2 flex-col justify-center border-l border-line-subtle bg-surface-sunken px-12 lg:flex">
+      <aside
+        data-surface="rail"
+        className="hidden w-1/2 flex-col justify-center border-l border-line-subtle bg-surface-raised px-12 lg:flex"
+      >
         <div className="max-w-md">
           <SwapCycleGraphic />
 
-          <h2 className="mt-10 text-h2 tracking-[-0.01em] text-content-primary">
+          <h2 className="mt-10 text-h1 text-content-primary">
             Rosters that follow your rules
           </h2>
 

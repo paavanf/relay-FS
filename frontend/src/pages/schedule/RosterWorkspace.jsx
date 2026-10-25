@@ -1,5 +1,7 @@
 // RosterWorkspace - one roster, with everything you can do to it.
 //
+// Top to bottom: the summary strip (the roster's state at a glance), the
+// manager's toolbar (generate, publish), the grid, and the unfilled panel.
 // The unfilled panel sits directly under the grid rather than behind a tab.
 // A roster with holes in it is the single most important thing a manager
 // needs to notice, and anything they have to click to find, they will not.
@@ -9,6 +11,7 @@ import { AssignCellDialog } from './assign/index.js';
 import { GenerationPanel } from './generation/index.js';
 import { UnfilledSlotsPanel } from './unfilled/index.js';
 import { PublishButton } from './publish/index.js';
+import { ScheduleSummary } from './ScheduleSummary.jsx';
 import { useOrg } from '../../features/organisation/useOrg.js';
 
 export function RosterWorkspace({ detail }) {
@@ -24,19 +27,15 @@ export function RosterWorkspace({ detail }) {
 
   return (
     <div className="space-y-4">
+      <ScheduleSummary detail={detail} roles={roles} />
+
       {isManager && isDraft && (
-        <div className="flex flex-wrap items-start gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-72 flex-1">
             <GenerationPanel rosterId={roster.id} assignmentCount={assignments.length} />
           </div>
 
-          <div className="pt-1">
-            <PublishButton
-              roster={roster}
-              assignmentCount={assignments.length}
-              unfilledCount={unfilledSlots.length}
-            />
-          </div>
+          <PublishButton roster={roster} assignmentCount={assignments.length} unfilledCount={unfilledSlots.length} />
         </div>
       )}
 

@@ -68,7 +68,7 @@ export function ChainDiagram({ option, youId, label, className, states }) {
           strokeWidth="4"
           strokeLinejoin="round"
           style={{ paintOrder: 'stroke' }}
-          className="fill-content-primary stroke-surface-raised text-[11px] font-medium"
+          className="fill-content-primary stroke-surface-raised text-[11px] font-semibold"
         >
           {shiftTag(leg.assignment)}
         </text>

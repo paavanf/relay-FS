@@ -2,7 +2,6 @@
 //
 // Two different messages, because the two audiences need different things: a
 // manager needs the button, a worker needs to know it is not their problem.
-import { CalendarPlus } from 'lucide-react';
 import { Card } from '../../components/ui/Card.jsx';
 import { EmptyState } from '../../components/ui/EmptyState.jsx';
 import { Button } from '../../components/ui/Button.jsx';
@@ -11,7 +10,7 @@ export function NoRostersState({ isManager, onCreate }) {
   return (
     <Card>
       <EmptyState
-        icon={CalendarPlus}
+        illustration="calendar"
         title={isManager ? 'No rosters yet' : 'No published roster yet'}
         description={
           isManager

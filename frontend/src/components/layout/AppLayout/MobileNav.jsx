@@ -10,7 +10,8 @@ export function MobileNav({ isOpen, onClose }) {
     <div className="fixed inset-0 z-40 lg:hidden">
       <div className="fixed inset-0 bg-scrim/40" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative flex h-full w-64 flex-col border-r border-line-subtle bg-surface-raised">
+      {/* The rail's own tone in the refreshed design, as in AppLayout. */}
+      <div data-surface="rail" className="relative flex h-full w-64 flex-col border-r border-line-subtle bg-surface-raised">
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-line-subtle px-4">
           <Logo size="sm" />
           <button

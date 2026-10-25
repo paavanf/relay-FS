@@ -9,12 +9,9 @@ import {
   TableHead,
   TableCell,
 } from '../../../components/ui/table/index.js';
-import { Badge } from '../../../components/ui/Badge.jsx';
+import { CategoryBadge } from '../../../components/ui/ShiftCategory.jsx';
 import { DeleteShiftTemplateButton } from './DeleteShiftTemplateButton.jsx';
 import { DemoLock } from '../../../features/demo/DemoLock.jsx';
-
-// Category maps to an existing semantic token - no new colours.
-const categoryVariant = { day: 'info', evening: 'warning', night: 'brand' };
 
 export function ShiftTemplateTable({ templates, onEdit }) {
   return (
@@ -42,9 +39,8 @@ export function ShiftTemplateTable({ templates, onEdit }) {
             </TableCell>
 
             <TableCell>
-              <Badge variant={categoryVariant[template.category] ?? 'neutral'}>
-                {template.category}
-              </Badge>
+              {/* The same colour and icon a shift of this category has everywhere. */}
+              <CategoryBadge category={template.category} />
             </TableCell>
 
             <TableCell numeric>{template.burdenWeight?.toFixed(1)}</TableCell>

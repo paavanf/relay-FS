@@ -1,6 +1,6 @@
 // EmptyOrgState - shown when the user belongs to no organisation yet.
 // Offers the way out of that state rather than just describing it.
-import { Building2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { EmptyState } from '../../components/ui/EmptyState.jsx';
 import { Card } from '../../components/ui/Card.jsx';
 import { Button } from '../../components/ui/Button.jsx';
@@ -9,7 +9,7 @@ export function EmptyOrgState({ onCreateClick }) {
   return (
     <Card>
       <EmptyState
-        icon={Building2}
+        illustration="setup"
         title="No organisations yet"
         description="Create one to get started, or wait for an invite from a team."
         action={

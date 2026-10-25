@@ -2,7 +2,6 @@
 // many offers were checked and what ruled them out ("3 offers checked: 3
 // are on days you marked unavailable."). Never a dead end - new offers can
 // open new options, so it says that too.
-import { SearchX } from 'lucide-react';
 import { Card } from '../../components/ui/Card.jsx';
 import { EmptyState } from '../../components/ui/EmptyState.jsx';
 
@@ -10,7 +9,7 @@ export function NoOptions({ noMatch }) {
   return (
     <Card>
       <EmptyState
-        icon={SearchX}
+        illustration="swap"
         title="No swaps found yet"
         description={noMatch?.summary ?? 'Nothing could be found for this shift.'}
         action={

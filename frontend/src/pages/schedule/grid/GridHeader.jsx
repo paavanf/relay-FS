@@ -1,7 +1,8 @@
 // GridHeader - the sticky date row.
 //
-// Weekends get a different ground so the week structure is readable without
-// counting columns.
+// A small weekday name over a large day number, in the display face, so the
+// week's shape reads at a glance. Weekends get a different ground so the
+// week structure is readable without counting columns.
 //
 // Every day column has the same fixed width, wide enough for a shift label
 // and its times. Without it the table sizes each column by its content, so
@@ -25,12 +26,12 @@ export function GridHeader({ columns }) {
             key={column.date}
             scope="col"
             className={cn(
-              'w-36 min-w-36 border-b border-l border-line-subtle px-2 py-2 text-center',
-              column.isWeekend ? 'bg-surface-active' : 'bg-surface-sunken',
+              'w-36 min-w-36 border-b border-l border-line-subtle px-2 py-1.5 text-center',
+              column.isWeekend ? 'bg-surface-weekend-head' : 'bg-surface-sunken',
             )}
           >
             <span className="block text-label text-content-secondary">{column.weekday}</span>
-            <span className="block text-body-sm font-medium text-content-primary tabular-nums">
+            <span className="block font-display text-lg leading-tight font-bold text-content-primary tabular-nums">
               {column.dayNumber}
             </span>
           </th>

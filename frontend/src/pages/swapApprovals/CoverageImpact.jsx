@@ -11,7 +11,7 @@ export function CoverageImpact({ coverage }) {
 
   return (
     <section aria-label="Coverage">
-      <h4 className="flex items-center gap-1.5 text-label text-content-secondary">
+      <h4 className="flex items-center gap-1.5 font-sans text-label text-content-secondary">
         <Icon className={`size-4 ${unchanged ? 'text-success-content' : 'text-danger-content'}`} aria-hidden="true" />
         Coverage {unchanged ? 'unchanged' : 'changes'}
       </h4>

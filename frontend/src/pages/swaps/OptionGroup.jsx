@@ -7,7 +7,7 @@ export function OptionGroup({ title, options, request, onProposed }) {
 
   return (
     <section aria-label={title}>
-      <h3 className="mb-2 text-label text-content-secondary">{title}</h3>
+      <h3 className="mb-2 font-sans text-label text-content-secondary">{title}</h3>
       <ol className="space-y-3">
         {options.map((option) => (
           <OptionCard key={option.key} option={option} request={request} onProposed={onProposed} />

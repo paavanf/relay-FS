@@ -16,7 +16,7 @@ function ForgotPasswordPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-h1 tracking-[-0.01em] text-content-primary">Reset your password</h1>
+        <h1 className="text-h1 text-content-primary">Reset your password</h1>
         <p className="mt-1.5 text-sm text-content-secondary">
           {noEmail ? 'This deployment does not send email.' : 'We will email you a link to choose a new one.'}
         </p>

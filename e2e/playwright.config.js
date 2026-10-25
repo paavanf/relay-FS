@@ -10,6 +10,9 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './specs',
+  // The design review's screenshots are taken on request only:
+  // DESIGN_SET=before npm run e2e -- design-review (specs/design-review.spec.js).
+  testIgnore: process.env.DESIGN_SET ? [] : ['**/design-review.spec.js'],
   globalSetup: './stack/globalSetup.js',
   outputDir: './artifacts/test-results',
 

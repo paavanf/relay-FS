@@ -34,14 +34,17 @@ export function OptionsPanel({ orgId, request, onProposed }) {
 
   return (
     <section ref={panel} aria-labelledby={headingId} className="scroll-mt-4 space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      {/* The PageHeader rule: from sm up the heading block shrinks and wraps
+          its own text, and the button keeps its natural width, so they stay
+          on one line; on a phone the button may drop below. */}
+      <div className="flex flex-wrap items-start justify-between gap-3 sm:flex-nowrap">
         <div className="min-w-0">
           <h2 id={headingId} className="text-h2 text-content-primary">
             Swaps for {whose} {shiftPhrase(request.assignment)}
           </h2>
           {data && <p className="mt-1 text-body-sm text-content-secondary">{checkedLine(data.stats)}</p>}
         </div>
-        <Button variant="ghost" size="sm" isLoading={options.isFetching} onClick={() => options.refetch()}>
+        <Button variant="ghost" size="sm" className="shrink-0" isLoading={options.isFetching} onClick={() => options.refetch()}>
           Search again
         </Button>
       </div>

@@ -13,13 +13,19 @@
 //
 // The link is one conditional update: it only lands if the account is still
 // as we found it, so two racing requests cannot both link. The loser gets
-// null back, and syncUser looks again.
+// null back, and syncUser looks again. And an account already linked to
+// this very sign-in is simply handed back: a request racing this one made or
+// linked it between syncUser's two lookups.
 
 import { User } from '../../models/index.js';
 import { AppError } from '../../errors/AppError.js';
 import { ERROR_CODES } from '../../config/constants.js';
 
 export async function linkByEmail(user, identity) {
+  if (user.supabaseUserId === identity.externalId) {
+    if (user.identityDeletedAt) throw AppError.unauthorized('This sign-in has been deleted');
+    return user;
+  }
   if (user.supabaseUserId && !user.identityDeletedAt) {
     throw AppError.conflict('This email already belongs to a Relay account with a different sign-in.');
   }

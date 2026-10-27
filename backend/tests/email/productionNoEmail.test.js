@@ -3,7 +3,6 @@
 // blocks SMTP. EMAIL_ENABLED is then off, and:
 //
 //   GET /api/v1/config   says so, publicly
-//   forgot password      refuses with EMAIL_DISABLED and creates no token
 //   invites              are created and answered with their link, with no
 //                        attempt to email them - and no link reaches the logs
 //   notification emails  are not claimed or sent
@@ -56,15 +55,6 @@ describe('a production server that sends no email', () => {
   it('says so at GET /api/v1/config, to anyone', async () => {
     const res = await request(app).get('/api/v1/config');
     expect([res.status, res.body]).toEqual([200, { emailEnabled: false }]);
-  });
-
-  it('refuses a password reset with EMAIL_DISABLED, and creates no token', async () => {
-    const token = await signIn();
-    expect(token).toBeTruthy();
-    const res = await request(app).post('/api/v1/auth/forgot-password').send({ email: person.email });
-    expect([res.status, res.body.error.code]).toEqual([403, 'EMAIL_DISABLED']);
-    expect(res.body.error.message).toBe("Password reset by email isn't available on this deployment, because it doesn't send email.");
-    expect(await models.PasswordResetToken.countDocuments()).toBe(0);
   });
 
   it('creates an invite and hands back its link, without emailing it - or logging it', async () => {

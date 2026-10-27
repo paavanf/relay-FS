@@ -13,8 +13,6 @@ export const ERROR_CODES = Object.freeze({
   RATE_LIMITED: 'RATE_LIMITED',
   // The shared demo organisation refuses changes to its setup (Milestone 10a).
   DEMO_LOCKED: 'DEMO_LOCKED',
-  // This deployment sends no email, so nothing that needs it can be done.
-  EMAIL_DISABLED: 'EMAIL_DISABLED',
   // Tokens are checked against Supabase's public keys, and Supabase could
   // not be reached for them. A 503: the session is not over, try again.
   AUTH_UNAVAILABLE: 'AUTH_UNAVAILABLE',

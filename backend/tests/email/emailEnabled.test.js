@@ -11,8 +11,6 @@ import { PRODUCTION_AUTH_ENV } from '../helpers/productionEnv.js';
 const production = (changes = {}) => ({
   NODE_ENV: 'production',
   MONGODB_URI: 'mongodb://db.example.com:27017/relay',
-  JWT_ACCESS_SECRET: 'a'.repeat(40),
-  JWT_REFRESH_SECRET: 'b'.repeat(40),
   FRONTEND_URL: 'https://relay.example.com',
   INTERNAL_JOB_SECRET: 'c'.repeat(40),
   ...PRODUCTION_AUTH_ENV,

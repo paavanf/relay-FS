@@ -35,8 +35,8 @@ export function organisationDoc() {
   return { _id: orgId, name: WARD.name, timezone: WARD.timezone, swapPolicy: { acceptanceWindowHours: 168, requireManagerApproval: true } };
 }
 
-export function userDocs(passwordHash) {
-  return PEOPLE.map((person, i) => ({ _id: DEMO_USER_IDS[i], name: person.name, email: emailOf(person), passwordHash }));
+export function userDocs() {
+  return PEOPLE.map((person, i) => ({ _id: DEMO_USER_IDS[i], name: person.name, email: emailOf(person) }));
 }
 
 export function membershipDocs(anchor) {

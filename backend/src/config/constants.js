@@ -18,15 +18,6 @@ export const REQUEST_ID_HEADER = 'x-request-id';
 
 export const JSON_BODY_LIMIT = '100kb';
 
-// Access tokens are short-lived; the refresh cookie is what gives a session
-// its length. Keeping the access token brief limits the damage if one leaks.
-export const ACCESS_TOKEN_EXPIRY = '15m';
-export const REFRESH_TOKEN_EXPIRY_DAYS = 30;
-
-export const REFRESH_COOKIE_NAME = 'relay_refresh';
-// The refresh cookie is only ever sent to the auth endpoints that need it.
-export const REFRESH_COOKIE_PATH = `${API_V1_PREFIX}/auth`;
-
 export const INVITE_EXPIRY_HOURS = 72;
 
 // Notifications are deleted this long after they were written, by a TTL
@@ -47,17 +38,8 @@ export const DEFAULT_ROSTER_RULES = Object.freeze({ minRestHours: 11, maxConsecu
 // around, few enough to slow down a script hammering it.
 export const RATE_LIMIT = Object.freeze({ windowMs: 15 * MINUTE, max: 300 });
 
-// Login, registration and the two password-reset endpoints, per address:
-// much tighter, to slow down credential stuffing and reset-token guessing.
-export const AUTH_RATE_LIMIT = Object.freeze({ windowMs: 15 * MINUTE, max: 30 });
-
-// New accounts from one address in an hour: a person needs one; a script
-// filling the database with accounts needs thousands.
-export const REGISTRATION_LIMIT = Object.freeze({ windowMs: HOUR, max: 5 });
-
-// Reset emails asked for one email address in an hour, from any number of
-// addresses: the form must not become a way to flood someone's inbox.
-export const FORGOT_PASSWORD_LIMIT = Object.freeze({ windowMs: HOUR, max: 3 });
+// Sign-up, sign-in and password-reset emails are limited by Supabase Auth,
+// per address and per project (docs/deploy/SUPABASE.md, section 11).
 
 // Invites one organisation sends in a day. Each is an email to an address
 // the sender typed in, so invites must not become a spam channel.
@@ -79,14 +61,6 @@ export const SWAP_SEARCH_LIMIT = Object.freeze({ windowMs: MINUTE, max: 10 });
 // one per changed or deleted account; anything faster is someone guessing
 // the secret.
 export const WEBHOOK_LIMIT = Object.freeze({ windowMs: MINUTE, max: 60 });
-
-// Per-account brute-force protection. The address limits above slow an
-// attacker down; this stops one account being ground through from many
-// addresses. Short, so a genuine user who mistyped is barely held up. The
-// shared demo accounts are exempt: their password is public anyway, and a
-// lock would only shut the next visitor out.
-export const MAX_FAILED_LOGIN_ATTEMPTS = 5;
-export const ACCOUNT_LOCKOUT_MINUTES = 3;
 
 export { ROLES, ROLE_VALUES, MANAGER_ROLES, MEMBERSHIP_STATUS } from './roles.js';
 export { ERROR_CODES } from './errorCodes.js';

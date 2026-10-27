@@ -1,18 +1,20 @@
 // smoke-deployed.mjs
 // A quick check of a deployed Relay, run by hand after a deploy:
 //
-//   node scripts/smoke-deployed.mjs https://your-project.vercel.app
+//   SUPABASE_URL=https://<ref>.supabase.co SUPABASE_PUBLISHABLE_KEY=sb_publishable_... \
+//     node scripts/smoke-deployed.mjs https://your-project.vercel.app
 //
-// It talks only to the address it is given - the frontend - so every API
-// call goes through Vercel's /api rewrite, as a browser's would. It only
-// reads, apart from one thing: it signs in once as the shared demo's owner,
-// whose password the login page shows anyway. Each check prints PASS or FAIL
-// (or WARN, for something to act on that is not broken), and the script
-// exits with 1 if any failed. docs/deploy/DEPLOY.md says what to do about
-// each failure. The checks are in scripts/smoke/.
+// It talks to the address it is given - the frontend - so every API call
+// goes through Vercel's /api rewrite, as a browser's would; and to the
+// production Supabase project, to sign in as a browser does. It only reads,
+// apart from one thing: it signs in once as the shared demo's owner, whose
+// password the login page shows anyway, and out again. Each check prints
+// PASS or FAIL (or WARN, for something to act on that is not broken), and
+// the script exits with 1 if any failed. docs/deploy/DEPLOY.md says what to
+// do about each failure. The checks are in scripts/smoke/.
 
 import { landingPage, healthThroughApi, publicConfig, securityHeaders, appRoutes } from './smoke/pageChecks.mjs';
-import { demoSignIn, refreshCookie, reloadKeepsSession, otherOrgHidden } from './smoke/sessionChecks.mjs';
+import { demoSignIn, relayKnowsThem, refreshKeepsSession, otherOrgHidden, signsOut } from './smoke/sessionChecks.mjs';
 
 const CHECKS = [
   ['The landing page loads', landingPage],
@@ -20,19 +22,26 @@ const CHECKS = [
   ['GET /api/v1/config', publicConfig],
   ['Security headers on the page', securityHeaders],
   ['App routes are served by the app', appRoutes],
-  ['The demo owner can sign in', demoSignIn],
-  ['The refresh cookie is locked down', refreshCookie],
-  ['A reload keeps the session', reloadKeepsSession],
+  ['The demo owner can sign in with Supabase', demoSignIn],
+  ['Relay knows who signed in', relayKnowsThem],
+  ['A refreshed session is the same person', refreshKeepsSession],
   ["Another organisation's data stays hidden", otherOrgHidden],
+  ['Signing out ends the session', signsOut],
 ];
 
 const target = process.argv[2];
-if (!/^https?:\/\/[^/]+/.test(target ?? '')) {
-  console.error('Usage: node scripts/smoke-deployed.mjs https://your-project.vercel.app');
+const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = process.env;
+if (!/^https?:\/\/[^/]+/.test(target ?? '') || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  console.error('Usage: SUPABASE_URL=... SUPABASE_PUBLISHABLE_KEY=... node scripts/smoke-deployed.mjs https://your-project.vercel.app');
+  console.error('Both are the production Supabase project\'s, and public (docs/deploy/SUPABASE.md, section 6).');
   process.exit(2);
 }
 
-const ctx = { origin: new URL(target).origin };
+const supabaseUrl = new URL(SUPABASE_URL);
+const ctx = {
+  origin: new URL(target).origin,
+  supabase: { url: supabaseUrl.origin, origin: supabaseUrl.origin, key: SUPABASE_PUBLISHABLE_KEY },
+};
 console.log(`Smoke test of ${ctx.origin}\n`);
 
 let failed = 0;

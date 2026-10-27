@@ -81,7 +81,7 @@ describe('the demo seed', () => {
   it('reruns to the same data, duplicating nothing and leaving everything else alone', async () => {
     const first = await snapshot();
     await inDatabase('relay-demo', async () => {
-      await User.create({ name: 'Real Person', email: 'real@example.com', passwordHash: 'x' });
+      await User.create({ name: 'Real Person', email: 'real@example.com' });
       await Organisation.create({ name: 'Real Ward' });
     });
 

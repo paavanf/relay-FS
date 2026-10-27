@@ -27,8 +27,6 @@ import {
   Notification,
   AuditLog,
   User,
-  RefreshToken,
-  PasswordResetToken,
 } from '../../src/models/index.js';
 import { DEMO_ORG_ID } from './ids.js';
 
@@ -57,9 +55,6 @@ export async function removeDemoData(userIds) {
   }
   await Organisation.deleteOne({ _id: DEMO_ORG_ID });
 
-  // The demo people's sessions and reset links go with their accounts.
-  await RefreshToken.deleteMany({ userId: { $in: userIds } });
-  await PasswordResetToken.deleteMany({ userId: { $in: userIds } });
   await User.deleteMany({ _id: { $in: userIds } });
 }
 

@@ -44,7 +44,7 @@ describe('signing in', () => {
   });
 
   it('refuses to link that account while the email is unproven', async () => {
-    await User.create({ name: 'Old Hand', email: 'old@example.com', passwordHash: 'x' });
+    await User.create({ name: 'Old Hand', email: 'old@example.com' });
     const res = await me(tokenFor({ email: 'old@example.com', emailVerified: false }));
     expect(sendsBack(res)).toEqual({ status: 403, code: 'EMAIL_NOT_PROVEN' });
     expect((await User.findOne({ email: 'old@example.com' })).supabaseUserId).toBeUndefined();

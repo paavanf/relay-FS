@@ -1,6 +1,6 @@
 // pageChecks.mjs - what a visitor's browser gets before anyone signs in: the
-// page itself and its security headers, an app route served by the app, and
-// the API reached through Vercel's /api rewrite. Each check returns
+// page itself and its security headers, the app routes sign-in needs served
+// by the app, and the API reached through Vercel's /api rewrite. Each check returns
 // { ok, detail } - or { warn } for something to act on that is not broken.
 import { timed } from './http.mjs';
 
@@ -38,19 +38,22 @@ export async function securityHeaders(ctx) {
   const hsts = Number(headers.get('strict-transport-security')?.match(/max-age=(\d+)/)?.[1] ?? 0);
   const problems = [
     !csp.includes("frame-ancestors 'none'") && "CSP frame-ancestors 'none'",
-    !csp.includes("connect-src 'self'") && "CSP connect-src 'self'",
+    !csp.includes(`connect-src 'self' ${ctx.supabase.origin}`) && `CSP connect-src 'self' ${ctx.supabase.origin}`,
     (!scriptSrc || scriptSrc.includes('unsafe-inline')) && "CSP script-src without 'unsafe-inline'",
     hsts < 31_536_000 && 'Strict-Transport-Security of a year or more',
     headers.get('x-content-type-options') !== 'nosniff' && 'X-Content-Type-Options: nosniff',
-    !headers.get('referrer-policy') && 'Referrer-Policy',
+    headers.get('referrer-policy') !== 'no-referrer' && 'Referrer-Policy: no-referrer',
     !headers.get('permissions-policy') && 'Permissions-Policy',
   ].filter(Boolean);
   return { ok: problems.length === 0, detail: problems.length ? `missing: ${problems.join(', ')}` : 'CSP, HSTS, nosniff, Referrer-Policy, Permissions-Policy' };
 }
 
 export async function appRoutes(ctx) {
-  // An invite link opened cold is a request for /invite/<token>: the app must answer it.
-  const { res, text } = await timed(`${ctx.origin}/login`);
-  const ok = res.status === 200 && text.includes('<div id="root">');
-  return { ok, detail: ok ? '/login is served by the app' : `/login answered ${res.status}` };
+  // A link opened cold - an invite, a confirmation email, a password reset -
+  // is a request for that path: the app must answer each.
+  for (const path of ['/login', '/auth/callback', '/reset-password']) {
+    const { res, text } = await timed(`${ctx.origin}${path}`);
+    if (res.status !== 200 || !text.includes('<div id="root">')) return { ok: false, detail: `${path} answered ${res.status}` };
+  }
+  return { ok: true, detail: '/login, /auth/callback and /reset-password are served by the app' };
 }

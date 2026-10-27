@@ -1,7 +1,13 @@
 // User.js
-// A person with a Relay login. Organisation-specific facts (role, hours,
-// qualifications) live on Membership, not here, because one user can belong
-// to several organisations with a different role in each.
+// A person in Relay. Who they are is proven by Supabase Auth; this is
+// everything Relay itself knows about them. Organisation-specific facts
+// (role, hours, qualifications) live on Membership, not here, because one
+// user can belong to several organisations with a different role in each.
+//
+// Accounts from before the move to Supabase may still carry old password
+// fields in the database; nothing reads them, every query that answers a
+// request picks its fields by name, and `npm run cleanup:legacy-auth`
+// removes them.
 
 import mongoose from 'mongoose';
 
@@ -28,30 +34,9 @@ const userSchema = new mongoose.Schema(
     // old tokens are refused from then on, and the account can be linked
     // again if the person signs up with the same email.
     identityDeletedAt: { type: Date, default: null },
-
-    // Argon2id hash. Never the raw password. Only accounts made before the
-    // move to Supabase have one.
-    passwordHash: { type: String },
-
-    // Brute-force bookkeeping. Counts consecutive failures only: one correct
-    // password resets it to zero.
-    failedLoginAttempts: { type: Number, default: 0 },
-
-    // While this is in the future, login is refused before the password is
-    // even checked. Null means the account is not locked.
-    lockedUntil: { type: Date, default: null },
   },
   { timestamps: true },
 );
-
-// Defence in depth: even if a query forgets .select('-passwordHash'), the hash
-// never reaches JSON output.
-userSchema.set('toJSON', {
-  transform: (_doc, ret) => {
-    delete ret.passwordHash;
-    return ret;
-  },
-});
 
 export const User = mongoose.models.User ?? mongoose.model('User', userSchema);
 

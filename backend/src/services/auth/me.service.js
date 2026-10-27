@@ -7,7 +7,7 @@ import { AppError } from '../../errors/AppError.js';
 import { isDemoOrg, isDemoUser } from '../../config/demo.js';
 
 export async function getCurrentUser(userId) {
-  const user = await User.findById(userId).select('-passwordHash').lean();
+  const user = await User.findById(userId).select('name email').lean();
   if (!user) throw AppError.unauthorized('User not found');
 
   const memberships = await Membership.find({

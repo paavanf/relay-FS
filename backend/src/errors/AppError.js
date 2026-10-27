@@ -33,9 +33,9 @@ export class AppError extends Error {
     return new AppError(message, 409, { code: ERROR_CODES.CONFLICT, ...options });
   }
 
-  // Every limit uses this - the lockout, the address limits and the abuse
-  // limits - so a client can tell "slow down" from "wrong password". The
-  // message says when to try again; options.retryAfterMs says it to machines.
+  // Every limit uses this - the address limits and the abuse limits - so a
+  // client can tell "slow down" from any other refusal. The message says when
+  // to try again; options.retryAfterMs says it to machines.
   static tooManyRequests(message = 'Too many requests', options) {
     return new AppError(message, 429, { code: ERROR_CODES.RATE_LIMITED, ...options });
   }

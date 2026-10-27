@@ -42,7 +42,7 @@ describe('a Supabase project that does not confirm emails', () => {
   });
 
   it('never links an existing account to them', async () => {
-    await User.create({ name: 'Old Hand', email: 'old@example.com', passwordHash: 'x' });
+    await User.create({ name: 'Old Hand', email: 'old@example.com' });
     const res = await request(app).get('/api/v1/auth/me').set(as(await project.signToken({ email: 'old@example.com' })));
     expect(res.status).toBe(403);
     expect(res.body.error.code).toBe('EMAIL_NOT_PROVEN');

@@ -1,29 +1,51 @@
-// ResetPasswordPage - the "choose a new password" step. The token comes from
-// the URL, which is what the emailed link points at.
-import { Link, useParams } from 'react-router';
-import { ResetPasswordForm } from './ResetPasswordForm.jsx';
+// ResetPasswordPage - /reset-password, the "choose a new password" step.
+//
+// The emailed reset link signs the person in (lib/auth/authRedirect.js and
+// AuthProvider take it from the address) just long enough to choose a new
+// password here. Without that sign-in the link has expired, or was used, so
+// the page offers a fresh one. A shared demo account keeps the password the
+// login page shows, so it is told so instead of being offered the form.
+import { Link } from 'react-router';
+import { Spinner } from '../../../components/ui/Spinner.jsx';
+import { ButtonLink } from '../../../components/ui/ButtonLink.jsx';
+import { Callout } from '../../../components/ui/Callout.jsx';
+import { useAuth } from '../../../features/auth/useAuth.js';
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle.js';
+import { LinkProblem } from '../callback/LinkProblem.jsx';
+import { ResetPasswordForm } from './ResetPasswordForm.jsx';
 
 function ResetPasswordPage() {
-  const { token } = useParams();
   useDocumentTitle('Choose a new password');
+  const { user, isLoading, link } = useAuth();
+
+  if (isLoading) return <Spinner size="sm" />;
+
+  if (!user) {
+    return (
+      <LinkProblem title="This reset link did not work" reason={link?.error}>
+        <ButtonLink to="/forgot-password" size="lg" className="w-full">
+          Send a new link
+        </ButtonLink>
+      </LinkProblem>
+    );
+  }
 
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-h1 text-content-primary">
-          Choose a new password
-        </h1>
-        <p className="mt-1.5 text-sm text-content-secondary">
-          This link works once, and expires an hour after it was sent.
-        </p>
+        <h1 className="text-h1 text-content-primary">Choose a new password</h1>
+        <p className="mt-1.5 text-sm text-content-secondary">For {user.email}.</p>
       </div>
 
-      <ResetPasswordForm token={token} />
+      {user.isDemo ? (
+        <Callout variant="info">This is a shared demo account, so its password stays the one the login page shows.</Callout>
+      ) : (
+        <ResetPasswordForm />
+      )}
 
       <p className="mt-6 border-t border-line-subtle pt-3 text-body-sm text-content-secondary">
-        <Link to="/login" className="font-medium text-brand-solid hover:text-brand-content">
-          Back to sign in
+        <Link to="/app" className="font-medium text-brand-solid hover:text-brand-content">
+          Go to Relay
         </Link>
       </p>
     </div>

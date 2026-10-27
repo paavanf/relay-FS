@@ -136,6 +136,13 @@
      BOTH themes, so it can never be the content colour. */
   --color-scrim: #0d1b1e;
 
+  /* Google's mark on "Continue with Google" (GoogleSignIn.jsx). Google's
+     own colours, the same in both themes, as its branding rules require. */
+  --color-google-blue: #4285f4;
+  --color-google-green: #34a853;
+  --color-google-yellow: #fbbc05;
+  --color-google-red: #ea4335;
+
   /* ------------------------------------------------------------------ *
    * Radius. Deliberate steps, not one value everywhere:
    * chips 6 - controls 8 - panels 12 - dialogs 16.

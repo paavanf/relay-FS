@@ -8,8 +8,8 @@
 //              its current text, and no other inline script - so editing
 //              that script without updating the hash fails here, not as a
 //              blank page in production
-//   the rest   no framing, no connections but our own, and assets cached
-//              for a year while the app shell is always checked again
+//   the rest   no framing, and assets cached for a year while the app shell
+//              is always checked again. Connections: vercelConnect.test.js
 //
 // The RELAY_API_HOST placeholder may or may not have been replaced yet; the
 // checks hold either way. How to update the hash is in docs/deploy/DEPLOY.md.
@@ -56,11 +56,10 @@ describe('vercel.json', () => {
     expect(pageHeaders['Content-Security-Policy']).not.toContain('unsafe-eval');
   });
 
-  it('lets in only our own code and Google Fonts, connects only to its own origin, and cannot be framed', () => {
+  it('lets in only our own code and Google Fonts, and cannot be framed', () => {
     expect(csp['default-src']).toEqual(["'self'"]);
     expect(csp['style-src']).toEqual(["'self'", 'https://fonts.googleapis.com']);
     expect(csp['font-src']).toEqual(["'self'", 'https://fonts.gstatic.com']);
-    expect(csp['connect-src']).toEqual(["'self'"]);
     expect(csp['frame-ancestors']).toEqual(["'none'"]);
     expect(csp['object-src']).toEqual(["'none'"]);
     expect(pageHeaders).toMatchObject({

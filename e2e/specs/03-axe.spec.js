@@ -20,7 +20,7 @@ import { asha, manager } from '../support/people.js';
 import { axeProblems } from '../support/axe.js';
 
 const THEMES = ['light', 'dark'];
-const PUBLIC_PAGES = ['/', '/login', '/register', '/forgot-password'];
+const PUBLIC_PAGES = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/auth/callback'];
 const WORKER_PAGES = ['schedule', 'my-shifts', 'availability', 'swaps', 'fairness', 'notifications', 'preferences'];
 const MANAGER_PAGES = ['swaps/approvals', 'team', 'settings'];
 

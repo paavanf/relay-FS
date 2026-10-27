@@ -31,4 +31,6 @@ export default [
       ],
     },
   },
+  // The build's own checks (config/) run in Node, not the browser.
+  { files: ['config/**/*.js'], languageOptions: { globals: { ...globals.node } } },
 ];

@@ -17,8 +17,8 @@ export function ResetLinkSent({ email, secondsLeft, isSending, onResend }) {
       <p className="mt-3 text-sm font-medium text-content-primary">Check your inbox</p>
 
       <p className="mt-1 text-body-sm leading-relaxed text-content-secondary">
-        If <span className="font-medium text-content-primary">{email}</span> is registered, we have sent a reset
-        link. It expires in an hour, and only the newest link works.
+        If <span className="font-medium text-content-primary">{email}</span> has an account, we have sent a link to
+        choose a new password. It expires in an hour.
       </p>
 
       <div className="mt-4 flex items-center gap-3 border-t border-line-subtle pt-4">

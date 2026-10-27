@@ -7,14 +7,16 @@ How the public demo is deployed, step by step, and what to do when something goe
 | Frontend | Vercel | Serves the built app, and passes every `/api` request on to the API |
 | API | Render, free web service | The Express server. It sleeps after 15 minutes without traffic and takes up to a minute to wake |
 | Database | MongoDB Atlas, the free cluster | A database of its own, `relay-live-demo` |
-| Nightly job | GitHub Actions | Releases expired swap reservations and reseeds the shared demo, at 03:00 IST |
+| Sign-in | Supabase, a free project | Email and password, Google, and the confirmation and reset emails. Identities only: everything else is in the database |
+| Nightly job | GitHub Actions | Releases expired swap reservations, reseeds the shared demo and keeps the Supabase project awake, at 03:00 IST |
 
-**The deployed site sends no email.** Render blocks outgoing SMTP, so the API runs with `EMAIL_ENABLED=false`. Invites are shared by copying their link, which the invite dialog always shows. Notifications appear in the app, under the bell. The forgot-password page says that a reset by email isn't available, and the email toggle on the Preferences page is hidden. Email still works locally, as before.
+**The deployed API sends no email.** Render blocks outgoing SMTP, so the API runs with `EMAIL_ENABLED=false`. Invites are shared by copying their link, which the invite dialog always shows. Notifications appear in the app, under the bell, and the email toggle on the Preferences page is hidden. Sign-up confirmations and password resets do arrive by email: Supabase sends those, from its own servers, through Gmail ([SUPABASE.md](SUPABASE.md), section 3).
 
-**Why `/api` goes through Vercel.** The browser only ever talks to the Vercel address. Vercel forwards `/api/...` to Render (the rewrite in `frontend/vercel.json`), so to the browser the API is on the same site as the page. That is what lets the refresh cookie be `SameSite=Strict` and host-only. It is also why there is no CORS to configure, and why the Content-Security-Policy can say `connect-src 'self'`.
+**Why `/api` goes through Vercel.** The browser only ever talks to the Vercel address, and to Supabase to sign in. Vercel forwards `/api/...` to Render (the rewrite in `frontend/vercel.json`), so to the browser the API is on the same site as the page. That is why there is no CORS to configure, and why the Content-Security-Policy's `connect-src` names only `'self'` and the production Supabase project.
 
 The steps run in this order because each service needs the other's address: Vercel needs Render's host (step 5), and Render needs Vercel's address (step 4).
 
+0. [Supabase: the sign-in projects](#0-supabase-the-sign-in-projects)
 1. [Atlas: a database and a user of its own](#1-atlas-a-database-and-a-user-of-its-own)
 2. [Generate the secrets](#2-generate-the-secrets)
 3. [Vercel: the first deploy](#3-vercel-the-first-deploy)
@@ -26,6 +28,14 @@ The steps run in this order because each service needs the other's address: Verc
 - [Later changes](#later-changes)
 - [Troubleshooting](#troubleshooting)
 - [Reference: every setting](#reference-every-setting)
+
+## 0. Supabase: the sign-in projects
+
+[SUPABASE.md](SUPABASE.md) sets up the production project (and a second one for development): the Auth settings, Gmail for email, the redirect URLs and Google sign-in. Do it first; the steps below need its values:
+
+- **Project URL** `https://<project-ref>.supabase.co` and **publishable key** (`sb_publishable_...`): Render (step 4), Vercel (step 3) and GitHub (step 6).
+- **Secret key** (`sb_secret_...`): GitHub only (step 6), as `SUPABASE_SERVICE_ROLE_KEY`. Never on Render or Vercel; a production server refuses to start with it, and the frontend build refuses one.
+- The project ref also goes in the Content-Security-Policy in `frontend/vercel.json` (`connect-src`). Without it, the browser may not talk to Supabase, and nobody can sign in.
 
 ## 1. Atlas: a database and a user of its own
 
@@ -43,13 +53,13 @@ The demo uses the existing free cluster, with a new database, `relay-live-demo`,
 
 ## 2. Generate the secrets
 
-The API needs three random secrets, each different from the others:
+The API needs one random secret, `INTERNAL_JOB_SECRET`, and a second for the optional Supabase account webhook, `SUPABASE_WEBHOOK_SECRET` ([SUPABASE.md](SUPABASE.md), section 8):
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
 
-Run it three times, for `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` and `INTERNAL_JOB_SECRET`. Each comes out 64 characters long, and production refuses anything shorter than 32. Keep them in a password manager, never in the repository. `INTERNAL_JOB_SECRET` is given to GitHub as well, in step 6.
+Each comes out 64 characters long, and production refuses anything shorter than 32. Keep them in a password manager, never in the repository. `INTERNAL_JOB_SECRET` is given to GitHub as well, in step 6. Sign-in needs no secret of Relay's own: the API checks Supabase's tokens against the project's public keys.
 
 ## 3. Vercel: the first deploy
 
@@ -57,6 +67,7 @@ Run it three times, for `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` and `INTERNAL_
 2. **Root Directory:** `frontend`. Vercel detects Vite; leave the build command (`npm run build`) and output directory (`dist`) as they are. The Node version comes from `engines` in `frontend/package.json`.
 3. **Environment variables:**
    - `VITE_DEMO_MODE` = `true`. The build reads it, and it puts the shared demo's one-click accounts on the login page and "Try the demo" on the landing page.
+   - `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`: the production project's URL and publishable key (step 0). Both end up in the JavaScript every visitor downloads, which is what they are for. A build on Vercel without them refuses to start, and so does one with a secret key in any `VITE_` variable.
    - `MONGOMS_DISABLE_POSTINSTALL` = `1`. Vercel installs the npm workspaces from the repository root, which would also download the MongoDB binary the backend's tests use. This skips that download; the frontend never needs it.
 4. Deploy. The site loads, but anything that calls the API fails until step 5, because `vercel.json` still points at a placeholder.
 5. Note the production address, `https://<project>.vercel.app` (*Settings* → *Domains*).
@@ -71,7 +82,9 @@ Run it three times, for `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` and `INTERNAL_
    | Setting | Value |
    | --- | --- |
    | `MONGODB_URI` | The connection string from step 1 |
-   | `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `INTERNAL_JOB_SECRET` | The three secrets from step 2 |
+   | `INTERNAL_JOB_SECRET` | The secret from step 2 |
+   | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | The production project's URL and publishable key (step 0) |
+   | `SUPABASE_WEBHOOK_SECRET` | The webhook secret from step 2, or leave it empty to switch the webhook off |
    | `FRONTEND_URL` | `https://<project>.vercel.app`. Invite links are built from it, and production requires https |
    | `CORS_ORIGIN` | The same address. In production the server only answers cross-origin requests from `FRONTEND_URL`'s origin anyway, and browsers reach it through Vercel on the same origin |
 
@@ -109,48 +122,54 @@ Leave the order of the rewrites alone. The API rewrite comes first and the app's
 
 ## 6. GitHub Actions: secrets and the first run
 
-`.github/workflows/nightly.yml` runs at 21:30 UTC (03:00 IST) every night. It also runs when *Run workflow* is pressed. It has two jobs:
+`.github/workflows/nightly.yml` runs at 21:30 UTC (03:00 IST) every night. It also runs when *Run workflow* is pressed. It has three jobs:
 
 - **reap**: `POST /api/v1/internal/reap-expired` with the job secret, which lets go of swap reservations whose time ran out. It retries while the API wakes.
-- **reset-demo**: installs the backend and runs `npm run seed:demo -- --yes` against the demo database. That puts the shared ward back as the seed builds it, and changes nothing outside it.
+- **reset-demo**: installs the backend and runs `npm run seed:demo -- --yes`. That makes the demo's accounts in Supabase (or puts their password back), and puts the shared ward back in the demo database as the seed builds it. It changes nothing outside either.
+- **keep-alive**: lists one user through Supabase's Admin API, so the free project never sits 7 days without database activity, and pauses. If Supabase does not answer it fails, and so does the run ([SUPABASE.md](SUPABASE.md), section 10).
 
 Something touches the database every night, so Atlas never sees the free cluster idle for 30 days, and never pauses it.
 
-1. Repository → *Settings* → *Secrets and variables* → *Actions* → *New repository secret*, three times:
+1. Repository → *Settings* → *Secrets and variables* → *Actions* → *New repository secret*, for each of:
 
    | Secret | Value |
    | --- | --- |
    | `RELAY_API_URL` | `https://<service>.onrender.com`. The Vercel address works too, through its `/api` rewrite |
    | `INTERNAL_JOB_SECRET` | The same value as on Render |
    | `DEMO_MONGODB_URI` | The same string as Render's `MONGODB_URI`. The seed refuses any database whose name does not end in `-demo` |
+   | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | The production project's URL and publishable key, as on Render |
+   | `SUPABASE_SERVICE_ROLE_KEY` | The production project's **secret** key (`sb_secret_...`). This is the only place it is kept. The seed only touches the demo's own `.test` accounts that carry its marker |
 
-2. *Actions* → *Nightly* → *Run workflow*. This first run builds the demo ward, and **the demo's sign-in buttons only work after it**. `reap` prints something like `{"expired":0,"released":0}`. `reset-demo` ends with the demo's accounts and stories.
+2. *Actions* → *Nightly* → *Run workflow*. This first run makes the demo's accounts and builds its ward, and **the demo's sign-in buttons only work after it**. `reap` prints something like `{"expired":0,"released":0}`. `reset-demo` ends with the demo's accounts and stories. `keep-alive` says the project is awake.
+3. Make sure GitHub can tell you when a run fails: GitHub → *Settings* → *Notifications* → *System* → *Actions* → *Email*, and *Only notify for failed workflows*. Failed scheduled runs are reported to whoever created the workflow, or last changed its schedule.
 
-Without the secrets, each job prints a notice saying which secret is missing and stops without failing. With them set, any failure fails the run, and GitHub emails you about a failed scheduled run.
+Without its secrets, each job prints a notice saying which are missing and stops without failing. With them set, any failure fails the run.
 
 ## 7. Run the smoke test
 
-From a clone of the repository (Node 22; nothing to install):
+From a clone of the repository (Node 22; nothing to install), with the production Supabase project's URL and publishable key - both public:
 
 ```bash
-node scripts/smoke-deployed.mjs https://<project>.vercel.app
+SUPABASE_URL=https://<project-ref>.supabase.co SUPABASE_PUBLISHABLE_KEY=sb_publishable_... \
+  node scripts/smoke-deployed.mjs https://<project>.vercel.app
 ```
 
-It only talks to the address it is given, so every API call goes through Vercel's rewrite as a browser's would. It reads, apart from one sign-in as the demo's owner. A healthy deployment prints nine `PASS` lines:
+It talks to the address it is given, so every API call goes through Vercel's rewrite as a browser's would, and to Supabase to sign in, as a browser does. It reads, apart from one sign-in as the demo's owner and the sign-out after. A healthy deployment prints ten `PASS` lines:
 
 ```text
-PASS  The landing page loads                     82 ms
-PASS  The API answers through /api               18 ms
+PASS  The landing page loads                     ...
+PASS  The API answers through /api               ...
 PASS  GET /api/v1/config                         emailEnabled: false
 PASS  Security headers on the page               CSP, HSTS, nosniff, Referrer-Policy, Permissions-Policy
-PASS  App routes are served by the app           /login is served by the app
-PASS  The demo owner can sign in                 owner@relay.test, 138 ms
-PASS  The refresh cookie is locked down          HttpOnly, Secure, SameSite=Strict, host-only, Path=/api/v1/auth
-PASS  A reload keeps the session                 refresh, then /auth/me, as the same person
+PASS  App routes are served by the app           /login, /auth/callback and /reset-password are served by the app
+PASS  The demo owner can sign in with Supabase   owner@relay.test, ...
+PASS  Relay knows who signed in                  the demo owner, in the demo ward
+PASS  A refreshed session is the same person     refreshed, then /auth/me, as the same person
 PASS  Another organisation's data stays hidden   own organisation 200, another one 404 (404 expected)
+PASS  Signing out ends the session               this session only
 ```
 
-(These are the numbers from a local rehearsal; expect slower ones over the internet.) If the API was asleep, the second check takes up to a minute and says so. It waits up to two. The script exits with 1 when anything failed; the troubleshooting table below covers each failure.
+If the API was asleep, the second check takes up to a minute and says so. It waits up to two. The script exits with 1 when anything failed; the troubleshooting table below covers each failure.
 
 ## 8. Confirm TRUST_PROXY
 
@@ -181,7 +200,7 @@ In a local rehearsal with `TRUST_PROXY=2`, the server settled on these addresses
 | `192.0.2.66, 203.0.113.7, 198.51.100.20` (a made-up first entry, if Vercel ever passed one on) | `203.0.113.7` |
 | `192.0.2.66, 203.0.113.7` (sent straight to onrender.com, past Vercel) | `192.0.2.66` |
 
-That last row is the limit of any proxy count: a request sent straight to the `onrender.com` address skips Vercel. So its first address is whatever the sender wrote, and the per-address limits can be dodged that way. The limits counted per account still hold: account lockout after failed sign-ins, invites per organisation, organisations per account, swap proposals and searches per person.
+That last row is the limit of any proxy count: a request sent straight to the `onrender.com` address skips Vercel. So its first address is whatever the sender wrote, and the per-address limits can be dodged that way. The limits counted per account still hold: invites per organisation, organisations per account, swap proposals and searches per person. Sign-in attempts are Supabase's to count, by the address Supabase sees, so they don't depend on this setting.
 
 ## Later changes
 
@@ -195,13 +214,16 @@ That last row is the limit of any proxy count: a request sent straight to the `o
 | What you see | Likely cause | What to do |
 | --- | --- | --- |
 | The first request is slow, or Vercel answers 502 or 504 | The API was asleep. Waking takes up to a minute, and Vercel's proxy can give up before it is done | Wait and retry. The login and register pages send a wake-up request as they open. If it never wakes, look at Render's log for a crash or a failed database connection |
-| Signing in works, but a reload signs you out | The refresh cookie belongs to the host that set it. The page and `/api` must be on the same host, which the `vercel.json` rewrite provides | Use the Vercel address, not `onrender.com`, and the same one throughout (a preview deployment's address is a different host). The smoke test's cookie check names any attribute that is wrong. A **new tab** asking you to sign in again is by design: a session belongs to the tab that signed in |
+| Nobody can sign in: the login page says sign-in is unavailable, or the browser console shows a CSP error naming `supabase.co` | The Supabase project is paused, the Vercel build has the wrong `VITE_SUPABASE_URL`, or `connect-src` in `vercel.json` names another project | Restore the project ([SUPABASE.md](SUPABASE.md), section 10). Check that the Vercel variables and `vercel.json` name the same project, then redeploy |
+| Signing in works in Supabase, but the app says "Sign-in is unavailable right now" | The API cannot fetch the project's keys: `SUPABASE_URL` on Render is wrong, or the project is paused | Fix it on Render, or restore the project |
 | CORS errors in the browser console | Something is calling the API on another origin. The app itself only calls `/api` on its own origin | Check line 4 of `vercel.json` (step 5). Make sure the page is opened from `FRONTEND_URL`'s address, which is the only cross-origin caller production answers |
 | Render's log shows `bad auth`, `Authentication failed`, `MongoServerSelectionError`, `querySrv ENOTFOUND` or a TLS/SSL error | Wrong user or password (special characters not URL-encoded), a user without `readWrite` on `relay-live-demo`, Network Access not allowing `0.0.0.0/0`, or a paused cluster | Fix the string or the Atlas setting, then redeploy. Production stops when the first connection fails, so Render keeps restarting it until the database answers. `npm run db:check` with the same string explains the failure, read-only |
-| The Render build fails | `npm ci` refuses a `package.json` and `package-lock.json` that disagree. Or the build ran outside the repository root, where the only lockfile is. Or an old Node fails on `--env-file-if-exists` or argon2 | Run `npm install` locally and commit the lockfile. Leave Render's *Root Directory* empty. Keep `.node-version` at Node 22 |
+| The Render build fails | `npm ci` refuses a `package.json` and `package-lock.json` that disagree. Or the build ran outside the repository root, where the only lockfile is. Or an old Node fails on `--env-file-if-exists` | Run `npm install` locally and commit the lockfile. Leave Render's *Root Directory* empty. Keep `.node-version` at Node 22 |
+| Render's log says `Invalid environment configuration` and names a `SUPABASE_` setting | `SUPABASE_URL` or `SUPABASE_PUBLISHABLE_KEY` is missing, a secret key was given as the publishable one, or `SUPABASE_SERVICE_ROLE_KEY` is set on Render | Give Render the URL and the **publishable** key only. Delete `SUPABASE_SERVICE_ROLE_KEY` there: it belongs in GitHub alone |
 | Every request is refused with 429, "Too many requests from your network" | `TRUST_PROXY` too low: everyone looks like Vercel's few addresses and shares one count | Step 8. The counts are kept in memory and start again when the service restarts |
-| The demo's sign-in buttons say the email or password is wrong | The demo ward hasn't been seeded yet | Run the nightly workflow by hand (step 6) |
-| Render restarts the service, reporting it ran out of memory | The free plan has 512 MB. A generation holds its whole problem in memory while it runs (one at a time), and a password check holds 19 MiB (two at a time; 64 MiB for a hash made before the OWASP settings) | See the numbers below, which leave over 300 MB spare. Check Render's metrics for what was running: a far larger organisation's generation is the likeliest cause |
+| The demo's sign-in buttons say the email or password is wrong | The demo's accounts don't exist in Supabase yet, or a visitor changed the password | Run the nightly workflow by hand (step 6), with its Supabase secrets set. It makes the accounts, and puts the password back |
+| The nightly run failed at `keep-alive` | Supabase did not answer: the project is paused, or `SUPABASE_URL` or `SUPABASE_SERVICE_ROLE_KEY` is wrong | Restore the project ([SUPABASE.md](SUPABASE.md), section 10), then run the workflow by hand |
+| Render restarts the service, reporting it ran out of memory | The free plan has 512 MB. A generation holds its whole problem in memory while it runs (one at a time) | See the numbers below, which leave over 300 MB spare. Check Render's metrics for what was running: a far larger organisation's generation is the likeliest cause |
 | The nightly workflow stopped running | GitHub turns off scheduled workflows in a repository with no commits for 60 days, after emailing a warning | Turn it back on from the *Actions* tab |
 | A blank page, with CSP errors in the console | The inline script in `index.html` changed without its hash | See *Later changes* |
 
@@ -211,10 +233,8 @@ That last row is the limit of any proxy count: a request sent straight to the `o
 | --- | --- |
 | Idle, after start | about 90 MB |
 | Generating a 40-person, 14-day roster in the worker thread (5.4 s, all 168 shifts filled) | peak 130 MB |
-| Four sign-ins at the same moment, during a generation | peak 175 MB |
-| Ten sign-ins at the same moment, during a generation | peak 171 MB |
 
-Sign-ins barely move it. Each password check is Argon2id at the OWASP Password Storage Cheat Sheet's settings (19 MiB, 2 iterations, parallelism 1), and only two run at once while the rest wait their turn (`backend/src/utils/passwords.js`), so ten simultaneous sign-ins all finished within about 0.3 s. With the library's old defaults (64 MiB, up to four at once) the same moments peaked at 386 to 396 MB. Starting with `npm start` would keep npm itself running above the server, costing about 60 MB more, which is why `render.yaml` starts Node directly.
+These were measured before sign-in moved to Supabase, when the server also checked passwords with Argon2id. It no longer hashes anything: checking a Supabase token is a signature check against a cached public key, so sign-ins now cost the server next to nothing. Starting with `npm start` would keep npm itself running above the server, costing about 60 MB more, which is why `render.yaml` starts Node directly.
 
 ## Reference: every setting
 
@@ -222,19 +242,25 @@ Sign-ins barely move it. Each password check is Argon2id at the OWASP Password S
 
 | Setting | Value | Notes |
 | --- | --- | --- |
-| `NODE_ENV` | `production` | Turns on the production checks: https `FRONTEND_URL`, long and different JWT secrets, a job secret |
+| `NODE_ENV` | `production` | Turns on the production checks: https `FRONTEND_URL`, a job secret, and no service role key in the environment |
 | `MONGODB_URI` | asked for | The Atlas string, database `relay-live-demo` |
-| `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | asked for | At least 32 characters each, and different |
+| `SUPABASE_URL` | asked for | The production Supabase project, `https://<project-ref>.supabase.co` |
+| `SUPABASE_PUBLISHABLE_KEY` | asked for | Its publishable key. The server refuses a secret key here |
+| `SUPABASE_WEBHOOK_SECRET` | asked for, may be empty | Switches on the account webhook ([SUPABASE.md](SUPABASE.md), section 8) |
 | `INTERNAL_JOB_SECRET` | asked for | The same value as the GitHub secret |
 | `FRONTEND_URL` | asked for | The Vercel address. Links and the allowed origin come from it |
 | `CORS_ORIGIN` | asked for | The Vercel address. Production allows `FRONTEND_URL`'s origin alone |
 | `TRUST_PROXY` | `2` | Vercel's edge and Render's proxy (step 8) |
-| `EMAIL_ENABLED` | `false` | No transport is created, password reset by email answers `EMAIL_DISABLED`, and the app hides what needs email. `true` in production refuses to start unless `SMTP_USER` and `SMTP_PASS` or `RESEND_API_KEY` are set |
+| `EMAIL_ENABLED` | `false` | The API creates no email transport, and the app hides what needs Relay's own email (invite and notification emails). Sign-up and reset emails are Supabase's, and unaffected. `true` in production refuses to start unless `SMTP_USER` and `SMTP_PASS` or `RESEND_API_KEY` are set |
 | `EXPOSE_CLIENT_IP` | `false` | `true` only while confirming `TRUST_PROXY` |
 | `PORT` | set by Render | |
 
-**Vercel:** `VITE_DEMO_MODE=true`, `MONGOMS_DISABLE_POSTINSTALL=1`, and the Root Directory `frontend`.
+**Vercel:** `VITE_DEMO_MODE=true`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `MONGOMS_DISABLE_POSTINSTALL=1`, and the Root Directory `frontend`.
 
-**GitHub Actions:** `RELAY_API_URL`, `INTERNAL_JOB_SECRET`, `DEMO_MONGODB_URI`.
+**GitHub Actions:** `RELAY_API_URL`, `INTERNAL_JOB_SECRET`, `DEMO_MONGODB_URI`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+
+**Supabase:** the Auth settings, SMTP, redirect URLs and Google provider in [SUPABASE.md](SUPABASE.md). Its key table says which value goes where.
+
+**Moving existing accounts.** Everyone who had a Relay password signs up again with the same email ([SUPABASE.md](SUPABASE.md), section 9), and their account - organisations, roles, history - is linked to the new sign-in. Once they have, `npm run cleanup:legacy-auth` (dry run first) removes the old password hashes. Delete `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` from Render: nothing reads them any more.
 
 `GET /api/v1/config` tells the app whether the server sends email (`{ "emailEnabled": false }`). Anyone may read it, and it holds nothing secret.

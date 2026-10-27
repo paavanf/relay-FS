@@ -153,6 +153,14 @@ and an open offer is brand.
 dialog. It is its own token on purpose: it must darken the page in both
 themes, so it can never be the content colour.
 
+### Someone else's brand
+
+Google's mark on "Continue with Google" keeps Google's own four colours in
+both themes, because Google's branding rules ask for them. They are tokens
+like every other colour (`google-blue`, `google-green`, `google-yellow`,
+`google-red`), used by `GoogleSignIn.jsx` alone and never for anything of
+Relay's.
+
 ---
 
 ## Depth

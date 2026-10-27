@@ -45,6 +45,16 @@ services:
         sync: false
       - key: INTERNAL_JOB_SECRET
         sync: false
+      # Sign-in: the production Supabase project's URL and PUBLISHABLE key
+      # (docs/deploy/SUPABASE.md). Never its secret or service role key - the
+      # server refuses to start with one.
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      # Optional: the Supabase Auth webhook's shared secret.
+      - key: SUPABASE_WEBHOOK_SECRET
+        sync: false
       # The Vercel address, https://<project>.vercel.app - both of them.
       - key: FRONTEND_URL
         sync: false

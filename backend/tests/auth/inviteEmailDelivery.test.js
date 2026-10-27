@@ -13,6 +13,7 @@ import request from 'supertest';
 import { Invite } from '../../src/models/index.js';
 import { env } from '../../src/config/env.js';
 import { useEmptyDb } from '../helpers/apiTest.js';
+import { signUp } from '../helpers/orgBuilder.js';
 
 const world = useEmptyDb();
 let app;
@@ -26,14 +27,7 @@ vi.mock('../../src/services/email/transport.js', () => ({
   }),
 }));
 
-const owner = { name: 'Owner', email: 'owner@example.com', password: 'password123' };
-async function signIn() {
-  await request(app).post('/api/v1/auth/register').send(owner);
-  const login = await request(app)
-    .post('/api/v1/auth/login')
-    .send({ email: owner.email, password: owner.password });
-  return login.body.accessToken;
-}
+const signIn = () => signUp(app, 'Owner', 'owner@example.com');
 
 describe('invites with a broken email transport', () => {
   it('still creates the invite and returns a usable link', async () => {

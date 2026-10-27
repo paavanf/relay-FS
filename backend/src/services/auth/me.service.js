@@ -4,7 +4,7 @@
 import { User, Membership, Organisation } from '../../models/index.js';
 import { MEMBERSHIP_STATUS } from '../../config/constants.js';
 import { AppError } from '../../errors/AppError.js';
-import { isDemoOrg } from '../../config/demo.js';
+import { isDemoOrg, isDemoUser } from '../../config/demo.js';
 
 export async function getCurrentUser(userId) {
   const user = await User.findById(userId).select('-passwordHash').lean();
@@ -45,6 +45,8 @@ export async function getCurrentUser(userId) {
       id: user._id.toString(),
       email: user.email,
       name: user.name,
+      // A shared demo account: the frontend leaves out what it may not change.
+      isDemo: isDemoUser(user._id),
     },
     memberships: enrichedMemberships,
   };

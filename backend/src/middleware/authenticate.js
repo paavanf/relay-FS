@@ -1,25 +1,24 @@
 // authenticate.js
-// Verifies the Bearer token from the Authorization header.
-// If valid, attaches req.userId. Otherwise passes a 401 to the error handler.
+// Works out who is asking. The Bearer token is a Supabase access token (a
+// test token, in the tests): services/identity checks it and finds - or,
+// the first time, links or creates - the Relay user behind it.
+//
+// Every route after this one reads req.userId, Relay's own user id, so which
+// organisations someone belongs to never depends on Supabase. req.identity
+// keeps what the token said ({ externalId, email, name, emailProven }) for
+// the few places that need it, such as accepting an invite.
 
-import { verifyAccessToken } from '../services/auth/token.service.js';
-import { AppError } from '../errors/AppError.js';
+import { resolveIdentity, syncUser } from '../services/identity/index.js';
 
-export function authenticate(req, res, next) {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(AppError.unauthorized('No access token provided'));
-  }
-
-  const token = authHeader.slice(7); // Remove the "Bearer " prefix
-
+export async function authenticate(req, res, next) {
   try {
-    const payload = verifyAccessToken(token);
-    req.userId = payload.sub;
+    const identity = await resolveIdentity(req);
+    const user = await syncUser(identity);
+    req.identity = identity;
+    req.userId = String(user._id);
     next();
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 }
 

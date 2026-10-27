@@ -19,6 +19,7 @@ import { DEMO_ORG_ID, DEMO_LOCKED_MESSAGE, DEMO_ACCOUNT_MESSAGE } from '../../sr
 import { setupRecipes } from '../tenancy/setupRecipes.js';
 import { fill } from '../tenancy/fuzzCalls.js';
 import { auth, signUp, createOrg, sendInvite } from '../helpers/orgBuilder.js';
+import { tokenFor } from '../helpers/identity.js';
 
 const LOCKED = [
   'PUT /roster-rules', 'PUT /swap-rules', 'PATCH /members/:membershipId', 'DELETE /members/:membershipId', 'POST /invites',
@@ -31,7 +32,7 @@ let app;
 let ids;
 let ashasShift;
 const login = (email, password = DEMO_PASSWORD) => request(app).post('/api/v1/auth/login').send({ email, password });
-const as = async (email) => auth((await login(email)).body.accessToken);
+const as = async (email) => auth(await tokenFor({ email })); // linked to the seeded account by email
 
 beforeAll(async () => {
   vi.spyOn(console, 'log').mockImplementation(() => {});

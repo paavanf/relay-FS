@@ -5,13 +5,18 @@
 // real team takes to come together.
 
 import request from 'supertest';
+import { auth, tokenFor } from './identity.js';
 
-export const auth = (token) => ({ Authorization: `Bearer ${token}` });
+export { auth };
 
+/**
+ * Someone new signs in: a test token stands in for their Supabase session,
+ * and their first request creates their Relay user - as in production.
+ */
 export async function signUp(app, name, email) {
-  await request(app).post('/api/v1/auth/register').send({ name, email, password: 'password123' });
-  const res = await request(app).post('/api/v1/auth/login').send({ email, password: 'password123' });
-  return res.body.accessToken;
+  const token = await tokenFor({ email, name });
+  await request(app).get('/api/v1/auth/me').set(auth(token));
+  return token;
 }
 
 export async function createOrg(app, ownerToken, name = 'Ward A') {

@@ -11,8 +11,9 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } 
 import request from 'supertest';
 import { startTestServer, stopTestDb } from '../helpers/db.js';
 import { seed, inDatabase, snapshot } from '../helpers/demoSeed.js';
+import { tokenFor } from '../helpers/identity.js';
 import { createApp } from '../../src/app.js';
-import { WARD, DEMO_PASSWORD } from '../../scripts/demo/ward.js';
+import { WARD } from '../../scripts/demo/ward.js';
 import { User, Organisation } from '../../src/models/index.js';
 
 const SLOW = 120_000;
@@ -33,7 +34,13 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const login = (app, email) => request(app).post('/api/v1/auth/login').send({ email, password: DEMO_PASSWORD });
+// A visitor signed in as a demo account: the first request links the test
+// token to the seeded account by its email.
+async function login(app, email) {
+  const token = await tokenFor({ email });
+  const me = await request(app).get('/api/v1/auth/me').set('Authorization', `Bearer ${token}`);
+  return { status: me.status, body: { ...me.body, accessToken: token } };
+}
 
 describe('the demo seed', () => {
   it('builds the ward, five published weeks - two of them ahead - and a two-week draft', async () => {
@@ -55,7 +62,7 @@ describe('the demo seed', () => {
     expect(built.measured).toBe(12);
   }, SLOW);
 
-  it('lets people sign in with the printed password, and gives workers a fairness comparison', async () => {
+  it('lets people sign in to the demo accounts, and gives workers a fairness comparison', async () => {
     await inDatabase('relay-demo', async () => {
       const app = createApp();
       const owner = await login(app, 'owner@relay.test');

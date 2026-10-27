@@ -75,6 +75,11 @@ export const SWAP_PROPOSAL_LIMIT = Object.freeze({ windowMs: HOUR, max: 10 });
 // the most CPU-hungry request a worker can make.
 export const SWAP_SEARCH_LIMIT = Object.freeze({ windowMs: MINUTE, max: 10 });
 
+// Calls to the Supabase Auth webhook per address per minute. Supabase sends
+// one per changed or deleted account; anything faster is someone guessing
+// the secret.
+export const WEBHOOK_LIMIT = Object.freeze({ windowMs: MINUTE, max: 60 });
+
 // Per-account brute-force protection. The address limits above slow an
 // attacker down; this stops one account being ground through from many
 // addresses. Short, so a genuine user who mistyped is barely held up. The

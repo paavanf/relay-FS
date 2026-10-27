@@ -6,6 +6,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { parseEnv } from '../../src/config/envSchema.js';
+import { PRODUCTION_AUTH_ENV } from '../helpers/productionEnv.js';
 
 const production = (changes = {}) => ({
   NODE_ENV: 'production',
@@ -14,6 +15,7 @@ const production = (changes = {}) => ({
   JWT_REFRESH_SECRET: 'b'.repeat(40),
   FRONTEND_URL: 'https://relay.example.com',
   INTERNAL_JOB_SECRET: 'c'.repeat(40),
+  ...PRODUCTION_AUTH_ENV,
   ...changes,
 });
 
@@ -29,12 +31,12 @@ describe('EMAIL_ENABLED', () => {
   it('does what it says when it is set, whatever is configured', () => {
     expect(emailEnabled(production({ EMAIL_ENABLED: 'false', SMTP_USER: 'relay@example.com', SMTP_PASS: 'an-app-password' }))).toBe(false);
     expect(emailEnabled(production({ EMAIL_ENABLED: 'true', RESEND_API_KEY: 'a-resend-key' }))).toBe(true);
-    expect(emailEnabled({ NODE_ENV: 'development', EMAIL_ENABLED: 'false' })).toBe(false);
+    expect(emailEnabled({ NODE_ENV: 'development', EMAIL_ENABLED: 'false', ...PRODUCTION_AUTH_ENV })).toBe(false);
   });
 
   it('stays on outside production, where links are printed to the console', () => {
-    expect(emailEnabled({ NODE_ENV: 'development' })).toBe(true);
-    expect(emailEnabled({ NODE_ENV: 'test' })).toBe(true);
+    expect(emailEnabled({ NODE_ENV: 'development', ...PRODUCTION_AUTH_ENV })).toBe(true);
+    expect(emailEnabled({ NODE_ENV: 'test', ...PRODUCTION_AUTH_ENV })).toBe(true);
   });
 
   it('refuses EMAIL_ENABLED=true in production with no way to send email', () => {

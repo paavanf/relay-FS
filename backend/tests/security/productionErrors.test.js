@@ -9,6 +9,7 @@
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import mongoose from 'mongoose';
+import { PRODUCTION_AUTH_ENV } from '../helpers/productionEnv.js';
 
 let errorHandler;
 let AppError;
@@ -22,6 +23,7 @@ beforeAll(async () => {
     JWT_REFRESH_SECRET: 'b'.repeat(40),
     FRONTEND_URL: 'https://relay.example.com',
     INTERNAL_JOB_SECRET: 'c'.repeat(40),
+    ...PRODUCTION_AUTH_ENV,
   });
   ({ env } = await import('../../src/config/env.js'));
   ({ errorHandler } = await import('../../src/middleware/errorHandler.js'));

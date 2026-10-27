@@ -15,5 +15,12 @@ export const ERROR_CODES = Object.freeze({
   DEMO_LOCKED: 'DEMO_LOCKED',
   // This deployment sends no email, so nothing that needs it can be done.
   EMAIL_DISABLED: 'EMAIL_DISABLED',
+  // Tokens are checked against Supabase's public keys, and Supabase could
+  // not be reached for them. A 503: the session is not over, try again.
+  AUTH_UNAVAILABLE: 'AUTH_UNAVAILABLE',
+  // Linking a sign-in to an existing account (or accepting an invite) needs
+  // a proven email, and this Supabase project does not make people confirm
+  // theirs (services/identity/emailTrust.js).
+  EMAIL_NOT_PROVEN: 'EMAIL_NOT_PROVEN',
   INTERNAL: 'INTERNAL_ERROR',
 });

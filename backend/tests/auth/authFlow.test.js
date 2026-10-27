@@ -1,7 +1,7 @@
 // authFlow.test.js
 // Signing in: a token, the user and their memberships; a refresh cookie
 // locked down and gone when the browser closes; a wrong password that does
-// not reveal whether the email exists; and /me with the bearer token.
+// not reveal whether the email exists.
 //
 // Together with authSession.test.js, the whole session lifecycle the
 // frontend depends on: register -> login -> /me -> refresh -> logout. Every
@@ -59,17 +59,5 @@ describe('auth flow', () => {
     expect(unknownEmail.status).toBe(401);
     // Identical message: otherwise the difference leaks which emails exist.
     expect(wrongPassword.body.error.message).toBe(unknownEmail.body.error.message);
-  });
-
-  it('returns the current user from /me with a bearer token', async () => {
-    const login = await request(app).post('/api/v1/auth/login').send(credentials);
-
-    const res = await request(app)
-      .get('/api/v1/auth/me')
-      .set('Authorization', `Bearer ${login.body.accessToken}`);
-
-    expect(res.status).toBe(200);
-    expect(res.body.user.email).toBe(credentials.email);
-    expect(res.body.user.passwordHash).toBeUndefined();
   });
 });

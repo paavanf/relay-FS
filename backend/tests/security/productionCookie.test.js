@@ -11,6 +11,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
 import pino from 'pino';
 import { startTestDb, stopTestDb } from '../helpers/db.js';
+import { PRODUCTION_AUTH_ENV } from '../helpers/productionEnv.js';
 
 vi.mock('../../src/utils/logger.js', () => ({ logger: pino({ level: 'silent' }) }));
 
@@ -24,6 +25,7 @@ beforeAll(async () => {
     JWT_REFRESH_SECRET: 'b'.repeat(40),
     FRONTEND_URL: 'https://relay.example.com',
     INTERNAL_JOB_SECRET: 'c'.repeat(40),
+    ...PRODUCTION_AUTH_ENV,
   });
   await startTestDb();
   const { createApp } = await import('../../src/app.js');

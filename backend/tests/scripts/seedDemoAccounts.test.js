@@ -15,10 +15,11 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
 import { startTestServer, stopTestDb, testServerUri } from '../helpers/db.js';
 import { inDatabase } from '../helpers/demoSeed.js';
+import { tokenFor } from '../helpers/identity.js';
 import { main } from '../../scripts/demo/runSeed.js';
 import { createApp } from '../../src/app.js';
 import { User } from '../../src/models/index.js';
-import { DEMO_ACCOUNTS, DEMO_PASSWORD, DEMO_ORG_ID } from '../../../frontend/src/pages/auth/login/demoAccounts.js';
+import { DEMO_ACCOUNTS, DEMO_ORG_ID } from '../../../frontend/src/pages/auth/login/demoAccounts.js';
 
 beforeAll(async () => {
   vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -37,9 +38,10 @@ function mondayIn(weeks) {
 }
 
 async function signIn(app, email) {
-  const { body } = await request(app).post('/api/v1/auth/login').send({ email, password: DEMO_PASSWORD });
+  const accessToken = await tokenFor({ email });
+  const { body } = await request(app).get('/api/v1/auth/me').set('Authorization', `Bearer ${accessToken}`);
   const [membership] = body.memberships;
-  const get = (path) => request(app).get(`/api/v1/orgs/${membership.orgId}${path}`).set('Authorization', `Bearer ${body.accessToken}`);
+  const get = (path) => request(app).get(`/api/v1/orgs/${membership.orgId}${path}`).set('Authorization', `Bearer ${accessToken}`);
   return { membership, get };
 }
 

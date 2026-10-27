@@ -1,8 +1,9 @@
 // rateLimiters.js
 // The limits counted per request, in memory (express-rate-limit): per
 // address for the whole API and for the auth endpoints, accounts created per
-// address, reset emails per email address, and swap searches per person. The
-// numbers, and why each exists, are in config/constants.js.
+// address, reset emails per email address, swap searches per person, and
+// webhook calls per address. The numbers, and why each exists, are in
+// config/constants.js.
 //
 // Memory means one count per server process, emptied by a restart - right
 // for one server. The limits counted from the database (invites, proposals,
@@ -24,6 +25,7 @@ import {
   REGISTRATION_LIMIT,
   FORGOT_PASSWORD_LIMIT,
   SWAP_SEARCH_LIMIT,
+  WEBHOOK_LIMIT,
 } from '../config/constants.js';
 
 export const limitsInTests = { on: false };
@@ -67,3 +69,5 @@ export const swapSearchLimiter = limiter(SWAP_SEARCH_LIMIT, {
   message: 'Too many swap searches in the last minute.',
   keyGenerator: (req) => `user:${req.userId}`,
 });
+
+export const webhookLimiter = limiter(WEBHOOK_LIMIT, { message: 'Too many webhook calls from your network.' });

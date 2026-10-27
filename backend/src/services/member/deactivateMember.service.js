@@ -5,21 +5,16 @@
 // so the membership is set inactive and every record stays readable. From then
 // on they are left out of generation and fairness, the Team page no longer
 // lists them, and resolveMembership shuts them out of this organisation.
-//
-// Their shifts on DRAFT rosters come off, each recorded as an unfilled slot
-// (draftShifts.js) - a draft still being planned must not quietly roster
-// someone who can no longer work. Published rosters keep them, as history.
+// The steps themselves - draft shifts, the last-owner rule, the ledger - are
+// in deactivateMembership.js, which a deleted sign-in uses too.
 //
 // Who may: a manager can deactivate members; deactivating a manager or an
 // owner takes an owner. The last active owner can never be deactivated.
 
-import mongoose from 'mongoose';
-import { Membership, User } from '../../models/index.js';
+import { Membership } from '../../models/index.js';
 import { MEMBERSHIP_STATUS, ROLES } from '../../config/constants.js';
 import { AppError } from '../../errors/AppError.js';
-import { refreshLedgerSafely } from '../fairness/index.js';
-import { assertAnotherOwner } from './ownerGuard.js';
-import { clearDraftShifts } from './draftShifts.js';
+import { deactivateMembership } from './deactivateMembership.js';
 import { memberById } from './memberDto.js';
 
 export async function deactivateMember({ orgId, actor, membershipId }) {
@@ -30,27 +25,6 @@ export async function deactivateMember({ orgId, actor, membershipId }) {
     throw AppError.forbidden('Only an owner can deactivate a manager or an owner.');
   }
 
-  const user = await User.findById(member.userId).select('name').lean();
-  const session = await mongoose.startSession();
-  let removedDraftShifts = 0;
-
-  try {
-    await session.withTransaction(async () => {
-      if (member.role === ROLES.OWNER) await assertAnotherOwner({ orgId, membershipId: member._id, session });
-      await Membership.updateOne({ _id: member._id }, { $set: { status: MEMBERSHIP_STATUS.INACTIVE } }, { session });
-      removedDraftShifts = await clearDraftShifts({
-        orgId,
-        membershipId: member._id,
-        name: user?.name ?? 'a team member',
-        session,
-      });
-    });
-  } finally {
-    await session.endSession();
-  }
-
-  // They no longer count in the team average.
-  await refreshLedgerSafely(orgId);
-
+  const removedDraftShifts = await deactivateMembership(member);
   return { member: await memberById(member._id), removedDraftShifts };
 }

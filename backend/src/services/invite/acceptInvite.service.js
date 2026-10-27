@@ -2,7 +2,10 @@
 // Turns a live invite into a membership for the signed-in user.
 //
 // The invite is addressed to one email, and the user's must match - otherwise
-// anyone holding the link could join as the intended person. Someone who was
+// anyone holding the link could join as the intended person. The sign-in's
+// email must match too, and be one Supabase has proven (identity.emailProven,
+// services/identity/emailTrust.js): an address nobody had to confirm proves
+// nothing about who holds the link. Someone who was
 // deactivated and has now been invited back gets their old membership turned
 // back on (there is one membership per person per organisation), rather than
 // a duplicate.
@@ -15,20 +18,23 @@
 
 import mongoose from 'mongoose';
 import { Invite, Membership, Organisation, User } from '../../models/index.js';
-import { MEMBERSHIP_STATUS } from '../../config/constants.js';
+import { MEMBERSHIP_STATUS, ERROR_CODES } from '../../config/constants.js';
 import { AppError } from '../../errors/AppError.js';
 import { isDemoOrg, isDemoUser, DEMO_ACCOUNT_MESSAGE } from '../../config/demo.js';
 import { findValidInvite, inviteNoLongerValid } from './findValidInvite.js';
 import { notify } from '../notification/notify.service.js';
 
-export async function acceptInvite({ rawToken, userId }) {
+export async function acceptInvite({ rawToken, userId, identity }) {
   if (isDemoUser(userId)) throw AppError.demoLocked(DEMO_ACCOUNT_MESSAGE);
   const invite = await findValidInvite(rawToken);
 
   const user = await User.findById(userId).select('email name').lean();
   if (!user) throw AppError.unauthorized('User not found');
-  if (user.email !== invite.email) {
+  if (user.email !== invite.email || identity?.email !== invite.email) {
     throw AppError.forbidden('This invite is for a different email address');
+  }
+  if (!identity.emailProven) {
+    throw new AppError('Invites can only be accepted with a confirmed email address.', 403, { code: ERROR_CODES.EMAIL_NOT_PROVEN });
   }
 
   const existing = await Membership.findOne({ userId, orgId: invite.orgId });

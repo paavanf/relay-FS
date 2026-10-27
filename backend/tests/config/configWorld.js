@@ -8,16 +8,14 @@
 
 import { beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
+import { signUp as signUpAs } from '../helpers/orgBuilder.js';
 import { startTestDb, stopTestDb, clearTestDb } from '../helpers/db.js';
 import { createApp } from '../../src/app.js';
 
 export const auth = (token) => ({ Authorization: `Bearer ${token}` });
 
-export async function signUp(app, email) {
-  await request(app).post('/api/v1/auth/register').send({ name: 'Person', email, password: 'password123' });
-  const res = await request(app).post('/api/v1/auth/login').send({ email, password: 'password123' });
-  return res.body.accessToken;
-}
+// A test sign-in (helpers/identity.js); the first request creates the user.
+export const signUp = (app, email) => signUpAs(app, 'Person', email);
 
 // An owner with an organisation, plus an ordinary member inside it.
 async function seedOrgWithMember(app, orgFields) {

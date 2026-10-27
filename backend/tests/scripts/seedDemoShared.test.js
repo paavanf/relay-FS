@@ -3,7 +3,7 @@
 // the seed must only ever touch the demo organisation and its demo users.
 // Here a real organisation with something of everything (the tenancy
 // fuzzer's world: people, rosters, shifts, offers, a proposed swap,
-// notifications, an invite, sessions) sits next to the demo through a
+// notifications, an invite) sits next to the demo through a
 // reseed, and must come out document for document the same.
 //
 // One real account also belongs to the demo: that membership goes with the
@@ -18,17 +18,17 @@ import * as models from '../../src/models/index.js';
 import { DEMO_ORG_ID } from '../../src/config/demo.js';
 import { tenancyWorld } from '../tenancy/tenancyWorld.js';
 
-const { Membership, Organisation, User, RefreshToken } = models;
+const { Membership, Organisation, User } = models;
 const ORG_SCOPED = ['Membership', 'Invite', 'Qualification', 'ShiftTemplate', 'CoverageRequirement', 'Availability', 'Roster',
   'Assignment', 'GenerationJob', 'FairnessLedger', 'SwapRequest', 'SwapChain', 'Notification', 'AuditLog'];
 
-// Every document the real organisation owns, its people and their sessions.
+// Every document the real organisation owns, and its people - each with
+// the Supabase sign-in they are linked to.
 async function everythingOf(orgId) {
   const rows = { Organisation: await Organisation.find({ _id: orgId }).lean() };
   for (const name of ORG_SCOPED) rows[name] = await models[name].find({ orgId }).sort({ _id: 1 }).lean();
   const userIds = rows.Membership.map((membership) => membership.userId);
   rows.User = await User.find({ _id: { $in: userIds } }).sort({ _id: 1 }).lean();
-  rows.RefreshToken = await RefreshToken.find({ userId: { $in: userIds } }).sort({ _id: 1 }).lean();
   return JSON.parse(JSON.stringify(rows));
 }
 
@@ -53,7 +53,7 @@ afterAll(async () => {
 
 describe('reseeding the demo on a shared database', () => {
   it('starts from a real organisation with something of everything', () => {
-    for (const name of ['Membership', 'Roster', 'Assignment', 'SwapRequest', 'SwapChain', 'Notification', 'Invite', 'User', 'RefreshToken']) {
+    for (const name of ['Membership', 'Roster', 'Assignment', 'SwapRequest', 'SwapChain', 'Notification', 'Invite', 'User']) {
       expect(before[name].length, name).toBeGreaterThan(0);
     }
   });

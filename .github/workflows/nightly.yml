@@ -1,18 +1,26 @@
 # nightly.yml
 # Every night at 03:00 IST (21:30 UTC), and whenever "Run workflow" is
-# pressed on the Actions tab, two jobs look after the deployed demo:
+# pressed on the Actions tab, three jobs look after the deployed demo:
 #
 #   reap        asks the API to let go of expired swap reservations
 #               (POST /api/v1/internal/reap-expired, with the shared secret)
-#   reset-demo  puts the shared demo ward back the way the seed builds it
-#               (npm run seed:demo, against the deployed demo database)
+#   reset-demo  puts the shared demo back the way the seed builds it: its
+#               sign-ins in Supabase, its ward in the demo database
+#               (npm run seed:demo)
+#   keep-alive  one small request of the production Supabase project, so the
+#               free project does not pause after 7 quiet days - and a failed
+#               run, which GitHub emails you about, when Supabase does not
+#               answer (docs/deploy/SUPABASE.md, section 10)
 #
 # Something touching the database every night also stops Atlas pausing the
 # free cluster after 30 idle days.
 #
-# Needs three repository secrets: RELAY_API_URL, INTERNAL_JOB_SECRET and
-# DEMO_MONGODB_URI (docs/deploy/DEPLOY.md). Until they are set, each job
-# says so and stops without failing; once they are, any failure fails the run.
+# Repository secrets (docs/deploy/DEPLOY.md): RELAY_API_URL and
+# INTERNAL_JOB_SECRET for reap; DEMO_MONGODB_URI, SUPABASE_URL,
+# SUPABASE_PUBLISHABLE_KEY and SUPABASE_SERVICE_ROLE_KEY for reset-demo;
+# SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for keep-alive. Until a job's
+# secrets are set, it says so and stops without failing; once they are, any
+# failure fails the run.
 name: Nightly
 
 on:
@@ -62,12 +70,16 @@ jobs:
     timeout-minutes: 15
     env:
       DEMO_MONGODB_URI: ${{ secrets.DEMO_MONGODB_URI }}
+      # The seed keeps the demo's sign-ins through Supabase's Admin API.
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
-      - name: Check the secret is set
+      - name: Check the secrets are set
         id: secrets
         run: |
-          if [ -z "$DEMO_MONGODB_URI" ]; then
-            echo "::notice title=Demo reset skipped::Set the DEMO_MONGODB_URI repository secret to run this job (docs/deploy/DEPLOY.md)."
+          if [ -z "$DEMO_MONGODB_URI" ] || [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_PUBLISHABLE_KEY" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::notice title=Demo reset skipped::Set the DEMO_MONGODB_URI, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY and SUPABASE_SERVICE_ROLE_KEY repository secrets to run this job (docs/deploy/DEPLOY.md)."
             echo "ready=false" >> "$GITHUB_OUTPUT"
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"
@@ -92,9 +104,51 @@ jobs:
         run: npm ci --workspace backend
 
       # The seed refuses any database whose name does not end in -demo, and
-      # replaces only the demo ward - found by its fixed ids - inside it.
+      # replaces only the demo ward - found by its fixed ids - inside it. In
+      # Supabase it touches only the demo's own .test accounts, and only those
+      # carrying its marker.
       - name: Reset the demo ward
         if: steps.secrets.outputs.ready == 'true'
         env:
           MONGODB_URI: ${{ secrets.DEMO_MONGODB_URI }}
         run: npm run seed:demo --workspace backend -- --yes
+
+  keep-alive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - name: Check the secrets are set
+        id: secrets
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::notice title=Keep-alive skipped::Set the SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY repository secrets to run this job (docs/deploy/SUPABASE.md)."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.secrets.outputs.ready == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install the backend
+        if: steps.secrets.outputs.ready == 'true'
+        env:
+          MONGOMS_DISABLE_POSTINSTALL: '1'
+        run: npm ci --workspace backend
+
+      # A free project pauses after 7 days without database activity, and a
+      # paused one refuses every sign-in. Listing one user through the Admin
+      # API reads its database. Three tries; then the job fails, and so does
+      # the run - which GitHub emails you about.
+      - name: Keep the Supabase project awake
+        if: steps.secrets.outputs.ready == 'true'
+        run: npm run keep-alive --workspace backend

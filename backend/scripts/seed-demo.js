@@ -11,6 +11,11 @@
 // and unless --yes is given. Each run first removes the previous run's ward,
 // found by its fixed id, and touches nothing else. The steps live in
 // scripts/demo/, in the order runSeed.js calls them.
+//
+// The demo's people sign in through Supabase, so it also keeps their
+// accounts there (demo/demoAccounts.js) - which needs SUPABASE_URL and the
+// project's secret key, SUPABASE_SERVICE_ROLE_KEY: in backend/.env on your
+// own machine, or in GitHub Actions' secrets. Nowhere else.
 
 // Load backend/.env the way the app does - a variable already set in your
 // shell wins over the file - before anything reads the environment.

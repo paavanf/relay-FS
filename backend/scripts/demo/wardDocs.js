@@ -35,8 +35,9 @@ export function organisationDoc() {
   return { _id: orgId, name: WARD.name, timezone: WARD.timezone, swapPolicy: { acceptanceWindowHours: 168, requireManagerApproval: true } };
 }
 
-export function userDocs() {
-  return PEOPLE.map((person, i) => ({ _id: DEMO_USER_IDS[i], name: person.name, email: emailOf(person) }));
+// identities: email -> Supabase user id (demoAccounts.js); null links by email at first sign-in.
+export function userDocs(identities) {
+  return PEOPLE.map((person, i) => ({ _id: DEMO_USER_IDS[i], name: person.name, email: emailOf(person), supabaseUserId: identities?.get(emailOf(person)) }));
 }
 
 export function membershipDocs(anchor) {

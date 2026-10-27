@@ -22,11 +22,11 @@ import {
   availabilityDocs,
 } from './wardDocs.js';
 
-export async function writeWard({ anchor }) {
+export async function writeWard({ anchor, identities }) {
   await Organisation.create(organisationDoc());
 
-  // Who they are in MongoDB. How they sign in is Supabase's.
-  const users = await User.insertMany(userDocs());
+  // Who they are in MongoDB, each linked to their Supabase sign-in.
+  const users = await User.insertMany(userDocs(identities));
   await Membership.insertMany(membershipDocs(anchor));
   const qualifications = await Qualification.insertMany(qualificationDocs());
   const templates = await ShiftTemplate.insertMany(templateDocs());

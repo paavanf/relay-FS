@@ -51,7 +51,7 @@ describe('the demo accounts the login page offers', () => {
 
   for (const weeks of [2, 9]) {
     it(`show what the page says, in a demo seeded ${weeks} weeks ahead`, async () => {
-      expect(await main(['--yes'], { MONGODB_URI: testServerUri('relay-demo') }, { anchor: mondayIn(weeks) })).toBe(0);
+      expect(await main(['--yes'], { MONGODB_URI: testServerUri('relay-demo') }, { anchor: mondayIn(weeks), accounts: false })).toBe(0);
 
       await inDatabase('relay-demo', async () => {
         const app = createApp();

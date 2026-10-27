@@ -16,6 +16,8 @@
     "benchmark:swaps": "node scripts/benchmark-swaps.js",
     "db:check": "node scripts/check-db.js",
     "seed:demo": "node scripts/seed-demo.js",
+    "keep-alive": "node scripts/supabase-keep-alive.js",
+    "cleanup:legacy-auth": "node scripts/cleanup-legacy-auth.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -36,6 +38,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
+    "@supabase/supabase-js": "^2.118.0",
     "eslint": "^9.18.0",
     "fast-check": "^4.9.0",
     "globals": "^15.14.0",

@@ -35,7 +35,7 @@ The steps run in this order because each service needs the other's address: Verc
 
 - **Project URL** `https://<project-ref>.supabase.co` and **publishable key** (`sb_publishable_...`): Render (step 4), Vercel (step 3) and GitHub (step 6).
 - **Secret key** (`sb_secret_...`): GitHub only (step 6), as `SUPABASE_SERVICE_ROLE_KEY`. Never on Render or Vercel; a production server refuses to start with it, and the frontend build refuses one.
-- The project ref also goes in the Content-Security-Policy in `frontend/vercel.json` (`connect-src`). Without it, the browser may not talk to Supabase, and nobody can sign in.
+- The Content-Security-Policy in `frontend/vercel.json` already lets the page talk to the production project: `connect-src 'self' https://ctotqethpyctxjpoumfx.supabase.co`. If the production project ever changes, change that origin. Without the right one, the browser may not talk to Supabase, and nobody can sign in. `npm test` checks it is one real project ref (`vercelConnect.test.js`).
 
 ## 1. Atlas: a database and a user of its own
 

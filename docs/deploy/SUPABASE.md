@@ -49,7 +49,7 @@ With "Confirm email" off, Supabase marks every address confirmed without sending
 
 **Check the signing keys.** *Project Settings* → *JWT Keys* should show an asymmetric current key (ECC P-256, or RSA). Projects created since 1 October 2025 start that way. If yours shows the legacy JWT secret, migrate it to asymmetric keys there. Relay accepts only ES256 and RS256 tokens, and never takes the legacy secret.
 
-**Sessions.** On the free plan a session lasts until the person signs out. Time-boxed sessions and inactivity timeouts are Pro features. The README's *Sessions* section says what that means for Relay.
+**Sessions.** On the free plan a session lasts until the person signs out: time-boxed sessions and inactivity timeouts are Pro features. So Relay keeps a limit of its own, and signs a browser out 7 days after it signed in. The README's *Sessions* section explains how, and what that limit cannot cover.
 
 ## 3. Email: custom SMTP with Gmail
 

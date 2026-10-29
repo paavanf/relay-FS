@@ -51,6 +51,7 @@ export function createTestAuthClient() {
       if (!session) return null;
       const accessToken = await signTestToken(session.email);
       store({ ...session, accessToken });
+      tell('TOKEN_REFRESHED');
       return accessToken;
     },
     async signOut() {

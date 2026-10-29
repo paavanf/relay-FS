@@ -8,21 +8,27 @@
 // cannot link, say), the session is ended again and the refusal thrown, so
 // the form shows why rather than leaving a half-signed-in tab.
 //
+// Signing in records when (lib/auth/sessionAge.js): Relay ends every
+// sign-in 7 days later. Signing out forgets it.
+//
 // Emailed links come back to /auth/callback (carrying ?next=, an invite
 // say) and /reset-password; both must be in the Supabase project's list of
 // redirect URLs (docs/deploy/SUPABASE.md).
 
 import { authClient } from '../../lib/auth/authClient.js';
+import { recordSignIn, forgetSignIn } from '../../lib/auth/sessionAge.js';
 
 const callbackUrl = (next) => `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}`;
 
 export function authActions({ loadUser, clearUser, watch }) {
   async function signedIn(client) {
+    recordSignIn();
     watch(client);
     try {
       await loadUser();
     } catch (error) {
       await client.signOut();
+      forgetSignIn();
       clearUser();
       throw error;
     }
@@ -52,6 +58,7 @@ export function authActions({ loadUser, clearUser, watch }) {
     },
     async logout() {
       await (await authClient()).signOut().catch(() => {});
+      forgetSignIn();
       clearUser();
     },
   };

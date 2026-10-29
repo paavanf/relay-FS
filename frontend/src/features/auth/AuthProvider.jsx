@@ -13,6 +13,7 @@ import { AuthContext } from './AuthContext.js';
 import { membershipActions } from './membershipActions.js';
 import { authActions } from './authActions.js';
 import { restoreSession } from './restoreSession.js';
+import { sessionWatcher } from './sessionWatcher.js';
 import { hasStoredSession } from '../../lib/auth/storedSession.js';
 import { authRedirect } from '../../lib/auth/authRedirect.js';
 import { api } from '../../lib/apiClient.js';
@@ -37,9 +38,9 @@ export function AuthProvider({ children }) {
     setMemberships([]);
   }
 
-  // Signed out elsewhere - an expired session, or a sign-out in another tab.
+  // Signed out elsewhere, or a background refresh of a sign-in over 7 days old.
   function watch(client) {
-    stopWatching.current ??= client.onChange((event) => event === 'SIGNED_OUT' && clearUser());
+    stopWatching.current ??= sessionWatcher(client, { clearUser });
   }
 
   const actions = authActions({ loadUser, clearUser, watch });

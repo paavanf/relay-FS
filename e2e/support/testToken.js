@@ -6,13 +6,15 @@
 // and gives the same email the same user id, so both name the same person.
 //
 // HS256, with the secret the stack made up for this run (stack().authSecret).
+// Like a Supabase token it says when its session signed in (amr): now, or
+// options.signedInAt (ms), which the API's 7-day limit reads.
 
 import crypto from 'node:crypto';
 
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
 const userIdFor = (email) => `test-${crypto.createHash('sha256').update(email).digest('hex').slice(0, 32)}`;
 
-export function signTestToken(email, secret) {
+export function signTestToken(email, secret, { signedInAt = Date.now() } = {}) {
   const address = email.trim().toLowerCase();
   const now = Math.floor(Date.now() / 1000);
   const header = encode({ alg: 'HS256', typ: 'JWT' });
@@ -22,6 +24,7 @@ export function signTestToken(email, secret) {
     role: 'authenticated',
     is_anonymous: false,
     user_metadata: {},
+    amr: [{ method: 'password', timestamp: Math.floor(signedInAt / 1000) }],
     iss: 'relay-test-auth',
     aud: 'authenticated',
     iat: now,

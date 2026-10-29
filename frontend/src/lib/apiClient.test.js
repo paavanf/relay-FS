@@ -1,22 +1,29 @@
 // apiClient.test.js
 // Every request carries the signed-in person's access token. When the API
 // answers 401 the token is refreshed once and the request tried once more;
-// when there is no fresh token to be had, the 401 stands.
+// when there is no fresh token to be had, the 401 stands. A 401
+// SESSION_EXPIRED - a sign-in past the 7-day limit - is never refreshed:
+// the session is ended, so the login page can say why.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { currentAccessToken, refreshAccessToken } from './auth/session.js';
+import { sessionEndedForAge } from './auth/sessionAge.js';
 import { api } from './apiClient.js';
 
+const client = vi.hoisted(() => ({ signOut: async () => {} }));
+
 vi.mock('./auth/session.js', () => ({ currentAccessToken: vi.fn(), refreshAccessToken: vi.fn() }));
+vi.mock('./auth/authClient.js', () => ({ authClient: async () => client }));
 vi.mock('./slowRequests.js', () => ({ trackRequest: () => () => {} }));
 
-const answer = (status, body = {}) => ({ status, ok: status < 300, json: async () => body });
+const answer = (status, body = {}) => ({ status, ok: status < 300, json: async () => body, clone: () => answer(status, body) });
 const tokensSent = () => fetch.mock.calls.map(([, init]) => init.headers.Authorization);
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn());
   vi.mocked(currentAccessToken).mockResolvedValue('old-token');
   vi.mocked(refreshAccessToken).mockReset();
+  client.signOut = vi.fn(async () => {});
 });
 
 describe('the API client', () => {
@@ -41,5 +48,14 @@ describe('the API client', () => {
 
     await expect(api.get('/orgs')).rejects.toMatchObject({ status: 401 });
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('ends the session, without a refresh, when the API says the sign-in is past the limit', async () => {
+    fetch.mockResolvedValueOnce(answer(401, { error: { code: 'SESSION_EXPIRED', message: 'Sign-ins last 7 days.' } }));
+
+    await expect(api.get('/auth/me')).rejects.toMatchObject({ status: 401, code: 'SESSION_EXPIRED' });
+    expect(refreshAccessToken).not.toHaveBeenCalled();
+    expect(client.signOut).toHaveBeenCalledTimes(1);
+    expect(sessionEndedForAge()).toBe(true);
   });
 });

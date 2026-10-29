@@ -6,6 +6,7 @@
 //   - a token the project signed signs the person in; the keys are fetched
 //     once and then served from the cache
 //   - a token signed for another project is refused
+//   - so is one whose sign-in is more than 7 days old (SESSION_EXPIRED)
 
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
@@ -58,5 +59,11 @@ describe('signing in, as in production', () => {
   it('refuses a token signed for another project', async () => {
     const elsewhere = await project.signToken({ email: 'ada@example.com', issuer: 'https://otherprojectaaaaaaaaaa.supabase.co/auth/v1' });
     expect((await me(elsewhere)).status).toBe(401);
+  });
+
+  it("refuses a project's token whose sign-in is more than 7 days old", async () => {
+    const stale = await project.signToken({ email: 'ada@example.com', signedInAt: Date.now() - 8 * 24 * 60 * 60 * 1000 });
+    const res = await me(stale);
+    expect([res.status, res.body.error.code]).toEqual([401, 'SESSION_EXPIRED']);
   });
 });

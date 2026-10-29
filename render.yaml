@@ -24,9 +24,11 @@ services:
     startCommand: node backend/src/server.js
     healthCheckPath: /api/v1/health
     # A push that changes only the frontend or the docs does not redeploy the API.
+    # shared/ holds values the API reads too (the sign-in limit), so it counts.
     buildFilter:
       paths:
         - backend/**
+        - shared/**
         - package.json
         - package-lock.json
         - .node-version

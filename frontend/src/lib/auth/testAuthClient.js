@@ -35,7 +35,8 @@ export function createTestAuthClient() {
     async signIn(email, password) {
       if (password !== DEMO_PASSWORD) throw new AuthFailure('Invalid email or password.', 'invalid_credentials');
       const address = email.trim().toLowerCase();
-      store({ email: address, accessToken: await signTestToken(address) });
+      const signedInAt = Date.now();
+      store({ email: address, signedInAt, accessToken: await signTestToken(address, signedInAt) });
       tell('SIGNED_IN');
     },
     signUp: async () => ({ needsConfirmation: true }),
@@ -49,7 +50,7 @@ export function createTestAuthClient() {
     async refresh() {
       const session = stored();
       if (!session) return null;
-      const accessToken = await signTestToken(session.email);
+      const accessToken = await signTestToken(session.email, session.signedInAt);
       store({ ...session, accessToken });
       tell('TOKEN_REFRESHED');
       return accessToken;

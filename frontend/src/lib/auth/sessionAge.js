@@ -9,8 +9,13 @@
 // The time is kept in localStorage beside the session, so every tab agrees on
 // it - and in memory too, for a browser whose storage refuses. A session with
 // no record at all counts as too old, so there is no way around the limit.
+// The 7 days are shared with the API, which refuses older sign-ins too
+// (shared/sessionLimits.js).
 
-export const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+import { SESSION_MAX_AGE_MS } from '../../../../shared/sessionLimits.js';
+
+export { SESSION_MAX_AGE_MS };
+
 const KEY = 'relay-signed-in-at';
 
 let inMemory = null;

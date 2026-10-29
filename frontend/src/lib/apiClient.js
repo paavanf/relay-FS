@@ -8,8 +8,11 @@
 // The token is the signed-in person's Supabase access token (lib/auth/). A
 // 401 means it has expired: it is refreshed once, and the request tried once
 // more. If that fails too, the session is over and the auth client says so.
+// A 401 SESSION_EXPIRED - a sign-in past the 7-day limit - ends the session
+// instead, since refreshing cannot help (lib/auth/sessionRefusal.js).
 
 import { currentAccessToken, refreshAccessToken } from './auth/session.js';
+import { isPastSessionLimit, endSessionPastLimit } from './auth/sessionRefusal.js';
 import { trackRequest } from './slowRequests.js';
 import { ApiError, errorFor } from './apiError.js';
 
@@ -51,13 +54,13 @@ async function request(method, path, body, { expectSlow = false } = {}) {
   }
   done();
 
-  // Access token expired - refresh once, then retry the original request.
-  if (response.status === 401) {
+  // Access token expired - refresh once, then retry the original request. A
+  // sign-in past the 7-day limit is ended instead, whenever the API says so.
+  if (response.status === 401 && !(await isPastSessionLimit(response))) {
     const newToken = await refreshAccessToken();
-    if (newToken) {
-      response = await sendRequest(method, path, body, newToken);
-    }
+    if (newToken) response = await sendRequest(method, path, body, newToken);
   }
+  if (await isPastSessionLimit(response)) await endSessionPastLimit();
 
   const payload = response.status === 204 ? null : await response.json().catch(() => null);
 

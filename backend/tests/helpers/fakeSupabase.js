@@ -29,9 +29,10 @@ export async function startFakeSupabase({ autoconfirm = false } = {}) {
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const url = `http://127.0.0.1:${server.address().port}`;
 
-  async function signToken({ email, sub = `fake-${email}`, name, expiresIn = 3600, issuer = `${url}/auth/v1` }) {
+  async function signToken({ email, sub = `fake-${email}`, name, expiresIn = 3600, issuer = `${url}/auth/v1`, signedInAt = Date.now() }) {
     const now = Math.floor(Date.now() / 1000);
-    return new SignJWT({ email, role: 'authenticated', is_anonymous: false, user_metadata: name ? { name } : {} })
+    const amr = [{ method: 'password', timestamp: Math.floor(signedInAt / 1000) }];
+    return new SignJWT({ email, role: 'authenticated', is_anonymous: false, user_metadata: name ? { name } : {}, amr })
       .setProtectedHeader({ alg: 'ES256', kid: 'fake-key' })
       .setIssuer(issuer)
       .setAudience('authenticated')

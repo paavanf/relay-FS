@@ -64,7 +64,7 @@ Each comes out 64 characters long, and production refuses anything shorter than 
 ## 3. Vercel: the first deploy
 
 1. Vercel → *Add New* → *Project* → import this repository.
-2. **Root Directory:** `frontend`. Vercel detects Vite; leave the build command (`npm run build`) and output directory (`dist`) as they are. The Node version comes from `engines` in `frontend/package.json`.
+2. **Root Directory:** `frontend`. Vercel detects Vite; leave the build command (`npm run build`) and output directory (`dist`) as they are. The Node version comes from `engines` in `frontend/package.json`. The build also reads `shared/`, beside `frontend/`, where the 7-day sign-in limit lives for the browser and the API alike, so leave *Include source files outside of the Root Directory in the Build Step* on in the same section. Projects created after 27 August 2020 have it on by default; with it off, the build stops because it cannot find `shared/sessionLimits.js`.
 3. **Environment variables:**
    - `VITE_DEMO_MODE` = `true`. The build reads it, and it puts the shared demo's one-click accounts on the login page and "Try the demo" on the landing page.
    - `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`: the production project's URL and publishable key (step 0). Both end up in the JavaScript every visitor downloads, which is what they are for. A build on Vercel without them refuses to start, and so does one with a secret key in any `VITE_` variable.
@@ -100,7 +100,7 @@ Each comes out 64 characters long, and production refuses anything shorter than 
    A missing or unsafe setting stops it before it listens, with a list of what to fix.
 4. Note the service's address, `https://<service>.onrender.com` (`relay-api.onrender.com`, or with a suffix if that name was taken). Open `https://<service>.onrender.com/api/v1/health` and expect `"status":"ok"`, `"environment":"production"` and `"database":"connected"`.
 
-Render redeploys on every push to `main` that changes the backend, the lockfile, `.node-version` or `render.yaml` (`buildFilter` in `render.yaml`). A push that only changes the frontend or the docs leaves the API running.
+Render redeploys on every push to `main` that changes the backend, `shared/`, the lockfile, `.node-version` or `render.yaml` (`buildFilter` in `render.yaml`). A push that only changes the frontend or the docs leaves the API running.
 
 ## 5. The one line in vercel.json
 

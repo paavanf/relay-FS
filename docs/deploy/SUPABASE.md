@@ -49,7 +49,7 @@ With "Confirm email" off, Supabase marks every address confirmed without sending
 
 **Check the signing keys.** *Project Settings* → *JWT Keys* should show an asymmetric current key (ECC P-256, or RSA). Projects created since 1 October 2025 start that way. If yours shows the legacy JWT secret, migrate it to asymmetric keys there. Relay accepts only ES256 and RS256 tokens, and never takes the legacy secret.
 
-**Sessions.** On the free plan a session lasts until the person signs out: time-boxed sessions and inactivity timeouts are Pro features. So Relay keeps a limit of its own, and signs a browser out 7 days after it signed in. The README's *Sessions* section explains how, and what that limit cannot cover.
+**Sessions.** On the free plan a session lasts until the person signs out: time-boxed sessions and inactivity timeouts are Pro features. So Relay keeps a limit of its own: 7 days from signing in. After that the browser signs itself out, and the API refuses the session's tokens, reading the sign-in time from each token's `amr` claim. The README's *Sessions* section explains how.
 
 ## 3. Email: custom SMTP with Gmail
 
@@ -229,4 +229,5 @@ Relay's API keeps its own limits on top: the address-wide limit, invites, organi
 | A link opens the wrong site, or localhost in production | The Site URL or the redirect list | Section 4 |
 | "Continue with Google" shows a Google error about the redirect | The callback URL is missing from the Google client | Section 5, step 2 |
 | The demo's sign-in buttons say the password is wrong | The demo accounts don't exist in this project yet | Run the nightly workflow by hand, with its Supabase secrets set |
+| People are signed out with "sign-ins last 7 days" (the API answers 401 `SESSION_EXPIRED`) | Relay's own limit: 7 days from signing in, however active | By design (README, *Sessions*). Signing in again starts a new 7 days |
 | The frontend build fails with "Refusing to build" | A secret key in a `VITE_` variable, or the test sign-in in a production build | Remove the variable the message names |

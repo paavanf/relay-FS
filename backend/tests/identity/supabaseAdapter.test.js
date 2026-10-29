@@ -15,12 +15,10 @@ import { supabaseAdapter } from '../../src/services/identity/supabaseAdapter.js'
 
 const PROJECT = 'https://abcdefghijklmnopqrst.supabase.co';
 const ISSUER = `${PROJECT}/auth/v1`;
-const CLAIMS = { email: 'Ada@Example.com', role: 'authenticated', is_anonymous: false, user_metadata: { name: 'Ada' } };
+const SIGNED_IN_NOW = [{ method: 'password', timestamp: Math.floor(Date.now() / 1000) }];
+const CLAIMS = { email: 'Ada@Example.com', role: 'authenticated', is_anonymous: false, user_metadata: { name: 'Ada' }, amr: SIGNED_IN_NOW };
 
-let ec;
-let rsa;
-let ecPublicJwk;
-let adapter;
+let ec, rsa, ecPublicJwk, adapter;
 
 beforeAll(async () => {
   ec = await generateKeyPair('ES256');

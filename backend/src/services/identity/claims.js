@@ -8,12 +8,15 @@
 //   - an anonymous sign-in
 //   - a token with no email: Relay finds people by email, and an invite is
 //     only ever accepted by the address it was sent to
+//   - a sign-in more than 7 days old, or one that does not say when it began
+//     (signInAge.js) - with the code SESSION_EXPIRED for the first
 //
 // The name comes from user_metadata, which the person can write themselves,
 // so it is treated as plain input: trimmed, cut to the User model's 80
 // characters, and the email's local part when there is none.
 
 import { AppError } from '../../errors/AppError.js';
+import { assertRecentSignIn } from './signInAge.js';
 
 const NAME_MAX = 80;
 
@@ -30,6 +33,7 @@ export function identityFromClaims(claims) {
 
   const email = typeof claims.email === 'string' ? claims.email.trim().toLowerCase() : '';
   if (!email) throw AppError.unauthorized('This sign-in has no email address');
+  assertRecentSignIn(claims);
 
   return { externalId: claims.sub, email, name: nameFrom(claims.user_metadata, email) };
 }

@@ -9,6 +9,8 @@
 //   tokenFor({ email, emailVerified: false })   an email nobody confirmed
 //   tokenFor({ email, sub })                    a chosen Supabase user id
 //   tokenFor({ email, expiresIn: -60 })         an expired token
+//   tokenFor({ email, signedInAt })             a sign-in from that moment (ms);
+//                                               by default, now
 //
 // The same email - in any case - always gets the same Supabase user id
 // (subFor), so two tokens for one address are one person, as two sign-ins
@@ -23,9 +25,11 @@ export const auth = (token) => ({ Authorization: `Bearer ${token}` });
 export const subFor = (email) =>
   `test-${crypto.createHash('sha256').update(email.trim().toLowerCase()).digest('hex').slice(0, 32)}`;
 
-export async function tokenFor({ email, name, sub = subFor(email), emailVerified, expiresIn = 3600, claims = {} }) {
+export async function tokenFor({ email, name, sub = subFor(email), emailVerified, expiresIn = 3600, signedInAt = Date.now(), claims = {} }) {
   const now = Math.floor(Date.now() / 1000);
-  const payload = { email, role: 'authenticated', is_anonymous: false, user_metadata: name ? { name } : {}, ...claims };
+  // When the session signed in, as Supabase stamps it (services/identity/signInAge.js).
+  const amr = [{ method: 'password', timestamp: Math.floor(signedInAt / 1000) }];
+  const payload = { email, role: 'authenticated', is_anonymous: false, user_metadata: name ? { name } : {}, amr, ...claims };
   if (emailVerified === false) payload.email_verified = false;
 
   return new SignJWT(payload)

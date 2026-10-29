@@ -6,7 +6,9 @@
 //
 // The same email always gets the same user id, worked out the way the
 // backend's tests/helpers/identity.js and e2e/support/api.js work it out,
-// so every way the suite signs someone in names the same person.
+// so every way the suite signs someone in names the same person. Each token
+// says when its session signed in (amr), which the API's 7-day limit reads;
+// like Supabase's, a refreshed token keeps that time.
 
 import { SignJWT } from 'jose';
 
@@ -18,9 +20,10 @@ async function userIdFor(email) {
   return `test-${hex.slice(0, 32)}`;
 }
 
-export async function signTestToken(email) {
+export async function signTestToken(email, signedInAt) {
   const now = Math.floor(Date.now() / 1000);
-  return new SignJWT({ email, role: 'authenticated', is_anonymous: false, user_metadata: {} })
+  const amr = [{ method: 'password', timestamp: Math.floor(signedInAt / 1000) }];
+  return new SignJWT({ email, role: 'authenticated', is_anonymous: false, user_metadata: {}, amr })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuer('relay-test-auth')
     .setAudience('authenticated')

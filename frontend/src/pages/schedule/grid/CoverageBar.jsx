@@ -10,6 +10,8 @@
 // Needed comes from the coverage rules (grid/coverage.js), the same demand
 // the generator was given, so a hand-edited roster is counted honestly too.
 // A day with shifts saved before roles were recorded is judged by headcount.
+// A day no coverage rule asks for anyone on has nothing to cover: an empty
+// grey meter and its shift count, never a full green one.
 import { cn } from '../../../lib/utils.js';
 import { coverageOn, coverageStatus, describeCoverage } from './coverage.js';
 
@@ -17,6 +19,7 @@ const tones = {
   covered: { fill: 'bg-success-solid', text: 'text-success-content' },
   thin: { fill: 'bg-warning-solid', text: 'text-warning-content' },
   short: { fill: 'bg-danger-solid', text: 'text-danger-content' },
+  none: { fill: 'bg-surface-sunken', text: 'text-content-tertiary' },
 };
 
 export function CoverageBar({ columns, templates, roles }) {
@@ -33,7 +36,7 @@ export function CoverageBar({ columns, templates, roles }) {
         const day = coverageOn(column.date, { ...roles, templates });
         const detail = describeCoverage(day);
         const tone = tones[coverageStatus(day)];
-        const percent = day.required === 0 ? 100 : Math.min(100, Math.round((day.filled / day.required) * 100));
+        const percent = day.required === 0 ? 0 : Math.min(100, Math.round((day.filled / day.required) * 100));
 
         return (
           <td key={column.date} className="border-b border-l border-line-subtle px-2 py-2">

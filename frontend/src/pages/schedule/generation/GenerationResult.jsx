@@ -6,18 +6,26 @@
 // among them, in milliseconds, where the sentence rounds it to seconds.
 import { Callout } from '../../../components/ui/Callout.jsx';
 
+// The answer in one sentence - never "every shift is covered" when no
+// coverage rule asked for anyone, so there was nothing to cover.
+function outcome({ total, filled, holes, seconds }) {
+  if (total === 0) return { variant: 'info', text: 'Nothing to fill: no coverage rule asks for anyone on these dates.' };
+  if (holes === 0) return { variant: 'success', text: `Every shift is covered - ${filled} filled in ${seconds}s.` };
+  return {
+    variant: 'warning',
+    text: `${filled} of ${total} shifts filled in ${seconds}s. ${holes} could not be covered without breaking a rule - they are listed below.`,
+  };
+}
+
 export function GenerationResult({ metrics }) {
-  const filled = (metrics?.totalSlots ?? 0) - (metrics?.unfilledCount ?? 0);
-  const seconds = Math.max(1, Math.round((metrics?.durationMs ?? 0) / 1000));
+  const total = metrics?.totalSlots ?? 0;
   const holes = metrics?.unfilledCount ?? 0;
+  const seconds = Math.max(1, Math.round((metrics?.durationMs ?? 0) / 1000));
+  const { variant, text } = outcome({ total, filled: total - holes, holes, seconds });
 
   return (
     <div className="space-y-3">
-      <Callout variant={holes === 0 ? 'success' : 'warning'}>
-        {holes === 0
-          ? `Every shift is covered - ${filled} filled in ${seconds}s.`
-          : `${filled} of ${metrics?.totalSlots ?? 0} shifts filled in ${seconds}s. ${holes} could not be covered without breaking a rule - they are listed below.`}
-      </Callout>
+      <Callout variant={variant}>{text}</Callout>
 
       <details className="text-body-sm text-content-secondary">
         <summary className="cursor-pointer text-content-tertiary">Technical details</summary>

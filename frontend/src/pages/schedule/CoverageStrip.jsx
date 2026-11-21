@@ -3,8 +3,8 @@
 // screen reader hears the same thing in words.
 import { cn } from '../../lib/utils.js';
 
-const fills = { covered: 'bg-success-solid', thin: 'bg-warning-solid', short: 'bg-danger-solid' };
-const words = { covered: 'covered', thin: 'nearly covered', short: 'short' };
+const fills = { covered: 'bg-success-solid', thin: 'bg-warning-solid', short: 'bg-danger-solid', none: 'bg-surface-sunken' };
+const words = { covered: 'covered', thin: 'nearly covered', short: 'short', none: 'no coverage rule' };
 
 export function CoverageStrip({ days }) {
   const said = days.map((day) => `${day.weekday} ${day.dayNumber} ${words[day.status]}`).join(', ');

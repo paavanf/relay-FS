@@ -5,7 +5,7 @@
 // Focus stays inside while it is open, and Escape - or a click outside -
 // closes it (useFocusTrap.js). A dropdown under the bell on a wide screen;
 // a full-width sheet under the top bar on a phone.
-import { useRef } from 'react';
+import { useId, useRef } from 'react';
 import { Link } from 'react-router';
 import { Button } from '../../../components/ui/Button.jsx';
 import { ErrorState } from '../../../components/ui/ErrorState.jsx';
@@ -20,6 +20,7 @@ export function NotificationPanel({ onClose }) {
   const latest = useLatestNotifications(orgId);
   const markAll = useMarkAllRead(orgId);
   const panel = useRef(null);
+  const titleId = useId();
   useFocusTrap(panel, onClose);
 
   const notifications = latest.data?.notifications ?? [];
@@ -31,12 +32,14 @@ export function NotificationPanel({ onClose }) {
       <div
         ref={panel}
         role="dialog"
-        aria-label="Notifications"
+        aria-labelledby={titleId}
         tabIndex={-1}
         className="fixed inset-x-0 top-14 z-40 max-h-[80vh] overflow-y-auto border-b border-line-subtle bg-surface-overlay elevation-md sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2 sm:w-96 sm:rounded-lg sm:border"
       >
         <div className="flex items-center justify-between gap-2 border-b border-line-subtle px-4 py-2.5">
-          <h2 className="text-body-sm font-semibold text-content-primary">Notifications</h2>
+          <h2 id={titleId} className="text-body-sm font-semibold text-content-primary">
+            Notifications
+          </h2>
           <Button variant="ghost" size="sm" disabled={!anyUnread} isLoading={markAll.isPending} onClick={() => markAll.mutate()}>
             Mark all as read
           </Button>

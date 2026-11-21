@@ -3,7 +3,7 @@
 // After a generation: the answer in a sentence, with the time in whole
 // seconds, and under Technical details the numbers behind it - the server's
 // measured duration among them, in milliseconds, exactly as the job
-// reported it.
+// reported it. With nothing to fill, it says so instead of claiming coverage.
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
@@ -44,5 +44,11 @@ describe('the generation result', () => {
   it('keeps whole seconds in the sentence above it', () => {
     render(<GenerationResult metrics={METRICS} />);
     expect(screen.getByText('Every shift is covered - 94 filled in 15s.')).toBeTruthy();
+  });
+
+  it('with nothing to fill, says so rather than claiming every shift is covered', () => {
+    render(<GenerationResult metrics={{ ...METRICS, totalSlots: 0, unfilledCount: 0 }} />);
+    expect(screen.getByText('Nothing to fill: no coverage rule asks for anyone on these dates.')).toBeTruthy();
+    expect(screen.queryByText(/Every shift is covered/)).toBeNull();
   });
 });

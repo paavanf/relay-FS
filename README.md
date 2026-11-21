@@ -2,6 +2,10 @@
 
 Relay builds staff rosters that keep every scheduling rule - rest between shifts, consecutive days, weekly hours, qualifications, declared unavailability - and explains, in plain words, any shift it cannot fill without breaking one. Staff then swap shifts directly or through a chain of colleagues, with every swap checked against the same rules before it happens, and Relay keeps a running record of who has carried the nights and weekends so the next roster evens it out.
 
+![Elif, a worker in the demo ward, opens Swaps and clicks Find swaps for her Sunday day shift. Relay shows a direct swap with Femi and a three-person chain with Dara and Femi, drawn as a diagram, and she proposes the chain. The owner then opens Swap approvals, where the chain shows all three people accepted, with its coverage, fairness and rule checks, and approves it. Elif's My shifts now has Femi's Tuesday night shift.](docs/media/swap-chain.gif)
+
+*A three-person swap chain, from finding it to the changed roster. Femi and Dara accept it between the two cuts. Recorded against a local copy of the demo ward.*
+
 **Live demo:** [https://relay-fs.vercel.app](https://relay-fs.vercel.app)
 
 **Privacy:** the [privacy policy](frontend/src/pages/privacy/PrivacyPage.jsx), at `/privacy` on the live site, says what Relay keeps about the people who use it, where, who can see it, and how to have it deleted.
@@ -66,6 +70,10 @@ flowchart LR
 ### Generation
 
 Coverage rules are expanded into concrete slots; a greedy pass fills them, preferring to leave a slot empty rather than break a rule; then a seeded hill-climbing search with restarts improves the result within the budget, asking `evaluate()` about every candidate rather than assuming a move is legal. Every unfilled slot comes back with the reason - which rule stopped how many people - in a sentence a manager can act on.
+
+![The demo owner signs in with the demo button and opens an empty two-week draft roster. Clicking Generate roster shows a progress bar; then the grid fills with day, evening and night shifts, the result reads "Every shift is covered - 94 filled in 4s", and every day's coverage meter is full.](docs/media/roster-generation.gif)
+
+*Generating a two-week roster for the demo ward, with the wait cut short. Recorded against a local copy of the demo ward, where it took 4 s; on the live site's free server it takes about 15 s ([Performance on the live site](#performance-on-the-live-site)).*
 
 ### Fairness feedback
 
@@ -180,7 +188,7 @@ What it says, plainly:
 - **Choosy people are where chains matter most.** With everyone taking 60% of what is on offer and 20 offers out, chains resolve 22 points more than direct swaps alone (51% to 73%); at 30%, they almost double it (18% to 31%).
 - **The limit is the pool, not the search.** With five offers and choosy people almost nothing resolves however long a chain may be.
 
-The performance target held: across 300 searches with all 100 people offering, the median was 181 ms, p95 251 ms and the slowest 360 ms on battery (60, 80 and 97 ms plugged in), and none reached the 400 ms budget. On the live site a whole search, as the browser sees it, took 1,438 to 1,618 ms on the much smaller demo ward ([below](#performance-on-the-live-site)); how much of that the search itself takes there was not measured separately.
+The performance target held: across 300 searches with all 100 people offering, the median was 181 ms, p95 251 ms and the slowest 360 ms on battery (60, 80 and 97 ms plugged in), and none reached the 400 ms budget. On the live site a whole search, as the browser sees it, took 1,438 to 1,618 ms before the query change and 962 to 1,350 ms after it, on the much smaller demo ward ([below](#performance-on-the-live-site)); after it, the search itself took 2 to 12 ms of that, by the server's own count.
 
 ## Performance on the live site
 
@@ -189,12 +197,13 @@ Measured on the live site on 21 Nov 2026, on a warm server - Render's free plan,
 | What was timed | Run 1 | Run 2 | Run 3 |
 | --- | ---: | ---: | ---: |
 | Roster generation for the demo ward - 94 shifts over 14 days, the full 20,000 search iterations - as the server measured it | 14,997 ms | 16,297 ms | 15,206 ms |
-| Swap search, measured in the browser, through Vercel to Render | 1,618 ms | 1,438 ms | 1,474 ms |
+| Swap search, measured in the browser, through Vercel to Render - before the query change | 1,618 ms | 1,438 ms | 1,474 ms |
+| Swap search, measured the same way - after the query change (21 Nov 2026) | 1,036 ms | 962 ms | 1,350 ms |
 
 - **Generation** filled all 94 shifts every time. From clicking Generate to seeing the result took about 19-20 s. Render's free plan gives the server only a small share of a CPU, which is why the generator's 20,000 iterations take about 15 s there.
-- **Each swap search** found 1 direct swap and 1 chain. The search itself is capped at 400 ms, so most of each answer's time was spent outside it: on the way through Vercel to Render and back, and on the request's database queries.
-- **These are warm-server numbers.** The free server sleeps when nobody is using it, and the first request after that is much slower while it starts again ([Known gaps](#known-gaps)). None of these runs followed a sleep.
-- **The swap numbers were measured before a later change** that runs the search's independent database queries side by side: a search that finds options makes the same 23 queries, now waited on in 11 rounds instead of 18 (`backend/tests/swaps/swapOptionsQueries.test.js`). The live site has not been measured since, so no speed-up is claimed.
+- **Each swap search** found 1 direct swap and 1 chain. The search itself is capped at 400 ms, and after the query change it took 2 to 12 ms by the server's own count, so almost all of each answer's time is spent outside it: on the way through Vercel to Render and back, and on the request's database queries.
+- **The query change** runs the search's independent database queries side by side: a search that finds options makes the same 23 queries, waited on in 11 rounds instead of 18 (`backend/tests/swaps/swapOptionsQueries.test.js`). After it, each of the three searches was faster than any of the three before - three runs of each, on one day, so a small sample.
+- **These are warm-server numbers.** The free server sleeps when nobody is using it, and the first request after that is much slower while it starts again ([Known gaps](#known-gaps)). The generation runs and the searches before the query change followed no sleep. Before the searches after it the server had been asleep - its first requests took about 20 s - so one warm-up search came first, at 1,730 ms, and is not counted.
 
 ## How it is tested
 
@@ -276,7 +285,7 @@ Supabase keeps a signed-in session in the browser's **localStorage**: an access 
 - Request logs keep the network address each request arrived from, unmasked.
 - Emailed links use Supabase's implicit flow, so a crafted link could sign a tab in as someone else's account (the name in the sidebar shows whose). The PKCE flow would prevent that, but its links only work in the tab that asked for them.
 - The per-request limits are counted in memory, per server process, and start again after a restart; the ones that matter most for abuse (invites, proposals, organisations) are counted in the database.
-- The live site's times are three runs each, on one day, on a warm server; a start after the server has slept was not timed. The generation and swap benchmark tables are from a laptop.
+- The live site's times are three runs of each, on one day, on a warm server: a small sample. How long the server takes to wake was seen only once (about 20 s for its first requests). The generation and swap benchmark tables are from a laptop.
 
 ## Running it locally
 
@@ -308,7 +317,7 @@ The development project's URL and publishable key go in both `.env` files; the s
 
 **Demo data.** `cd backend && npm run seed:demo -- --yes` fills a database whose name ends in `-demo` with the demo ward: an owner, a manager and twelve nurses and healthcare assistants on `relay.test` addresses (password `relay-demo-2026`, printed by the script), five published weeks generated by the real engine, a two-week draft, six open swap requests showing each kind of answer the finder gives, and two proposed swaps. The data is the same on every run - only the dates move - and so are the people in each story: `dara@relay.test` has a request only a three-person chain resolves, `elif@relay.test` a direct swap, `grace@relay.test` none because of the days she cannot work, `bilal@relay.test` a charge nurse shift nobody offering could take, `jonas@relay.test` a proposed swap to answer, and the owner or manager a swap to approve. It refuses to run without `--yes` or against a database not named `...-demo`, and each run removes only what the last run made - found by fixed ids, never by anything another organisation could share. The demo's sign-ins live in Supabase, so it also needs your development project's secret key as `SUPABASE_SERVICE_ROLE_KEY` in `backend/.env` - the one place, with GitHub Actions, that key may be kept.
 
-**End-to-end tests.** `npm install --prefix e2e` once, then `npm run e2e` - it builds the frontend in demo mode, starts the backend and a preview server on free ports against an in-memory database filled by the demo seed, runs every spec in order, and tears it all down (about six minutes). No Supabase project is involved: the suite builds the frontend with an offline stand-in for Supabase (`VITE_AUTH_MODE=test`) that signs test tokens with a secret made up for each run, and starts the backend to accept only those (`AUTH_MODE=test`). A production build refuses that stand-in, and so does a server outside `NODE_ENV=test`. It uses the Microsoft Edge already on the machine; without Edge, `npx --prefix e2e playwright install chromium` and run with `E2E_CHANNEL=chromium`. Reports, screenshots and measured figures land in `e2e/artifacts/`, which git ignores.
+**End-to-end tests.** `npm install --prefix e2e` once, then `npm run e2e` - it builds the frontend in demo mode, starts the backend and a preview server on free ports against an in-memory database filled by the demo seed, runs every spec in order, and tears it all down (the last full run, on a laptop, took 12.6 minutes). No Supabase project is involved: the suite builds the frontend with an offline stand-in for Supabase (`VITE_AUTH_MODE=test`) that signs test tokens with a secret made up for each run, and starts the backend to accept only those (`AUTH_MODE=test`). A production build refuses that stand-in, and so does a server outside `NODE_ENV=test`. It uses the Microsoft Edge already on the machine; without Edge, `npx --prefix e2e playwright install chromium` and run with `E2E_CHANNEL=chromium`. Reports, screenshots and measured figures land in `e2e/artifacts/`, which git ignores.
 
 ## Deploying it
 

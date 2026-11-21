@@ -1,6 +1,6 @@
 # Supabase Auth migration: Phase 0 plan
 
-Branch `supabase-auth`. This was the Phase 0 plan: research, inventory, and the design approved before any code was written. It is kept as the record of why things are as they are. The setup itself is in [docs/deploy/SUPABASE.md](../deploy/SUPABASE.md), and sessions are explained in the README.
+Branch `supabase-auth`. This was the Phase 0 plan: research, inventory, and the design approved before any code was written. It is kept as the record of why things are as they are. **It describes the old sign-in as it was then:** wherever it says "today" or "now" - the refresh cookie, the password hashes, the lockout - it means before the move, and none of that exists any more. One later decision is not in it: Relay's 7-day limit on a sign-in, kept by the browser and by the API. The setup itself is in [docs/deploy/SUPABASE.md](../deploy/SUPABASE.md), and sign-in and sessions are explained in the README.
 
 **Approved, with these changes:**
 

@@ -25,6 +25,7 @@ The steps run in this order because each service needs the other's address: Verc
 6. [GitHub Actions: secrets and the first run](#6-github-actions-secrets-and-the-first-run)
 7. [Run the smoke test](#7-run-the-smoke-test)
 8. [Confirm TRUST_PROXY](#8-confirm-trust_proxy)
+- [Moving the live site to Supabase](#moving-the-live-site-to-supabase)
 - [Later changes](#later-changes)
 - [Troubleshooting](#troubleshooting)
 - [Reference: every setting](#reference-every-setting)
@@ -147,21 +148,20 @@ Without its secrets, each job prints a notice saying which are missing and stops
 
 ## 7. Run the smoke test
 
-From a clone of the repository (Node 22; nothing to install), with the production Supabase project's URL and publishable key - both public:
+From a clone of the repository (Node 22; nothing to install). It takes three arguments: the site, and the production Supabase project's URL and publishable key - all public. The same line works in PowerShell, cmd and bash:
 
-```bash
-SUPABASE_URL=https://<project-ref>.supabase.co SUPABASE_PUBLISHABLE_KEY=sb_publishable_... \
-  node scripts/smoke-deployed.mjs https://<project>.vercel.app
+```text
+node scripts/smoke-deployed.mjs https://<project>.vercel.app https://<project-ref>.supabase.co sb_publishable_...
 ```
 
-It talks to the address it is given, so every API call goes through Vercel's rewrite as a browser's would, and to Supabase to sign in, as a browser does. It reads, apart from one sign-in as the demo's owner and the sign-out after. A healthy deployment prints ten `PASS` lines:
+It talks to the address it is given, so every API call goes through Vercel's rewrite as a browser's would, and to Supabase to sign in, as a browser does. It reads, apart from one sign-in as the demo's owner and the sign-out after. It refuses a secret key in place of the publishable one. A healthy deployment prints ten `PASS` lines:
 
 ```text
 PASS  The landing page loads                     ...
 PASS  The API answers through /api               ...
 PASS  GET /api/v1/config                         emailEnabled: false
-PASS  Security headers on the page               CSP, HSTS, nosniff, Referrer-Policy, Permissions-Policy
-PASS  App routes are served by the app           /login, /auth/callback and /reset-password are served by the app
+PASS  Security headers on the page               CSP (connect-src 'self' and Supabase only), HSTS, nosniff, Referrer-Policy, Permissions-Policy
+PASS  Pages open from their address              /privacy, /login, /auth/callback, /reset-password are served by the app
 PASS  The demo owner can sign in with Supabase   owner@relay.test, ...
 PASS  Relay knows who signed in                  the demo owner, in the demo ward
 PASS  A refreshed session is the same person     refreshed, then /auth/me, as the same person
@@ -202,6 +202,23 @@ In a local rehearsal with `TRUST_PROXY=2`, the server settled on these addresses
 
 That last row is the limit of any proxy count: a request sent straight to the `onrender.com` address skips Vercel. So its first address is whatever the sender wrote, and the per-address limits can be dodged that way. The limits counted per account still hold: invites per organisation, organisations per account, swap proposals and searches per person. Sign-in attempts are Supabase's to count, by the address Supabase sees, so they don't depend on this setting.
 
+## Moving the live site to Supabase
+
+The live site runs the old sign-in until `supabase-auth` is merged into `main`. The two versions need different settings: the old API requires `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` and ignores settings it does not know, while the new one refuses to start without `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`. So the new settings go in first and the old secrets come out last, and whichever version is running always has what it needs:
+
+1. **Supabase.** Set up the production project as in [SUPABASE.md](SUPABASE.md): "Confirm email" on, custom SMTP, the redirect URLs, and Google, still in *Testing*.
+2. **Render: add, remove nothing.** *Environment* → add `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (and `SUPABASE_WEBHOOK_SECRET`, if you use the webhook). Leave `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` where they are: the old API refuses to start without them, and Render may restart it before the merge.
+3. **Vercel:** add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (step 3). The old frontend ignores them; the new build refuses to start without them.
+4. **GitHub:** add `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SERVICE_ROLE_KEY` as repository secrets (step 6).
+5. **Merge** `supabase-auth` into `main`.
+6. **Wait for the new deploys.** On Render, the log should end with `Relay API listening`, with no `Invalid environment configuration` before it. On Vercel, the deployment should be *Ready*.
+7. **Run the nightly workflow by hand** (step 6), so the demo's accounts exist in Supabase. Its sign-in buttons only work after that.
+8. **Run the smoke test** (step 7). All ten checks should pass.
+9. **Now delete `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`** from Render. Nothing reads them any more.
+10. **Publish the Google app** once `https://<project>.vercel.app/privacy` opens: Google wants the privacy policy's address before it lets the app out of *Testing* ([SUPABASE.md](SUPABASE.md), section 5).
+
+**Existing accounts.** Everyone who had a Relay password signs up again with the same email ([SUPABASE.md](SUPABASE.md), section 9), and their account - organisations, roles, history - is linked to the new sign-in. Once they have, `npm run cleanup:legacy-auth` in `backend/` (a dry run first) removes the old password hashes and lockout counters from the database.
+
 ## Later changes
 
 - **The inline script in `frontend/index.html`** (the one that applies the theme before first paint) is allowed by its hash in the CSP in `vercel.json`. Change one character of it and browsers block it. `npm test` catches this: `vercelConfig.test.js` fails, and its message shows the new hash. Copy that hash into `script-src` in `vercel.json`. The browser hashes the script with its line endings as LF, and the test does the same.
@@ -238,29 +255,63 @@ These were measured before sign-in moved to Supabase, when the server also check
 
 ## Reference: every setting
 
+**Secret** means it must never be committed, shown or shared: keep it in the service's settings and a password manager. **Public** means it is no secret: it may be in a log, a page or the JavaScript every visitor downloads. Every `VITE_` variable is public, because the build writes it into that JavaScript; the build refuses a secret key in one.
+
 **Render** (`render.yaml`):
 
-| Setting | Value | Notes |
+| Setting | Value | Kind | Notes |
+| --- | --- | --- | --- |
+| `NODE_ENV` | `production` | public | Turns on the production checks: https `FRONTEND_URL`, a job secret, and no service role key in the environment |
+| `MONGODB_URI` | asked for | **secret** | The Atlas string, database `relay-live-demo`. It holds the database user's password |
+| `SUPABASE_URL` | asked for | public | The production Supabase project, `https://<project-ref>.supabase.co` |
+| `SUPABASE_PUBLISHABLE_KEY` | asked for | public | Its publishable key. The server refuses a secret key here |
+| `SUPABASE_WEBHOOK_SECRET` | asked for, may be empty | **secret** | Switches on the account webhook ([SUPABASE.md](SUPABASE.md), section 8) |
+| `INTERNAL_JOB_SECRET` | asked for | **secret** | The same value as the GitHub secret |
+| `FRONTEND_URL` | asked for | public | The Vercel address. Links and the allowed origin come from it |
+| `CORS_ORIGIN` | asked for | public | The Vercel address. Production allows `FRONTEND_URL`'s origin alone |
+| `TRUST_PROXY` | `2` | public | Vercel's edge and Render's proxy (step 8) |
+| `EMAIL_ENABLED` | `false` | public | The API creates no email transport, and the app hides what needs Relay's own email (invite and notification emails). Sign-up and reset emails are Supabase's, and unaffected. `true` in production refuses to start unless `SMTP_USER` and `SMTP_PASS` or `RESEND_API_KEY` are set |
+| `EXPOSE_CLIENT_IP` | `false` | public | `true` only while confirming `TRUST_PROXY` |
+| `PORT` | set by Render | public | |
+| `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | the old sign-in's | **secret** | Not in `render.yaml` any more. Delete them once the new API is live ([Moving the live site to Supabase](#moving-the-live-site-to-supabase), step 9) |
+
+**Vercel** (*Settings* → *Environment Variables*; Root Directory `frontend`):
+
+| Setting | Value | Kind |
 | --- | --- | --- |
-| `NODE_ENV` | `production` | Turns on the production checks: https `FRONTEND_URL`, a job secret, and no service role key in the environment |
-| `MONGODB_URI` | asked for | The Atlas string, database `relay-live-demo` |
-| `SUPABASE_URL` | asked for | The production Supabase project, `https://<project-ref>.supabase.co` |
-| `SUPABASE_PUBLISHABLE_KEY` | asked for | Its publishable key. The server refuses a secret key here |
-| `SUPABASE_WEBHOOK_SECRET` | asked for, may be empty | Switches on the account webhook ([SUPABASE.md](SUPABASE.md), section 8) |
-| `INTERNAL_JOB_SECRET` | asked for | The same value as the GitHub secret |
-| `FRONTEND_URL` | asked for | The Vercel address. Links and the allowed origin come from it |
-| `CORS_ORIGIN` | asked for | The Vercel address. Production allows `FRONTEND_URL`'s origin alone |
-| `TRUST_PROXY` | `2` | Vercel's edge and Render's proxy (step 8) |
-| `EMAIL_ENABLED` | `false` | The API creates no email transport, and the app hides what needs Relay's own email (invite and notification emails). Sign-up and reset emails are Supabase's, and unaffected. `true` in production refuses to start unless `SMTP_USER` and `SMTP_PASS` or `RESEND_API_KEY` are set |
-| `EXPOSE_CLIENT_IP` | `false` | `true` only while confirming `TRUST_PROXY` |
-| `PORT` | set by Render | |
+| `VITE_DEMO_MODE` | `true` | public |
+| `VITE_SUPABASE_URL` | the production project's URL | public |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | its publishable key | public |
+| `MONGOMS_DISABLE_POSTINSTALL` | `1` | public |
 
-**Vercel:** `VITE_DEMO_MODE=true`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `MONGOMS_DISABLE_POSTINSTALL=1`, and the Root Directory `frontend`.
+**GitHub Actions** (repository secrets, step 6). GitHub hides every repository secret, but only some of these are really secret:
 
-**GitHub Actions:** `RELAY_API_URL`, `INTERNAL_JOB_SECRET`, `DEMO_MONGODB_URI`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+| Setting | Value | Kind |
+| --- | --- | --- |
+| `RELAY_API_URL` | `https://<service>.onrender.com` | public |
+| `INTERNAL_JOB_SECRET` | as on Render | **secret** |
+| `DEMO_MONGODB_URI` | as Render's `MONGODB_URI` | **secret** |
+| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | the production project's | public |
+| `SUPABASE_SERVICE_ROLE_KEY` | the production project's secret key (`sb_secret_...`) | **secret** - it can do anything to every account. This is the only place it is kept |
 
-**Supabase:** the Auth settings, SMTP, redirect URLs and Google provider in [SUPABASE.md](SUPABASE.md). Its key table says which value goes where.
+**Your local `backend/.env`**, copied from `backend/.env.example` (which stays untouched):
 
-**Moving existing accounts.** Everyone who had a Relay password signs up again with the same email ([SUPABASE.md](SUPABASE.md), section 9), and their account - organisations, roles, history - is linked to the new sign-in. Once they have, `npm run cleanup:legacy-auth` (dry run first) removes the old password hashes. Delete `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` from Render: nothing reads them any more.
+| Setting | Value | Kind |
+| --- | --- | --- |
+| `NODE_ENV`, `PORT` | `development`, `4917` | public |
+| `MONGODB_URI` | your development database (`relay-dev`), never the live one | **secret** |
+| `CORS_ORIGIN`, `FRONTEND_URL` | `http://localhost:5173` | public |
+| `TRUST_PROXY`, `EXPOSE_CLIENT_IP` | `0`, `false` | public |
+| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | the **development** project's | public |
+| `SUPABASE_SERVICE_ROLE_KEY` | the development project's secret key, only for `npm run seed:demo` | **secret** |
+| `SUPABASE_WEBHOOK_SECRET`, `INTERNAL_JOB_SECRET` | optional locally | **secret** |
+| `EMAIL_ENABLED`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `EMAIL_FROM` | optional: unset, links are printed to the console | public |
+| `SMTP_PASS`, `RESEND_API_KEY` | optional | **secret** |
+
+**Your local `frontend/.env`**, copied from `frontend/.env.example`: `VITE_DEMO_MODE`, `VITE_API_PROXY` (the dev server only), and the development project's `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. All public.
+
+The offline test sign-in's settings (`AUTH_MODE`, `AUTH_TEST_SECRET`, `VITE_AUTH_MODE`, `VITE_AUTH_TEST_SECRET`) belong to the tests alone, which make them up for each run. They never go in a `.env` file: the server refuses them outside `NODE_ENV=test`, and a production build refuses them too.
+
+**Supabase:** the Auth settings, SMTP (the Gmail app password is kept in the Supabase dashboard and nowhere else), redirect URLs and Google provider are in [SUPABASE.md](SUPABASE.md). Its key table says which value goes where.
 
 `GET /api/v1/config` tells the app whether the server sends email (`{ "emailEnabled": false }`). Anyone may read it, and it holds nothing secret.

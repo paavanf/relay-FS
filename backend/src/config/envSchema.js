@@ -44,7 +44,8 @@ const baseSchema = z.object({
   // Whether this server sends email at all. Unset, production sends it only
   // when SMTP or Resend is configured; elsewhere links are printed to the
   // console, so every flow works locally. 'false' turns it off completely:
-  // no transport, no password reset by email, no notification emails.
+  // no transport, no invite or notification emails. (Sign-up and reset
+  // emails are Supabase's, and unaffected.)
   EMAIL_ENABLED: z.preprocess(blankIsUnset, onOff.optional()),
 
   // A temporary check of TRUST_PROXY after a deploy: 'true' makes the health

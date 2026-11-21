@@ -3,8 +3,8 @@
 // The emailed reset link signs the person in (lib/auth/authRedirect.js and
 // AuthProvider take it from the address) just long enough to choose a new
 // password here. Without that sign-in the link has expired, or was used, so
-// the page offers a fresh one. A shared demo account keeps the password the
-// login page shows, so it is told so instead of being offered the form.
+// the page offers a fresh one. A shared demo account keeps the one password
+// everyone uses, so it is told so instead of being offered the form.
 import { Link } from 'react-router';
 import { Spinner } from '../../../components/ui/Spinner.jsx';
 import { ButtonLink } from '../../../components/ui/ButtonLink.jsx';
@@ -38,7 +38,7 @@ function ResetPasswordPage() {
       </div>
 
       {user.isDemo ? (
-        <Callout variant="info">This is a shared demo account, so its password stays the one the login page shows.</Callout>
+        <Callout variant="info">This is a shared demo account. Everyone signs in to it with the same password, so it cannot be changed.</Callout>
       ) : (
         <ResetPasswordForm />
       )}

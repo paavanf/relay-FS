@@ -4,6 +4,8 @@ Relay builds staff rosters that keep every scheduling rule - rest between shifts
 
 **Live demo:** _placeholder - the link is added here once Relay is deployed._
 
+**Privacy:** the [privacy policy](frontend/src/pages/privacy/PrivacyPage.jsx), at `/privacy` on the live site, says what Relay keeps about the people who use it, where, who can see it, and how to have it deleted.
+
 > **Working on this repo with an AI agent?** Read [AGENTS.md](AGENTS.md) first. It sets the hard rules - no curl, no live database, no test data - and the project conventions.
 
 - [What it does](#what-it-does)
@@ -12,6 +14,7 @@ Relay builds staff rosters that keep every scheduling rule - rest between shifts
 - [Measured results](#measured-results-generated-scenarios)
 - [How it is tested](#how-it-is-tested)
 - [The public demo, and keeping it safe](#the-public-demo-and-keeping-it-safe)
+- [Authentication](#authentication)
 - [Known gaps](#known-gaps)
 - [Running it locally](#running-it-locally)
 - [Deploying it](#deploying-it)
@@ -31,9 +34,9 @@ flowchart LR
   api["Express API<br/>route → validator → controller → service → model<br/>(backend/src)"]
   engine["Pure engine<br/>constraints · generation · fairness<br/>swap finder · chain state machine<br/>(backend/src/engine)"]
   worker["Worker thread<br/>roster generation"]
-  db[("MongoDB<br/>replica set - transactions")]
+  db[("MongoDB Atlas<br/>users · organisations · rosters · swaps<br/>replica set - transactions")]
   mail["Email<br/>SMTP · Resend · console"]
-  auth["Supabase Auth<br/>sign-in · Google<br/>confirmation and reset emails"]
+  auth["Supabase Auth<br/>identities only: email and password · Google<br/>confirmation and reset emails"]
 
   browser -- "signs in, gets a token" --> auth
   browser -- "JSON over HTTPS, /api/v1, with the token" --> api
@@ -44,6 +47,8 @@ flowchart LR
   api --> db
   api --> mail
 ```
+
+**Built with:** plain JavaScript (ES modules) throughout. React 19, React Router 7, Vite 6, Tailwind CSS 4 and TanStack Query 5 in the browser, served by Vercel. Node 22, Express 4, Mongoose 8, Zod 3, jose 6 (token checks) and pino 9 for the API, on Render. MongoDB Atlas for the data, and Supabase Auth for sign-in (supabase-js 2). Vitest 2, mongodb-memory-server 10, fast-check 4, Playwright and axe for the tests. GitHub Actions for CI and the nightly job.
 
 - **The engine is pure.** Everything under `backend/src/engine/` takes plain objects and returns plain objects: no database, no configuration, no I/O, no clock reads, no randomness except a seeded generator. Time is injected as a `now()` function. An ESLint rule enforces it - importing Mongoose, a model, config or a service, or calling `Date.now()`, `new Date()` or `Math.random()` there fails the lint. So the generator, manual edits and the swap finder all ask the same code the same question, and nothing can drift between them.
 - **Generation runs off the request.** Starting a generation answers at once with a job id; a worker thread does the work within a time and iteration budget, and the frontend polls the job.
@@ -178,7 +183,7 @@ The performance target held: across 300 searches with all 100 people offering, t
 
 ## How it is tested
 
-At the time of writing: **626 backend tests** in 141 files (Vitest, every file against an in-memory MongoDB replica set of its own), **123 frontend tests** in 30 files (Vitest, components in a browser-like DOM), and the end-to-end suite below. All of it runs on every push, offline: no Supabase project is involved anywhere.
+At the time of writing: **630 backend tests** in 142 files (Vitest, every file against an in-memory MongoDB replica set of its own), **132 frontend tests** in 33 files (Vitest, components in a browser-like DOM), and the end-to-end suite below. All of it runs on every push, offline: no Supabase project is involved anywhere. The suites sign people in through the API's **test identity adapter** (`AUTH_MODE=test`), which accepts tokens the tests sign themselves with a secret made up for each run, and which the server refuses to use outside `NODE_ENV=test`. The production path is tested too, against key pairs made in the test and a local stand-in for Supabase.
 
 - **Property-based tests with non-vacuity checks.** [fast-check](https://fast-check.dev) generates hundreds of organisations, rosters, teams, offers and chain histories per property - half-hour and 45-minute timezones, clock changes, shifts that end exactly when the next begins - and checks invariants that must hold for every one of them: whatever the generator produces is legal; removing a shift never adds a hard violation; `canAssign` agrees with `evaluate`; the swap finder only ever offers legal swaps; the chain state machine never commits twice. A property that passes because its cases never reach the situation it is about proves nothing, so separate **vacuity tests** sample the same generators and fail unless each outcome - a swap found, only a chain, nothing at all, each way a chain can end - turns up often enough.
 - **Concurrency tests.** Requests fired at the same moment (`Promise.all`), several rounds each from a fresh world: two proposals racing for one shift (exactly one wins, the other gets 409), two final acceptances at once (exactly one commit), a duplicate approval (one commit, both answered).
@@ -186,7 +191,7 @@ At the time of writing: **626 backend tests** in 141 files (Vitest, every file a
 - **Planted-bug checks.** A safety net is trusted only after it has been seen to fail: with the organisation filter removed from revoking an invite, the fuzzer fails, naming that route; and code planted in the engine that imports Mongoose, a model, config or a service, or reads the clock or `Math.random()`, fails the lint on every one of those lines.
 - **Sign-in.** Supabase tokens are checked offline, against key pairs made in the test: an expired token, another project's, one meant for the anon key, `alg: none`, and an HS256 token "signed" with the public key are all refused, and a Supabase outage answers 503 rather than signing anyone out. A production-mode run fetches and caches the keys from a local stand-in for Supabase, as it would from the real thing. An existing account is linked to a new sign-in only while the project makes people confirm their email; ten first requests at once make one account; and the account webhook takes a deleted sign-in out of every organisation, except as an organisation's last owner. The real server, started as in production, refuses to run with the offline test sign-in, with a secret key where the publishable one belongs, or with a service role key anywhere in its environment. The frontend build refuses them too. The demo seed's Supabase accounts are tested against a stand-in for the Admin API, refusals included. Relay's 7-day limit on a sign-in is tested as the app loads, at every kind of token refresh, and in a real browser.
 - **Abuse limits and security.** Each limit is tested to refuse with 429 and a sentence saying when to try again; production settings that would be unsafe stop the server starting; production error responses carry no stack traces or internal details; request logs never hold an access token, an invite link or what the webhook sent; and a production server that sends no email says so at `GET /api/v1/config`, and hands an invite back as a link without trying to email it.
-- **End to end, and accessibility.** **58 end-to-end tests** in 22 spec files. [Playwright](https://playwright.dev) drives the built app in a real browser against an in-memory database filled by the demo seed: signing in, the roster grid by keyboard, illegal edits refused, two managers saving at once, publishing with holes, the fairness numbers against the raw ledger, swaps proposed, accepted and approved in separate browsers (one on a phone), notifications, the public demo's accounts and locks, a sign-in ended once it is more than 7 days old - by the browser, and by the API whatever the browser thinks - what a first visit asks of the API, and no sideways scrolling at 375px. The build is served with the deployment's security headers (`frontend/vercel.json`), so every page runs under the production Content-Security-Policy, and anything it blocks fails the test - in every spec but the accessibility one, whose checker fetches stylesheets itself. [axe](https://github.com/dequelabs/axe-core) checks the main pages in light and dark themes against WCAG 2.1 A and AA - 32 page-and-theme checks, which at the time of writing find nothing at any severity - and the run fails on any serious or critical problem.
+- **End to end, and accessibility.** **59 end-to-end tests** in 22 spec files. [Playwright](https://playwright.dev) drives the built app in a real browser against an in-memory database filled by the demo seed: signing in, the roster grid by keyboard, illegal edits refused, two managers saving at once, publishing with holes, the fairness numbers against the raw ledger, swaps proposed, accepted and approved in separate browsers (one on a phone), notifications, the public demo's accounts and locks, a sign-in ended once it is more than 7 days old - by the browser, and by the API whatever the browser thinks - what a first visit asks of the API, the privacy policy opened straight from its address, and no sideways scrolling at 375px. The build is served with the deployment's security headers (`frontend/vercel.json`), so every page runs under the production Content-Security-Policy, and anything it blocks fails the test - in every spec but the accessibility one, whose checker fetches stylesheets itself. [axe](https://github.com/dequelabs/axe-core) checks the main pages, the privacy policy among them, in light and dark themes against WCAG 2.1 A and AA - 34 page-and-theme checks, which at the time of writing find nothing at any severity - and the run fails on any serious or critical problem.
 - **CI.** GitHub Actions runs a secret scan of the whole history, lint, the backend and frontend tests and the build on every push and pull request, then the end-to-end suite on Playwright's Chromium.
 
 ## The public demo, and keeping it safe
@@ -195,7 +200,28 @@ Visitors share one demo organisation - a hospital ward built by `npm run seed:de
 
 Limits for strangers, each answering 429 with when to try again: per address across the API; 20 invites per organisation per day; five organisations per account, ever; ten swap proposals per person per hour; ten swap searches per person per minute. Sign-up, sign-in and reset emails are limited by Supabase, per address and per project ([SUPABASE.md, section 11](docs/deploy/SUPABASE.md#11-limits-to-know)). The server takes the client's address from `X-Forwarded-For` only as far as `TRUST_PROXY` says proxies stand in front of it. In production it refuses to start unless `FRONTEND_URL` is https, the job secret is set and the Supabase settings are there - and with the offline test sign-in, a secret key where the publishable one belongs, or a service role key anywhere in its environment. It answers cross-origin requests from the frontend alone.
 
-## Sessions
+## Authentication
+
+Supabase Auth proves who someone is, and Relay keeps everything else. [docs/deploy/SUPABASE.md](docs/deploy/SUPABASE.md) sets it up, one dashboard step at a time.
+
+### Signing in
+
+- **Email and password.** Signing up sends a confirmation email, and the account works once its link is followed. "Confirm email" stays on in the live project, because Relay trusts a confirmed address (below).
+- **Continue with Google**, through Supabase's Google provider. Relay asks for no extra scopes, so Google is asked only for the basic ones: the email address and the basic profile.
+- **Forgot password.** Supabase emails a reset link that comes back to `/reset-password`, where the new password is set.
+- **The emails** - confirmation and reset - are Supabase's, sent through custom SMTP: a Gmail address whose app password is kept in the Supabase dashboard and nowhere else. The deployed API sends no email of its own.
+
+### How the API checks a token
+
+The browser sends its Supabase access token with every request, and the API checks it locally, without asking Supabase: the signature against the project's public keys (its JWKS, fetched once and cached for 10 minutes, and fetched again when a token is signed with a key it has not seen), ES256 or RS256 only, the project as issuer, `authenticated` as audience, and the expiry. If the keys cannot be fetched the answer is 503, not 401, so an outage at Supabase signs nobody out. Anonymous sign-ins, tokens without an email, and sign-ins over 7 days old (below) are refused. The code is in `backend/src/services/identity/`.
+
+### Relay's own accounts
+
+The first request from a new sign-in finds or makes the Relay user behind it, just in time (`syncUser.service.js`); after that it is one indexed lookup. Everything else is keyed by Relay's own user id, so names, organisations, roles, rosters and swaps never depend on Supabase.
+
+Someone who had a Relay account before the move signs up again with the same email, and their first request links the new sign-in to the old account - but only while the project makes people confirm their email. No token tells a confirmed address from one Supabase marked confirmed without asking, so the API asks the project itself (`mailer_autoconfirm` in its public settings, cached for 10 minutes). With confirmation off, linking, copying a changed email and accepting an invite are all refused with `EMAIL_NOT_PROVEN`. Ten first requests at once still make one account. An optional webhook from Supabase passes on email changes and deletions ([SUPABASE.md, section 8](docs/deploy/SUPABASE.md#8-optional-the-account-webhook)).
+
+### Sessions
 
 Supabase keeps a signed-in session in the browser's **localStorage**: an access token that lasts an hour, and a refresh token that gets the next one. So a session survives closing the tab or the browser - for 7 days at most (below). Signing out ends it at Supabase too - for that browser only, since the shared demo accounts are signed in by many people at once.
 
@@ -205,13 +231,17 @@ Supabase keeps a signed-in session in the browser's **localStorage**: an access 
 - **The API** (`backend/src/services/identity/signInAge.js`) reads the same moment from the token itself. Supabase stamps each access token's `amr` claim with when the session signed in, and refreshing never changes it: in Supabase Auth's source the stamp is written when the session is made, and the refresh grant leaves it alone. A token whose sign-in is more than 7 days old is refused on every route, with a 401 and the code `SESSION_EXPIRED`, and the app then ends the session the same way. A refresh token copied out of the browser can still be refreshed at Supabase until someone signs out, but the tokens it gets are no use to Relay.
 - Either way the login page says why. The limit is absolute: being active does not extend it. A sign-in with no record of when it began - in the browser or in the token - counts as too old.
 
-**The trade-off is what a script running in the page could take.** Anything in localStorage can be read by JavaScript on the same site, so a cross-site scripting bug would let an attacker copy the refresh token and go on using it elsewhere until the person signs out. The other places a browser can keep it:
+### Security trade-offs
+
+**The session now lives in localStorage, not in memory.** Before the move to Supabase, the access token was held only in the page's memory, and the refresh token in an httpOnly cookie that no script could read. Now Supabase keeps both in localStorage, which any JavaScript on the same site can read: a cross-site scripting bug would let an attacker copy the refresh token and go on using it elsewhere until the person signs out - though Relay's API refuses its tokens once the sign-in is 7 days old. The other places a browser can keep it:
 
 - **Memory only.** Nothing is stored for a script to find later - but every reload signs the person out. A script running in the page can still act as them while it runs.
 - **sessionStorage.** One tab only, gone when the tab closes. Exactly as readable by a script, so no safer; it only makes sessions shorter.
 - **An httpOnly cookie, set by Relay's API** (how Relay worked before Supabase). Scripts cannot read it. But every refresh would then go through the API, which sleeps on the free plan, and Relay would be rebuilding the session handling supabase-js already does.
 
-Relay chose localStorage, and puts its effort into not having the scripting bug: the Content-Security-Policy runs scripts from the site itself only, plus one inline script allowed by its hash; nothing is rendered as raw HTML; and tokens never sit anywhere a page's history or another site could see them. A sign-in arriving from an emailed link or Google is taken out of the address bar before the app renders - replacing that history entry, not adding one - and the site sends no `Referer` header at all (`Referrer-Policy: no-referrer`). On a shared computer, sign out when you leave: before Supabase, a new tab started signed out; now it opens signed in.
+**The mitigation is the strict Content-Security-Policy**, and not having the scripting bug in the first place. The policy runs scripts from the site itself only, plus one inline script allowed by its hash, so an injected script has nowhere to load from; nothing is rendered as raw HTML; and tokens never sit anywhere a page's history or another site could see them. A sign-in arriving from an emailed link or Google is taken out of the address bar before the app renders - replacing that history entry, not adding one - and the site sends no `Referer` header at all (`Referrer-Policy: no-referrer`). On a shared computer, sign out when you leave: before Supabase, a new tab started signed out; now it opens signed in.
+
+**The demo's passwords are public.** Every shared demo account has the same password, written into the site's JavaScript for the login page's one-click buttons (and in this README), so anyone can sign in as them. The demo organisation's setup is locked on the server, and the nightly reset puts the accounts, their password and the ward back ([The public demo](#the-public-demo-and-keeping-it-safe)).
 
 ## Known gaps
 
@@ -223,21 +253,33 @@ Relay chose localStorage, and puts its effort into not having the scripting bug:
 - A signed-in session's refresh token is readable by any script in the page ([Sessions](#sessions)). Copied out, it can still be refreshed at Supabase until sign-out - though Relay's API refuses its tokens once the sign-in is 7 days old. There is no lockout of one account after wrong passwords: Supabase limits attempts per address, not per account.
 - Anyone signed in to a shared demo account could change its password through Supabase's own API, locking the next visitor out until the nightly reset puts it back.
 - The account webhook is best effort: Supabase sends it once, without retrying, and Render's free service may be asleep. Without it, an email change still arrives with the person's next request, and a deleted Supabase user is locked out within the hour.
-- A free Supabase project pauses after 7 days without database activity, and then nobody can sign in until it is restored by hand. The nightly keep-alive is meant to stop that and fails loudly if it cannot - but Supabase does not say whether Auth requests count as activity.
+- A free Supabase project pauses after 7 days of low activity, and then nobody can sign in until it is restored by hand ([SUPABASE.md, section 10](docs/deploy/SUPABASE.md#10-pausing-and-restoring-a-paused-project)). The nightly keep-alive keeps the live project awake and fails loudly if it cannot - but Supabase does not say whether Auth requests count as activity.
+- Google's consent screen names the Supabase project's address (`<project-ref>.supabase.co`), not Relay. A Supabase custom domain would change that, but it is a paid add-on for paid plans, and Google shows an app's name and logo only after brand verification.
+- Sign-up and reset emails are sent from a personal Gmail address, so they can land in spam; the "check your email" message says to look there. A domain of Relay's own, with SPF, DKIM and DMARC set up, would help.
+- The free Render server sleeps after 15 minutes without traffic, and the first request after that takes up to a minute. The login and register pages start waking it as they open.
+- There is no delete button for an account. Deletion is done by hand, on request, as the privacy page says; deleting the Supabase user on its own keeps the Relay account's name and email, because other people's rosters and swaps refer to it.
+- Request logs keep the network address each request arrived from, unmasked.
 - Emailed links use Supabase's implicit flow, so a crafted link could sign a tab in as someone else's account (the name in the sidebar shows whose). The PKCE flow would prevent that, but its links only work in the tab that asked for them.
 - The per-request limits are counted in memory, per server process, and start again after a restart; the ones that matter most for abuse (invites, proposals, organisations) are counted in the database.
 - Search and generation times were measured on a laptop, not on the deployed server.
 
 ## Running it locally
 
-```bash
-npm install
-cp backend/.env.example backend/.env       # then fill in the database and Supabase
-cp frontend/.env.example frontend/.env     # then fill in Supabase
-npm run dev                                # backend :4917 + frontend :5173
-```
+You need Node 22, a MongoDB replica set (an Atlas free cluster is one) and a Supabase project of your own for development.
 
-Signing in needs a Supabase project of your own for development - free, and set up once ([docs/deploy/SUPABASE.md](docs/deploy/SUPABASE.md)). Its URL and publishable key go in both `.env` files; the server refuses to start without them. `/api` is proxied from the Vite dev server to the backend, so the frontend calls relative paths. The database needs to be a replica set (Atlas is one), since organisation creation and swaps use transactions; `cd backend && npm run db:check` is a read-only check that explains any connection failure. `backend/.env.example` and `frontend/.env.example` describe every setting.
+1. **The development Supabase project.** Free, and set up once: [docs/deploy/SUPABASE.md](docs/deploy/SUPABASE.md), sections 1 to 5, with `http://localhost:5173` as its Site URL. Note its URL and publishable key.
+2. **Install:** `npm install` at the root, for both workspaces.
+3. **Copy each example file, then fill in the copy.** `backend/.env.example` and `frontend/.env.example` are committed templates. The server and Vite read only `backend/.env` and `frontend/.env`, which git ignores, so **copy** the examples and leave the examples themselves untouched: values typed into an example are never read, and would be committed.
+
+   ```bash
+   cp backend/.env.example backend/.env       # then fill in the database and Supabase
+   cp frontend/.env.example frontend/.env     # then fill in Supabase
+   ```
+
+   In PowerShell: `Copy-Item backend/.env.example backend/.env` and `Copy-Item frontend/.env.example frontend/.env`.
+4. **Run:** `npm run dev` starts the backend on port 4917 and the frontend on 5173.
+
+The development project's URL and publishable key go in both `.env` files; the server refuses to start without them. **A free Supabase project pauses after 7 days of low activity**, and nobody can sign in to a paused one: restore it in the Supabase dashboard - your organisation, the project, **Resume project** - and it comes back as it was within a few minutes ([SUPABASE.md, section 10](docs/deploy/SUPABASE.md#10-pausing-and-restoring-a-paused-project)). `/api` is proxied from the Vite dev server to the backend, so the frontend calls relative paths. The database needs to be a replica set (Atlas is one), since organisation creation and swaps use transactions; `cd backend && npm run db:check` is a read-only check that explains any connection failure. `backend/.env.example` and `frontend/.env.example` describe every setting.
 
 | Command | What it does |
 | --- | --- |
@@ -255,4 +297,4 @@ Signing in needs a Supabase project of your own for development - free, and set 
 
 ## Deploying it
 
-The public demo runs on free tiers: the frontend on Vercel, which passes `/api` on to the API on a free Render web service, the data in its own database on the Atlas free cluster, sign-in on a free Supabase project, and a nightly GitHub Actions workflow that releases expired swap reservations, reseeds the demo and keeps the Supabase project awake. The deployed API sends no email; Supabase sends the sign-up and password-reset emails through Gmail. [docs/deploy/SUPABASE.md](docs/deploy/SUPABASE.md) sets up the Supabase projects, and [docs/deploy/DEPLOY.md](docs/deploy/DEPLOY.md) is the step-by-step guide - Atlas, the secrets, Vercel, the Render Blueprint (`render.yaml`), the one line to change in `frontend/vercel.json`, the workflow's secrets, the smoke test (`node scripts/smoke-deployed.mjs https://<your-app>.vercel.app`) and checking `TRUST_PROXY` - with a troubleshooting table and what the server was measured to need on the free plan's 512 MB.
+The public demo runs on free tiers: the frontend on Vercel, which passes `/api` on to the API on a free Render web service, the data in its own database on the Atlas free cluster, sign-in on a free Supabase project, and a nightly GitHub Actions workflow that releases expired swap reservations, reseeds the demo and keeps the Supabase project awake. The deployed API sends no email; Supabase sends the sign-up and password-reset emails through Gmail. [docs/deploy/SUPABASE.md](docs/deploy/SUPABASE.md) sets up the Supabase projects, and [docs/deploy/DEPLOY.md](docs/deploy/DEPLOY.md) is the step-by-step guide - Atlas, the secrets, Vercel, the Render Blueprint (`render.yaml`), the one line to change in `frontend/vercel.json`, the workflow's secrets, the smoke test (`node scripts/smoke-deployed.mjs https://<your-app>.vercel.app https://<project-ref>.supabase.co sb_publishable_...`) and checking `TRUST_PROXY` - with a troubleshooting table and what the server was measured to need on the free plan's 512 MB. Moving the live site from the old sign-in to Supabase has an order of its own, so that the API is never left without the settings it needs: [DEPLOY.md, "Moving the live site to Supabase"](docs/deploy/DEPLOY.md#moving-the-live-site-to-supabase).

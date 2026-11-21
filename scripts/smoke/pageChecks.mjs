@@ -1,8 +1,15 @@
 // pageChecks.mjs - what a visitor's browser gets before anyone signs in: the
-// page itself and its security headers, the app routes sign-in needs served
-// by the app, and the API reached through Vercel's /api rewrite. Each check returns
-// { ok, detail } - or { warn } for something to act on that is not broken.
+// page itself and its security headers, the pages a link can open cold
+// served by the app, and the API reached through Vercel's /api rewrite. Each
+// check returns { ok, detail } - or { warn } for something to act on that is
+// not broken.
 import { timed } from './http.mjs';
+
+/** One directive's sources from a Content-Security-Policy: 'a b; c d', 'c' -> ['d']. */
+function sources(csp, name) {
+  const parts = csp.split(';').map((part) => part.trim().split(/\s+/));
+  return parts.find(([directive]) => directive === name)?.slice(1) ?? [];
+}
 
 export async function landingPage(ctx) {
   const { res, ms, text } = await timed(`${ctx.origin}/`);
@@ -36,24 +43,32 @@ export async function securityHeaders(ctx) {
   const csp = headers.get('content-security-policy') ?? '';
   const scriptSrc = csp.split(';').find((part) => part.trim().startsWith('script-src')) ?? '';
   const hsts = Number(headers.get('strict-transport-security')?.match(/max-age=(\d+)/)?.[1] ?? 0);
+  // The page may talk to itself and to this Supabase project - nothing broader,
+  // so no wildcard, no other project and no bare https: either.
+  const connect = sources(csp, 'connect-src');
+  const connectExact = connect.length === 2 && connect.includes("'self'") && connect.includes(ctx.supabase.origin);
   const problems = [
     !csp.includes("frame-ancestors 'none'") && "CSP frame-ancestors 'none'",
-    !csp.includes(`connect-src 'self' ${ctx.supabase.origin}`) && `CSP connect-src 'self' ${ctx.supabase.origin}`,
+    !connectExact && `CSP connect-src 'self' ${ctx.supabase.origin} and nothing else (it has: ${connect.join(' ') || 'none'})`,
     (!scriptSrc || scriptSrc.includes('unsafe-inline')) && "CSP script-src without 'unsafe-inline'",
     hsts < 31_536_000 && 'Strict-Transport-Security of a year or more',
     headers.get('x-content-type-options') !== 'nosniff' && 'X-Content-Type-Options: nosniff',
     headers.get('referrer-policy') !== 'no-referrer' && 'Referrer-Policy: no-referrer',
     !headers.get('permissions-policy') && 'Permissions-Policy',
   ].filter(Boolean);
-  return { ok: problems.length === 0, detail: problems.length ? `missing: ${problems.join(', ')}` : 'CSP, HSTS, nosniff, Referrer-Policy, Permissions-Policy' };
+  const detail = problems.length ? `missing: ${problems.join(', ')}` : `CSP (connect-src 'self' and Supabase only), HSTS, nosniff, Referrer-Policy, Permissions-Policy`;
+  return { ok: problems.length === 0, detail };
 }
 
+// A link opened cold - the privacy policy from Google's consent screen, a
+// confirmation email, a password reset - is a request for that path, and so
+// is a refresh: the app must answer each, not a 404.
+export const COLD_PATHS = ['/privacy', '/login', '/auth/callback', '/reset-password'];
+
 export async function appRoutes(ctx) {
-  // A link opened cold - an invite, a confirmation email, a password reset -
-  // is a request for that path: the app must answer each.
-  for (const path of ['/login', '/auth/callback', '/reset-password']) {
+  for (const path of COLD_PATHS) {
     const { res, text } = await timed(`${ctx.origin}${path}`);
     if (res.status !== 200 || !text.includes('<div id="root">')) return { ok: false, detail: `${path} answered ${res.status}` };
   }
-  return { ok: true, detail: '/login, /auth/callback and /reset-password are served by the app' };
+  return { ok: true, detail: `${COLD_PATHS.join(', ')} are served by the app` };
 }

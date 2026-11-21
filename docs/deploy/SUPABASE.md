@@ -55,10 +55,12 @@ With "Confirm email" off, Supabase marks every address confirmed without sending
 
 Supabase's built-in sender only delivers to the members of your Supabase team, at 2 messages an hour. Real sign-ups need your own SMTP server. Supabase sends these emails from its own servers, so Render blocking SMTP does not matter. Relay's own invite emails are a separate matter and do not change.
 
+In the live project, **"Confirm email" stays on** (section 2). These confirmation emails are what proves an address belongs to the person signing up, and Relay links accounts and accepts invites on that proof.
+
 Gmail works with any address, and needs no domain of your own:
 
 1. **2-Step Verification** must be on for the Google account. App passwords only exist with it. They are not offered if 2-Step Verification uses only security keys, on work or school accounts, or with Advanced Protection.
-2. Create an **app password** at <https://myaccount.google.com/apppasswords> (name it "Relay Supabase"). Google says app passwords "aren't recommended", but Supabase's SMTP settings cannot use Google sign-in, so this is the way Gmail works here. Treat it like a password: it goes in the Supabase dashboard and nowhere else.
+2. Create an **app password** at <https://myaccount.google.com/apppasswords> (name it "Relay Supabase"). Google says app passwords "aren't recommended", but Supabase's SMTP settings cannot use Google sign-in, so this is the way Gmail works here. Treat it like a password: it goes in the Supabase dashboard and nowhere else - not in a `.env` file, not on Render, not in the repository.
 3. Supabase → *Authentication* → *Emails* → *SMTP Settings* → enable custom SMTP:
 
    | Field | Value |
@@ -70,7 +72,9 @@ Gmail works with any address, and needs no domain of your own:
    | Username | your full Gmail address |
    | Password | the app password |
 
-4. *Authentication* → *Rate Limits*. With custom SMTP, Supabase allows **30 emails an hour** across the project. Raise it if you need to. A personal Gmail account is blocked for a day after about 500 messages, so stay well under that.
+4. *Authentication* → *Rate Limits*. With custom SMTP, Supabase allows **30 emails an hour** across the project to begin with. Raise it if you need to. A personal Gmail account is blocked for a day after about 500 messages, so stay well under that.
+
+**Spam.** Mail from a personal Gmail address, sent through Supabase, can land in the spam folder. The "check your email" message after sign-up tells people to look there. Supabase's own advice is a domain of your own, with SPF, DKIM and DMARC set up for it. That needs a domain, which this free setup does without.
 
 Do this in both projects, or at least in production. In development, the built-in sender is enough if you only sign up with your own address and are a member of the project's team.
 
@@ -92,17 +96,21 @@ Supabase recommends exact paths in production. The `**` after `/auth/callback` l
 
 ## 5. Google sign-in
 
-**In Google Cloud** (<https://console.cloud.google.com>):
+**In Google Cloud** (<https://console.cloud.google.com>), one Google project and one client serve both Supabase projects:
 
 1. Create a project, then open *Google Auth Platform*:
-   - *Branding*: app name "Relay", your support email.
+   - *Branding*: app name "Relay", your user support email, and your developer contact email. **Do not upload a logo.** For an external app in production, a new logo must go through Google's verification before it is shown, and until an app is verified the consent screen shows its domain, not its name or logo, anyway. Leave the app domain links for step 5.
    - *Audience*: External.
-   - *Data Access*: `openid`, plus the email and profile scopes.
+   - *Data Access*: `openid`, plus the email and profile scopes (`.../auth/userinfo.email` and `.../auth/userinfo.profile`). Add nothing else: more scopes, especially sensitive ones, can mean a long verification.
 2. *Clients* → *Create client* → **Web application**:
-   - **Authorized JavaScript origins:** `http://localhost:5173` and `https://<project>.vercel.app`.
-   - **Authorized redirect URIs:** the callback URL from each Supabase project's Google provider page: `https://<project-ref>.supabase.co/auth/v1/callback`. One client can serve both projects, with both callback URLs listed.
-3. Copy the client ID and client secret.
-4. While the app is in *Testing*, only the test users you list can sign in. Publish it (*Audience* → *Publish app*) when you go live. With only these basic scopes, Google does not require app verification.
+   - **Authorized JavaScript origins:** `http://localhost:5173` for development, and `https://<project>.vercel.app` for production.
+   - **Authorized redirect URIs:** the callback URL from each Supabase project's Google provider page, `https://<project-ref>.supabase.co/auth/v1/callback` - the development project's and the production project's, both on this client.
+3. Copy the client ID and client secret. The secret goes in the Supabase dashboard (below) and nowhere else.
+4. **While testing:** in *Audience*, add your own Google address under *Test users* (and anyone else who should try it - up to 100). In *Testing*, only the listed test users can sign in.
+5. **Publish once `/privacy` is live** - after the merge (DEPLOY.md, *Moving the live site to Supabase*). Google requires an external app in production to link its home page and its privacy policy, on the same domain; the home page must be public, not only a sign-in page, and must link to the policy. Relay's landing page does, in its footer.
+   - *Branding* → *App domain*: home page `https://<project>.vercel.app/`, privacy policy `https://<project>.vercel.app/privacy`.
+   - *Branding* → *Authorized domains*: `<project>.vercel.app`, and the production project's `<project-ref>.supabase.co`, which the redirect URI uses. Google wants every domain the app's settings use registered here.
+   - *Audience* → **Publish app**. With only the basic scopes, Google does not require the app to be verified. The consent screen then shows the Supabase project's address, not "Relay": showing the name needs Google's brand verification, and replacing the address needs a Supabase custom domain, a paid add-on.
 
 **In Supabase:** *Authentication* → *Sign In / Providers* → *Google* → enable it, and paste the client ID and secret. Do this in each project.
 
@@ -123,7 +131,7 @@ Every key is on *Settings* → *API Keys*. Relay uses the new keys: **publishabl
 
 ## 7. The demo accounts
 
-The shared demo's accounts (`owner@relay.test` and the rest) are Supabase users too, with the password the login page shows. `npm run seed:demo -- --yes` creates them through Supabase's Admin API, already confirmed, and resets their passwords on every run. It needs `MONGODB_URI`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` (it loads the server's own settings, which require it) and `SUPABASE_SERVICE_ROLE_KEY`. Locally, all four go in `backend/.env`.
+The shared demo's accounts (`owner@relay.test` and the rest) are Supabase users too, all with the one public demo password (it is in the site's JavaScript, for the login page's one-click buttons). `npm run seed:demo -- --yes` creates them through Supabase's Admin API, already confirmed, and resets their passwords on every run. It needs `MONGODB_URI`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` (it loads the server's own settings, which require it) and `SUPABASE_SERVICE_ROLE_KEY`. Locally, all four go in `backend/.env`.
 
 It only ever touches the demo's own `.test` addresses, and among those only accounts carrying its marker (`app_metadata.relay_demo`). If an account with a demo address exists without the marker, the seed stops and changes nothing. The nightly workflow runs it with the production project's secrets (DEPLOY.md, step 6). Until the first run, the demo's sign-in buttons say the password is wrong.
 
@@ -228,6 +236,7 @@ Relay's API keeps its own limits on top: the address-wide limit, invites, organi
 | A confirmation or reset email never arrives | Custom SMTP not set, a wrong app password, the hourly email limit, or the spam folder | Check section 3. Supabase's *Logs* → *Auth* shows send failures |
 | A link opens the wrong site, or localhost in production | The Site URL or the redirect list | Section 4 |
 | "Continue with Google" shows a Google error about the redirect | The callback URL is missing from the Google client | Section 5, step 2 |
+| Google turns someone away, saying the app is still being tested | The Google app is in *Testing*, and they are not a test user | Add them under *Test users*, or publish the app once `/privacy` is live (section 5, steps 4 and 5) |
 | The demo's sign-in buttons say the password is wrong | The demo accounts don't exist in this project yet | Run the nightly workflow by hand, with its Supabase secrets set |
 | People are signed out with "sign-ins last 7 days" (the API answers 401 `SESSION_EXPIRED`) | Relay's own limit: 7 days from signing in, however active | By design (README, *Sessions*). Signing in again starts a new 7 days |
 | Every sign-in is refused, the API answering 401 "This sign-in does not say when it began" | A Custom Access Token Hook that leaves out the `amr` claim. Supabase counts it optional, and its minimal-token example drops it | Keep `amr` in what the hook returns: the 7-day limit reads the sign-in time from it |

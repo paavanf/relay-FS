@@ -8,7 +8,7 @@ function RequireAuth() {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
-  // Still checking the refresh cookie - don't bounce the user to /login yet.
+  // Still restoring this browser's Supabase session - don't bounce the user to /login yet.
   if (isLoading) {
     return <FullScreenLoader />;
   }

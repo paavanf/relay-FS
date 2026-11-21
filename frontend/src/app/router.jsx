@@ -23,6 +23,8 @@ const failed = <RouteErrorPage />;
 
 export const router = createBrowserRouter([
   { path: '/', element: <RootRedirect />, errorElement: failed },
+  // Open to everyone, signed in or not: Google's consent screen links here.
+  { path: '/privacy', element: <Page.PrivacyPage />, errorElement: failed },
   { element: <RequireGuest />, errorElement: failed, children: guestPages },
   { element: <Page.PublicLayout />, errorElement: failed, children: linkPages },
 

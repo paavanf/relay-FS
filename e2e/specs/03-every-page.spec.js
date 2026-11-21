@@ -10,7 +10,7 @@ import { test, expect } from '../support/test.js';
 import { appPath } from '../support/stack.js';
 import { asha, manager } from '../support/people.js';
 
-const PUBLIC_PAGES = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/auth/callback'];
+const PUBLIC_PAGES = ['/', '/privacy', '/login', '/register', '/forgot-password', '/reset-password', '/auth/callback'];
 const WORKER_PAGES = ['schedule', 'my-shifts', 'availability', 'swaps', 'fairness', 'notifications', 'preferences'];
 const MANAGER_PAGES = [...WORKER_PAGES, 'swaps/approvals', 'team', 'settings'];
 

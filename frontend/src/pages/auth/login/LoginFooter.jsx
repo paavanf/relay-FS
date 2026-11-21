@@ -1,9 +1,11 @@
-// LoginFooter - the links under the login form.
+// LoginFooter - the links under the login form, ending with a small one to
+// the privacy policy.
 // "Create an account" keeps any ?next= and invite email, so someone who came
 // from an invite and has no account yet still ends up back at the invite.
 import { Link } from 'react-router';
 import { authPath } from '../../../lib/returnPath.js';
 import { useReturnPath } from '../../../features/auth/useReturnPath.js';
+import { PrivacyLink } from '../../../components/PrivacyLink.jsx';
 
 export function LoginFooter() {
   const { next, email } = useReturnPath();
@@ -24,6 +26,10 @@ export function LoginFooter() {
         <Link to={authPath('/register', { next, email })} className="font-medium text-brand-solid hover:text-brand-content">
           Create an account
         </Link>
+      </p>
+
+      <p className="pt-3 text-xs">
+        <PrivacyLink />
       </p>
     </div>
   );

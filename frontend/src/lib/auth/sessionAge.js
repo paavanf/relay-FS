@@ -16,7 +16,8 @@ import { SESSION_MAX_AGE_MS } from '../../../../shared/sessionLimits.js';
 
 export { SESSION_MAX_AGE_MS };
 
-const KEY = 'relay-signed-in-at';
+// Exported so the privacy page names the key this file really writes.
+export const SIGNED_IN_AT_KEY = 'relay-signed-in-at';
 
 let inMemory = null;
 let endedForAge = false;
@@ -25,7 +26,7 @@ export function recordSignIn(now = Date.now()) {
   inMemory = now;
   endedForAge = false;
   try {
-    window.localStorage.setItem(KEY, String(now));
+    window.localStorage.setItem(SIGNED_IN_AT_KEY, String(now));
   } catch {
     // Storage unavailable: the time in memory still counts for this page.
   }
@@ -34,7 +35,7 @@ export function recordSignIn(now = Date.now()) {
 export function forgetSignIn() {
   inMemory = null;
   try {
-    window.localStorage.removeItem(KEY);
+    window.localStorage.removeItem(SIGNED_IN_AT_KEY);
   } catch {
     // Nothing to forget if storage is unavailable.
   }
@@ -42,7 +43,7 @@ export function forgetSignIn() {
 
 function signedInAt() {
   try {
-    const stored = Number(window.localStorage.getItem(KEY));
+    const stored = Number(window.localStorage.getItem(SIGNED_IN_AT_KEY));
     if (stored > 0) return stored;
   } catch {
     // Fall back to memory.

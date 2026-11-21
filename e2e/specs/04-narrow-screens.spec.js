@@ -10,6 +10,9 @@
 // Also checked, because the screenshots caught it: nothing in the top bar
 // sits on top of anything else. A long organisation name used to run under
 // the theme toggle at this width - no sideways scroll, but still broken.
+//
+// And the privacy policy, signed out: Google's consent screen links to it,
+// and that screen is often on a phone.
 
 import { test, expect } from '../support/test.js';
 import { appPath } from '../support/stack.js';
@@ -60,3 +63,15 @@ for (const person of [asha, manager]) {
     }
   });
 }
+
+test('the privacy policy: no sideways scroll at 375px', async ({ sessions }) => {
+  const { page } = await sessions.anonymous({ viewport: PHONE });
+  await page.goto('/privacy');
+  await expect(page.getByRole('heading', { level: 1, name: 'Privacy policy' })).toBeVisible();
+
+  const { scrollWidth, clientWidth } = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+  }));
+  expect(scrollWidth, `/privacy is ${scrollWidth}px wide in a ${clientWidth}px screen`).toBeLessThanOrEqual(clientWidth);
+});

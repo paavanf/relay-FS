@@ -8,6 +8,7 @@
 import { lazy } from 'react';
 
 export const LandingPage = lazy(() => import('../pages/landing/index.js'));
+export const PrivacyPage = lazy(() => import('../pages/privacy/index.js'));
 
 export const PublicLayout = lazy(() => import('../components/layout/PublicLayout/index.js'));
 export const LoginPage = lazy(() => import('../pages/auth/login/index.js'));

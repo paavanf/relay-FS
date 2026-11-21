@@ -6,7 +6,9 @@
 // by colour alone. An empty day stays empty.
 //
 // Editable cells are real buttons: that gives keyboard operability and a
-// focus ring for free, which a clickable <div> would not.
+// focus ring for free, which a clickable <div> would not. A button's name
+// starts with exactly the text the cell shows - "Day 07:00-15:00, change" -
+// so someone who says what they see reaches it (WCAG 2.5.3, Label in Name).
 import { CATEGORY_ICONS, CATEGORY_EDGES } from '../../../components/ui/shiftCategories.js';
 import { cn } from '../../../lib/utils.js';
 
@@ -19,6 +21,7 @@ const fills = {
 export function ShiftCell({ assignment, template, isWeekend, canEdit, onClick }) {
   const label = template?.name ?? 'Shift';
   const times = template ? `${template.startLocal}-${template.endLocal}` : '';
+  const shown = times ? `${label} ${times}` : label;
   const category = template?.category;
   const Icon = CATEGORY_ICONS[category];
   const style = fills[category]
@@ -30,7 +33,8 @@ export function ShiftCell({ assignment, template, isWeekend, canEdit, onClick })
       {Icon && <Icon className="size-3.5 shrink-0" aria-hidden="true" />}
       <span className="truncate">
         {label}
-        <span className="data ml-1 font-normal">{times}</span>
+        {times && ' '}
+        <span className="data font-normal">{times}</span>
       </span>
     </span>
   ) : (
@@ -44,7 +48,7 @@ export function ShiftCell({ assignment, template, isWeekend, canEdit, onClick })
           type="button"
           onClick={onClick}
           className="block w-full rounded-sm text-left focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-line-focus"
-          aria-label={assignment ? `${label}, change` : 'Empty, assign a shift'}
+          aria-label={assignment ? `${shown}, change` : 'Empty, assign a shift'}
         >
           {content}
         </button>

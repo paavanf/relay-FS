@@ -2,7 +2,8 @@
 //
 // Managers care about "did it cover the shifts", not about objective scores.
 // The raw numbers are kept for the curious, folded away in a details element
-// so they never compete with the answer.
+// so they never compete with the answer - the server's own measured duration
+// among them, in milliseconds, where the sentence rounds it to seconds.
 import { Callout } from '../../../components/ui/Callout.jsx';
 
 export function GenerationResult({ metrics }) {
@@ -27,6 +28,7 @@ export function GenerationResult({ metrics }) {
             ['Search iterations', metrics?.iterations ?? 0],
             ['Improvements found', metrics?.improvementSteps ?? 0],
             ['Fairness variance', metrics?.fairnessVariance ?? 0],
+            ['Duration', `${metrics?.durationMs ?? 0} ms`],
           ].map(([label, value]) => (
             <div key={label} className="flex justify-between gap-4">
               <dt>{label}</dt>

@@ -42,13 +42,19 @@ async function currentDebt(orgId) {
   return toFairnessDebt(ledger, DEFAULT_FAIRNESS_POLICY);
 }
 
+// Reads that need nothing from each other are made together, so the search
+// waits on the database four times here rather than six.
 export async function loadSwapSearch({ orgId, request, now }) {
-  const org = await Organisation.findById(orgId).lean();
-  const data = await loadOrgSchedulingData(org);
-  const onTeam = new Set(data.workers.map((w) => w.membershipId));
+  const [org, open] = await Promise.all([
+    Organisation.findById(orgId).lean(),
+    SwapRequest.find({ orgId, status: 'open', startsAt: { $gt: now } }).lean(),
+  ]);
+  const [data, offered] = await Promise.all([
+    loadOrgSchedulingData(org),
+    Assignment.find({ _id: { $in: open.map((r) => r.assignmentId) } }).lean(),
+  ]);
 
-  const open = await SwapRequest.find({ orgId, status: 'open', startsAt: { $gt: now } }).lean();
-  const offered = await Assignment.find({ _id: { $in: open.map((r) => r.assignmentId) } }).lean();
+  const onTeam = new Set(data.workers.map((w) => w.membershipId));
   const usable = new Map(offered.filter((a) => isSwappable(a, now)).map((a) => [String(a._id), String(a.membershipId)]));
   const offers = open.map(toOffer).filter((o) => onTeam.has(o.membershipId) && usable.get(o.assignmentId) === o.membershipId);
 

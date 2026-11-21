@@ -15,7 +15,12 @@ import { optionKeyOf } from './optionKey.js';
 
 export async function describeOptions({ request, input, result, viewer }) {
   const options = [...result.direct, ...result.chains];
-  const names = await namesOf(options.flatMap((option) => option.legs.flatMap((leg) => [leg.from, leg.to])));
+  // The names in the options and the request's own description need nothing
+  // from each other, so they are read together.
+  const [names, [described]] = await Promise.all([
+    namesOf(options.flatMap((option) => option.legs.flatMap((leg) => [leg.from, leg.to]))),
+    describeRequests([request], viewer),
+  ]);
   const assignments = new Map(input.assignments.map((a) => [a.id, a]));
   const templates = new Map(input.templates.map((t) => [t.id, t]));
 
@@ -30,7 +35,6 @@ export async function describeOptions({ request, input, result, viewer }) {
     }),
   });
 
-  const [described] = await describeRequests([request], viewer);
   const { offersConsidered, cyclesChecked, validCycles, truncated, durationMs } = result.stats;
 
   return {

@@ -29,13 +29,17 @@ export async function getSwapOptions({ orgId, membership, requestId, now = new D
   const isRequester = Boolean(request) && String(request.membershipId) === String(membership._id);
   if (!request || (!isRequester && !isManagerRole(membership.role))) throw AppError.notFound('Swap request not found');
 
+  // Two reads that need nothing from each other, made together. The checks
+  // still run in the same order, so a request is refused the same way.
+  const [onTeam, own] = await Promise.all([
+    Membership.exists({ _id: request.membershipId, status: MEMBERSHIP_STATUS.ACTIVE }),
+    Assignment.findById(request.assignmentId).select('slotQualificationId').lean(),
+  ]);
+
   // A request left behind by someone no longer on the team cannot be swapped.
-  const onTeam = await Membership.exists({ _id: request.membershipId, status: MEMBERSHIP_STATUS.ACTIVE });
   if (!onTeam) throw AppError.notFound('Swap request not found');
   if (request.status === 'matched') throw AppError.conflict('This shift is already part of a swap proposal.');
   if (request.startsAt <= now) throw AppError.conflict('This shift has already started, so it can no longer be swapped.');
-
-  const own = await Assignment.findById(request.assignmentId).select('slotQualificationId').lean();
   if (!own?.slotQualificationId) throw AppError.conflict(ROLELESS_SHIFT);
 
   const input = await loadSwapSearch({ orgId, request, now });

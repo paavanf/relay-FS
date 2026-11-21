@@ -2,7 +2,7 @@
 
 Relay builds staff rosters that keep every scheduling rule - rest between shifts, consecutive days, weekly hours, qualifications, declared unavailability - and explains, in plain words, any shift it cannot fill without breaking one. Staff then swap shifts directly or through a chain of colleagues, with every swap checked against the same rules before it happens, and Relay keeps a running record of who has carried the nights and weekends so the next roster evens it out.
 
-**Live demo:** _placeholder - the link is added here once Relay is deployed._
+**Live demo:** [https://relay-fs.vercel.app](https://relay-fs.vercel.app)
 
 **Privacy:** the [privacy policy](frontend/src/pages/privacy/PrivacyPage.jsx), at `/privacy` on the live site, says what Relay keeps about the people who use it, where, who can see it, and how to have it deleted.
 
@@ -12,6 +12,7 @@ Relay builds staff rosters that keep every scheduling rule - rest between shifts
 - [Architecture](#architecture)
 - [How the engine works](#how-the-engine-works)
 - [Measured results](#measured-results-generated-scenarios)
+- [Performance on the live site](#performance-on-the-live-site)
 - [How it is tested](#how-it-is-tested)
 - [The public demo, and keeping it safe](#the-public-demo-and-keeping-it-safe)
 - [Authentication](#authentication)
@@ -179,11 +180,25 @@ What it says, plainly:
 - **Choosy people are where chains matter most.** With everyone taking 60% of what is on offer and 20 offers out, chains resolve 22 points more than direct swaps alone (51% to 73%); at 30%, they almost double it (18% to 31%).
 - **The limit is the pool, not the search.** With five offers and choosy people almost nothing resolves however long a chain may be.
 
-The performance target held: across 300 searches with all 100 people offering, the median was 181 ms, p95 251 ms and the slowest 360 ms on battery (60, 80 and 97 ms plugged in), and none reached the 400 ms budget. A free-tier server has far less CPU, so this still needs measuring there.
+The performance target held: across 300 searches with all 100 people offering, the median was 181 ms, p95 251 ms and the slowest 360 ms on battery (60, 80 and 97 ms plugged in), and none reached the 400 ms budget. On the live site a whole search, as the browser sees it, took 1,438 to 1,618 ms on the much smaller demo ward ([below](#performance-on-the-live-site)); how much of that the search itself takes there was not measured separately.
+
+## Performance on the live site
+
+Measured on the live site on 21 Nov 2026, on a warm server - Render's free plan, in Singapore, with Vercel's `/api` rewrite in front - by using the demo through its pages, three times each:
+
+| What was timed | Run 1 | Run 2 | Run 3 |
+| --- | ---: | ---: | ---: |
+| Roster generation for the demo ward - 94 shifts over 14 days, the full 20,000 search iterations - as the server measured it | 14,997 ms | 16,297 ms | 15,206 ms |
+| Swap search, measured in the browser, through Vercel to Render | 1,618 ms | 1,438 ms | 1,474 ms |
+
+- **Generation** filled all 94 shifts every time. From clicking Generate to seeing the result took about 19-20 s. Render's free plan gives the server only a small share of a CPU, which is why the generator's 20,000 iterations take about 15 s there.
+- **Each swap search** found 1 direct swap and 1 chain. The search itself is capped at 400 ms, so most of each answer's time was spent outside it: on the way through Vercel to Render and back, and on the request's database queries.
+- **These are warm-server numbers.** The free server sleeps when nobody is using it, and the first request after that is much slower while it starts again ([Known gaps](#known-gaps)). None of these runs followed a sleep.
+- **The swap numbers were measured before a later change** that runs the search's independent database queries side by side: a search that finds options makes the same 23 queries, now waited on in 11 rounds instead of 18 (`backend/tests/swaps/swapOptionsQueries.test.js`). The live site has not been measured since, so no speed-up is claimed.
 
 ## How it is tested
 
-At the time of writing: **630 backend tests** in 142 files (Vitest, every file against an in-memory MongoDB replica set of its own), **132 frontend tests** in 33 files (Vitest, components in a browser-like DOM), and the end-to-end suite below. All of it runs on every push, offline: no Supabase project is involved anywhere. The suites sign people in through the API's **test identity adapter** (`AUTH_MODE=test`), which accepts tokens the tests sign themselves with a secret made up for each run, and which the server refuses to use outside `NODE_ENV=test`. The production path is tested too, against key pairs made in the test and a local stand-in for Supabase.
+At the time of writing: **634 backend tests** in 143 files (Vitest, every file against an in-memory MongoDB replica set of its own), **137 frontend tests** in 35 files (Vitest, components in a browser-like DOM), and the end-to-end suite below. All of it runs on every push, offline: no Supabase project is involved anywhere. The suites sign people in through the API's **test identity adapter** (`AUTH_MODE=test`), which accepts tokens the tests sign themselves with a secret made up for each run, and which the server refuses to use outside `NODE_ENV=test`. The production path is tested too, against key pairs made in the test and a local stand-in for Supabase.
 
 - **Property-based tests with non-vacuity checks.** [fast-check](https://fast-check.dev) generates hundreds of organisations, rosters, teams, offers and chain histories per property - half-hour and 45-minute timezones, clock changes, shifts that end exactly when the next begins - and checks invariants that must hold for every one of them: whatever the generator produces is legal; removing a shift never adds a hard violation; `canAssign` agrees with `evaluate`; the swap finder only ever offers legal swaps; the chain state machine never commits twice. A property that passes because its cases never reach the situation it is about proves nothing, so separate **vacuity tests** sample the same generators and fail unless each outcome - a swap found, only a chain, nothing at all, each way a chain can end - turns up often enough.
 - **Concurrency tests.** Requests fired at the same moment (`Promise.all`), several rounds each from a fresh world: two proposals racing for one shift (exactly one wins, the other gets 409), two final acceptances at once (exactly one commit), a duplicate approval (one commit, both answered).
@@ -191,7 +206,7 @@ At the time of writing: **630 backend tests** in 142 files (Vitest, every file a
 - **Planted-bug checks.** A safety net is trusted only after it has been seen to fail: with the organisation filter removed from revoking an invite, the fuzzer fails, naming that route; and code planted in the engine that imports Mongoose, a model, config or a service, or reads the clock or `Math.random()`, fails the lint on every one of those lines.
 - **Sign-in.** Supabase tokens are checked offline, against key pairs made in the test: an expired token, another project's, one meant for the anon key, `alg: none`, and an HS256 token "signed" with the public key are all refused, and a Supabase outage answers 503 rather than signing anyone out. A production-mode run fetches and caches the keys from a local stand-in for Supabase, as it would from the real thing. An existing account is linked to a new sign-in only while the project makes people confirm their email; ten first requests at once make one account; and the account webhook takes a deleted sign-in out of every organisation, except as an organisation's last owner. The real server, started as in production, refuses to run with the offline test sign-in, with a secret key where the publishable one belongs, or with a service role key anywhere in its environment. The frontend build refuses them too. The demo seed's Supabase accounts are tested against a stand-in for the Admin API, refusals included. Relay's 7-day limit on a sign-in is tested as the app loads, at every kind of token refresh, and in a real browser.
 - **Abuse limits and security.** Each limit is tested to refuse with 429 and a sentence saying when to try again; production settings that would be unsafe stop the server starting; production error responses carry no stack traces or internal details; request logs never hold an access token, an invite link or what the webhook sent; and a production server that sends no email says so at `GET /api/v1/config`, and hands an invite back as a link without trying to email it.
-- **End to end, and accessibility.** **59 end-to-end tests** in 22 spec files. [Playwright](https://playwright.dev) drives the built app in a real browser against an in-memory database filled by the demo seed: signing in, the roster grid by keyboard, illegal edits refused, two managers saving at once, publishing with holes, the fairness numbers against the raw ledger, swaps proposed, accepted and approved in separate browsers (one on a phone), notifications, the public demo's accounts and locks, a sign-in ended once it is more than 7 days old - by the browser, and by the API whatever the browser thinks - what a first visit asks of the API, the privacy policy opened straight from its address, and no sideways scrolling at 375px. The build is served with the deployment's security headers (`frontend/vercel.json`), so every page runs under the production Content-Security-Policy, and anything it blocks fails the test - in every spec but the accessibility one, whose checker fetches stylesheets itself. [axe](https://github.com/dequelabs/axe-core) checks the main pages, the privacy policy among them, in light and dark themes against WCAG 2.1 A and AA - 34 page-and-theme checks, which at the time of writing find nothing at any severity - and the run fails on any serious or critical problem.
+- **End to end, and accessibility.** **61 end-to-end tests** in 22 spec files. [Playwright](https://playwright.dev) drives the built app in a real browser against an in-memory database filled by the demo seed: signing in, the roster grid by keyboard, illegal edits refused, two managers saving at once, publishing with holes, the fairness numbers against the raw ledger, swaps proposed, accepted and approved in separate browsers (one on a phone), notifications, the public demo's accounts and locks, a sign-in ended once it is more than 7 days old - by the browser, and by the API whatever the browser thinks - what a first visit asks of the API, the privacy policy opened straight from its address, and no sideways scrolling at 375px. The build is served with the deployment's security headers (`frontend/vercel.json`), so every page runs under the production Content-Security-Policy, and anything it blocks fails the test - in every spec but the accessibility one, whose checker fetches stylesheets itself. [axe](https://github.com/dequelabs/axe-core) checks the main pages, the privacy policy among them, in light and dark themes against WCAG 2.1 A and AA - signed out, and as a worker, a manager and the owner, each page as the role that can do the most on it, the owner's editable roster grid among them - 40 page-and-theme checks, which at the time of writing find nothing at any severity - and the run fails on any serious or critical problem.
 - **CI.** GitHub Actions runs a secret scan of the whole history, lint, the backend and frontend tests and the build on every push and pull request, then the end-to-end suite on Playwright's Chromium.
 
 ## The public demo, and keeping it safe
@@ -261,7 +276,7 @@ Supabase keeps a signed-in session in the browser's **localStorage**: an access 
 - Request logs keep the network address each request arrived from, unmasked.
 - Emailed links use Supabase's implicit flow, so a crafted link could sign a tab in as someone else's account (the name in the sidebar shows whose). The PKCE flow would prevent that, but its links only work in the tab that asked for them.
 - The per-request limits are counted in memory, per server process, and start again after a restart; the ones that matter most for abuse (invites, proposals, organisations) are counted in the database.
-- Search and generation times were measured on a laptop, not on the deployed server.
+- The live site's times are three runs each, on one day, on a warm server; a start after the server has slept was not timed. The generation and swap benchmark tables are from a laptop.
 
 ## Running it locally
 

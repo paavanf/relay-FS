@@ -2,15 +2,18 @@
 // Swap requests as the API returns them: who offered which shift, the note,
 // the status, and whether the caller is the one who offered it (mine) - so
 // the page can list their own first and word options as "you". Built in
-// bulk, so a list of fifty costs four queries, not two hundred.
+// bulk, so a list of fifty costs four queries, not two hundred. The shifts
+// and the names need nothing from each other, so they are read together.
 
 import { namesOf } from '../member/memberNames.js';
 import { shiftsById } from './describeShifts.js';
 import { filtersOf } from './shiftFilters.js';
 
 export async function describeRequests(requests, viewer) {
-  const shifts = await shiftsById(requests.map((r) => r.assignmentId));
-  const names = await namesOf(requests.map((r) => r.membershipId));
+  const [shifts, names] = await Promise.all([
+    shiftsById(requests.map((r) => r.assignmentId)),
+    namesOf(requests.map((r) => r.membershipId)),
+  ]);
 
   return requests.map((request) => ({
     id: String(request._id),

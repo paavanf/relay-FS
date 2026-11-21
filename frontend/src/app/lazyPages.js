@@ -8,6 +8,7 @@
 import { lazy } from 'react';
 
 export const LandingPage = lazy(() => import('../pages/landing/index.js'));
+export const PrivacyPage = lazy(() => import('../pages/privacy/index.js'));
 
 export const PublicLayout = lazy(() => import('../components/layout/PublicLayout/index.js'));
 export const LoginPage = lazy(() => import('../pages/auth/login/index.js'));
@@ -15,6 +16,7 @@ export const RegisterPage = lazy(() => import('../pages/auth/register/index.js')
 export const AcceptInvitePage = lazy(() => import('../pages/auth/acceptInvite/index.js'));
 export const ForgotPasswordPage = lazy(() => import('../pages/auth/forgotPassword/index.js'));
 export const ResetPasswordPage = lazy(() => import('../pages/auth/resetPassword/index.js'));
+export const AuthCallbackPage = lazy(() => import('../pages/auth/callback/index.js'));
 
 export const AppLayout = lazy(() => import('../components/layout/AppLayout/index.js'));
 export const OrgSelectorPage = lazy(() => import('../pages/orgSelector/index.js'));

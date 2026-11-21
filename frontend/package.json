@@ -10,11 +10,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint src/",
+    "lint": "eslint src/ config/",
     "test": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
+    "@supabase/supabase-js": "^2.118.0",
     "@tanstack/react-query": "^5.64.1",
     "lucide-react": "^0.471.1",
     "luxon": "^3.5.0",
@@ -36,6 +37,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.18",
     "globals": "^15.14.0",
+    "jose": "^6.2.13",
     "jsdom": "^29.1.1",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.10",

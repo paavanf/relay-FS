@@ -1,8 +1,9 @@
 // rateLimiters.js
 // The limits counted per request, in memory (express-rate-limit): per
-// address for the whole API and for the auth endpoints, accounts created per
-// address, reset emails per email address, and swap searches per person. The
-// numbers, and why each exists, are in config/constants.js.
+// address for the whole API, swap searches per person, and webhook calls
+// per address. The numbers, and why each exists, are in config/constants.js.
+// Sign-up, sign-in and reset emails are Supabase Auth's, and limited there
+// (docs/deploy/SUPABASE.md, section 11).
 //
 // Memory means one count per server process, emptied by a restart - right
 // for one server. The limits counted from the database (invites, proposals,
@@ -18,23 +19,16 @@ import rateLimit from 'express-rate-limit';
 import { AppError } from '../errors/AppError.js';
 import { env } from '../config/env.js';
 import { waitWords } from '../utils/waitWords.js';
-import {
-  RATE_LIMIT,
-  AUTH_RATE_LIMIT,
-  REGISTRATION_LIMIT,
-  FORGOT_PASSWORD_LIMIT,
-  SWAP_SEARCH_LIMIT,
-} from '../config/constants.js';
+import { RATE_LIMIT, SWAP_SEARCH_LIMIT, WEBHOOK_LIMIT } from '../config/constants.js';
 
 export const limitsInTests = { on: false };
 
-function limiter({ windowMs, max }, { message, keyGenerator, skipFailedRequests = false }) {
+function limiter({ windowMs, max }, { message, keyGenerator }) {
   return rateLimit({
     windowMs,
     limit: max,
     standardHeaders: true,
     legacyHeaders: false,
-    skipFailedRequests,
     ...(keyGenerator ? { keyGenerator } : {}),
     skip: () => env.isTest && !limitsInTests.on,
     // The API's own error shape, through the error handler, with the wait in words.
@@ -47,23 +41,9 @@ function limiter({ windowMs, max }, { message, keyGenerator, skipFailedRequests 
 
 export const apiLimiter = limiter(RATE_LIMIT, { message: 'Too many requests from your network.' });
 
-export const authLimiter = limiter(AUTH_RATE_LIMIT, { message: 'Too many sign-in and password attempts from your network.' });
-
-// Only accounts actually created count: a form sent back with a mistake does not.
-export const registrationLimiter = limiter(REGISTRATION_LIMIT, {
-  message: 'Too many accounts have been created from your network in the last hour.',
-  skipFailedRequests: true,
-});
-
-// Keyed by the address the email would go to - registered or not, so the
-// limit itself never reveals which addresses have accounts. Runs after
-// validation, which is where the email is trimmed and lowercased.
-export const forgotPasswordLimiter = limiter(FORGOT_PASSWORD_LIMIT, {
-  message: 'Too many password reset emails have been asked for this address in the last hour.',
-  keyGenerator: (req) => `email:${req.valid.body.email}`,
-});
-
 export const swapSearchLimiter = limiter(SWAP_SEARCH_LIMIT, {
   message: 'Too many swap searches in the last minute.',
   keyGenerator: (req) => `user:${req.userId}`,
 });
+
+export const webhookLimiter = limiter(WEBHOOK_LIMIT, { message: 'Too many webhook calls from your network.' });

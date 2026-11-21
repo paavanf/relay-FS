@@ -6,17 +6,15 @@
 // the ledger matter.
 
 import request from 'supertest';
+import { signUp as signUpAs } from '../helpers/orgBuilder.js';
 import { Assignment, Roster } from '../../src/models/index.js';
 
 export const auth = (token) => ({ Authorization: `Bearer ${token}` });
 
 const TIMES = { day: ['07:00', '15:00'], night: ['23:00', '07:00'] };
 
-async function signUp(app, name, email) {
-  await request(app).post('/api/v1/auth/register').send({ name, email, password: 'password123' });
-  const res = await request(app).post('/api/v1/auth/login').send({ email, password: 'password123' });
-  return res.body.accessToken;
-}
+// A test sign-in (helpers/identity.js); the first request creates the user.
+const signUp = (app, name, email) => signUpAs(app, name, email);
 
 async function join(app, { orgId, ownerToken, name, email }) {
   const token = await signUp(app, name, email);

@@ -24,13 +24,10 @@ const PUBLIC = new Set([
   'GET /api/health',
   'GET /api/v1/health',
   'GET /api/v1/config',
-  'POST /api/v1/auth/register',
-  'POST /api/v1/auth/login',
-  'POST /api/v1/auth/refresh',
-  'POST /api/v1/auth/logout',
-  'POST /api/v1/auth/forgot-password',
-  'POST /api/v1/auth/reset-password/:token',
   'GET /api/v1/invites/:token',
+  // Guarded by its own shared secret, not a sign-in - and absent (404) unless
+  // SUPABASE_WEBHOOK_SECRET is set (middleware/requireWebhookSecret.js).
+  'POST /api/v1/webhooks/supabase-auth',
 ]);
 
 let app;

@@ -15,7 +15,7 @@ export async function preview(req, res) {
 }
 
 export async function accept(req, res) {
-  const membership = await acceptInvite({ rawToken: req.valid.params.token, userId: req.userId });
+  const membership = await acceptInvite({ rawToken: req.valid.params.token, userId: req.userId, identity: req.identity });
   res.status(201).json({ membership });
 }
 

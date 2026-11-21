@@ -1,7 +1,7 @@
 // startStack.js
 // Starts everything the suite runs against, and stops it again.
 //
-//   1. builds the frontend (npm run build) while, at the same time,
+//   1. builds the frontend (in the e2e mode) while, at the same time,
 //   2. an in-memory MongoDB replica set starts, and prepareData.js seeds it
 //      with the demo ward plus the suite's own fixtures
 //   3. starts the backend against it, in test mode, on a free port
@@ -36,13 +36,14 @@ export async function startStack() {
   try {
     const [database, build] = await Promise.allSettled([
       startDatabase(logs).finally(() => mark('database')),
-      buildFrontend(logs).finally(() => mark('build')),
+      buildFrontend(secret(), logs).finally(() => mark('build')),
     ]);
     if (database.status === 'fulfilled') stops.push(() => stopGracefully(database.value.child));
     if (database.status === 'rejected') throw database.reason;
     if (build.status === 'rejected') throw build.reason;
 
     const mongoUri = database.value.uri;
+    const authSecret = build.value;
     const data = await seedDatabase(mongoUri, logs);
     mark('seeded');
 
@@ -50,7 +51,7 @@ export async function startStack() {
     const apiOrigin = `http://127.0.0.1:${apiPort}`;
     const webOrigin = `http://127.0.0.1:${webPort}`;
 
-    const backend = await startBackend({ mongoUri, apiPort, webOrigin, secrets: { access: secret(), refresh: secret() } }, logs);
+    const backend = await startBackend({ mongoUri, apiPort, webOrigin, authSecret }, logs);
     stops.push(async () => stopTree(backend));
     mark('backend');
 
@@ -63,8 +64,10 @@ export async function startStack() {
 
     // databaseUri is the in-memory server's local address, for the one helper
     // that writes to it directly (support/database.js - expiring a swap
-    // without waiting days for it).
-    return { info: { baseURL: webOrigin, apiURL: apiOrigin, database: DATABASE, databaseUri: mongoUri, ...data }, timings, stop };
+    // without waiting days for it). authSecret signs test tokens for the
+    // helpers that call the API directly (support/api.js).
+    const info = { baseURL: webOrigin, apiURL: apiOrigin, database: DATABASE, databaseUri: mongoUri, authSecret, ...data };
+    return { info, timings, stop };
   } catch (err) {
     await stop();
     throw err;

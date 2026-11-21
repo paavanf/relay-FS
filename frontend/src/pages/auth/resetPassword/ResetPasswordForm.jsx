@@ -1,7 +1,6 @@
 // ResetPasswordForm.jsx
 // New password + confirmation. useResetPassword.js checks the two match
-// before calling the API, then sends the user to the login page to sign in
-// with the new password.
+// before saving the password with Supabase, then goes on into the app.
 
 import { useState } from 'react';
 import { PasswordInput } from '../../../components/ui/PasswordInput.jsx';
@@ -9,10 +8,10 @@ import { Button } from '../../../components/ui/Button.jsx';
 import { Callout } from '../../../components/ui/Callout.jsx';
 import { useResetPassword } from './useResetPassword.js';
 
-export function ResetPasswordForm({ token }) {
+export function ResetPasswordForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const { submit, error, isSubmitting } = useResetPassword(token);
+  const { submit, error, isSubmitting } = useResetPassword();
 
   function handleSubmit(event) {
     event.preventDefault();

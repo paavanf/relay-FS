@@ -5,6 +5,8 @@
 // bell and panel, which ask for a browser-like DOM with a
 // "// @vitest-environment jsdom" line at their top.
 //
+// Also the build's own checks (config/*.test.js), which run in Node.
+//
 // Separate from vite.config.js on purpose: no Tailwind plugin is needed to
 // run tests. JSX uses React's automatic runtime, as the app does.
 
@@ -14,6 +16,6 @@ export default defineConfig({
   esbuild: { jsx: 'automatic' },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.{js,jsx}'],
+    include: ['src/**/*.test.{js,jsx}', 'config/**/*.test.js'],
   },
 });

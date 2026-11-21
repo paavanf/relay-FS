@@ -17,11 +17,10 @@
 import { Roster, Assignment, Availability, Membership, User, Organisation } from '../../backend/src/models/index.js';
 import { generateRoster } from '../../backend/src/engine/index.js';
 import { loadGenerationInput } from '../../backend/src/services/roster/loadGenerationInput.service.js';
-import { registerUser } from '../../backend/src/services/auth/register.service.js';
 import { createOrganisation } from '../../backend/src/services/organisation/create.service.js';
 import { DEMO_ORG_ID } from '../../backend/scripts/demo/ids.js';
 import { currentMonday, addDays, shortDate, rosterPlan } from '../../backend/scripts/demo/dates.js';
-import { WARD, DEMO_PASSWORD, EMAIL_DOMAIN } from '../../backend/scripts/demo/ward.js';
+import { WARD, EMAIL_DOMAIN } from '../../backend/scripts/demo/ward.js';
 
 // Days of the holes week (0 = its Monday) and who is away on each. Wednesday
 // leaves one healthcare assistant for three assistant shifts; Friday leaves
@@ -93,7 +92,8 @@ export async function wardRosters() {
 }
 
 export async function addEmptyOrganisation() {
-  const owner = await registerUser({ name: 'Erin Ellis', email: `erin@${EMAIL_DOMAIN}`, password: DEMO_PASSWORD });
+  // Her first sign-in links her to this account by email, as for anyone from before Supabase.
+  const owner = await User.create({ name: 'Erin Ellis', email: `erin@${EMAIL_DOMAIN}` });
   const org = await createOrganisation({ name: 'Lakeside Clinic', timezone: WARD.timezone, ownerId: owner._id });
   return { emptyOrgId: String(org._id), emptyOrgOwnerEmail: owner.email };
 }

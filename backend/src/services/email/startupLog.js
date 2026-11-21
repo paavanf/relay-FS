@@ -15,14 +15,14 @@ export function logEmailConfiguration() {
   if (EMAIL_TRANSPORT === 'off') {
     logger.info(
       'Email is turned off (EMAIL_ENABLED=false): invites are shared by copying their link, ' +
-        'password reset by email is unavailable, and notifications stay in the app.',
+        'and notifications stay in the app. (Sign-up and reset emails come from Supabase, unaffected.)',
     );
     return;
   }
 
   if (EMAIL_TRANSPORT === 'console') {
     logger.warn(
-      'Email disabled - reset and invite links will be printed to the console. ' +
+      'Email disabled - invite links will be printed to the console. ' +
         'Set SMTP_USER and SMTP_PASS, or RESEND_API_KEY, to send real email.',
     );
     return;

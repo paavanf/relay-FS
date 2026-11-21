@@ -1,16 +1,6 @@
 // index.js
-// Re-exports auth services for cleaner imports.
+// Re-exports the auth services. Since the move to Supabase Auth there is one:
+// who the signed-in person is in Relay. Checking a sign-in, and keeping the
+// Relay user in step with it, is services/identity's job.
 
-export { registerUser } from './register.service.js';
-export { loginUser } from './login.service.js';
-export { refreshAccessToken } from './refresh.service.js';
-export { logoutUser } from './logout.service.js';
 export { getCurrentUser } from './me.service.js';
-export { requestPasswordReset } from './forgotPassword.service.js';
-export { resetPassword } from './resetPassword.service.js';
-export { signAccessToken, verifyAccessToken } from './token.service.js';
-export {
-  createRefreshToken,
-  findValidRefreshToken,
-  revokeRefreshToken,
-} from './refreshToken.service.js';

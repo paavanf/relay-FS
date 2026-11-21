@@ -15,6 +15,8 @@ import { backendEnv, buildEnv, dataEnv, previewEnv } from './environments.js';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(here, '../..');
 const LOGS = path.join(ROOT, 'e2e', 'artifacts', 'logs');
+// The test sign-in secret the last build was made with, for E2E_SKIP_BUILD=1.
+const BUILD_SECRET = path.join(ROOT, 'e2e', 'artifacts', 'build-auth-secret');
 
 // Must end in -demo: the seed refuses any other name, whatever the server.
 export const DATABASE = 'relay-e2e-demo';
@@ -36,9 +38,17 @@ export async function startDatabase(logs) {
   return { child, uri };
 }
 
-export function buildFrontend(logs) {
-  if (process.env.E2E_SKIP_BUILD === '1') return Promise.resolve();
-  return run('build', 'npm', ['run', 'build'], { cwd: ROOT, env: buildEnv(), logs });
+/**
+ * The e2e build (mode e2e: a production build refuses the test sign-in);
+ * resolves with the test sign-in secret built into it. E2E_SKIP_BUILD=1
+ * reuses the last build - and the secret it was made with.
+ */
+export async function buildFrontend(authSecret, logs) {
+  if (process.env.E2E_SKIP_BUILD === '1') return fs.readFileSync(BUILD_SECRET, 'utf8');
+  await run('build', 'npm', ['run', 'build', '-w', 'frontend', '--', '--mode', 'e2e'], { cwd: ROOT, env: buildEnv(authSecret), logs });
+  fs.mkdirSync(path.dirname(BUILD_SECRET), { recursive: true });
+  fs.writeFileSync(BUILD_SECRET, authSecret);
+  return authSecret;
 }
 
 /** Runs prepareData.js (the demo seed and the fixtures); resolves with the ids it printed. */
@@ -57,8 +67,8 @@ async function waitForHealthy(apiOrigin) {
 }
 
 /** The backend in test mode; resolves once it reports a connected database. */
-export async function startBackend({ mongoUri, apiPort, webOrigin, secrets }, logs) {
-  const env = backendEnv({ mongoUri, apiPort, webOrigin, secrets });
+export async function startBackend({ mongoUri, apiPort, webOrigin, authSecret }, logs) {
+  const env = backendEnv({ mongoUri, apiPort, webOrigin, authSecret });
   const child = start('backend', process.execPath, ['src/server.js'], { cwd: path.join(ROOT, 'backend'), env, logs });
   const ready = waitForPort(apiPort, { timeoutMs: 30_000, isDead: () => !isRunning(child) }).then(() =>
     waitForHealthy(`http://127.0.0.1:${apiPort}`),

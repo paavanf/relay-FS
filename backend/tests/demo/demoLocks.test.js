@@ -5,7 +5,6 @@
 //   its setup is locked     every locked change answers 403 DEMO_LOCKED
 //   what it is for is open  rosters, availability, offers, notifications
 //   its accounts stay in it they cannot create or join another organisation
-//   and are never locked    wrong passwords do not shut the next visitor out
 
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
@@ -14,11 +13,11 @@ import { startTestServer, stopTestDb, testServerUri } from '../helpers/db.js';
 import { seed } from '../helpers/demoSeed.js';
 import { createApp } from '../../src/app.js';
 import { Assignment, CoverageRequirement, Membership, Qualification, ShiftTemplate, User } from '../../src/models/index.js';
-import { DEMO_PASSWORD } from '../../scripts/demo/ward.js';
 import { DEMO_ORG_ID, DEMO_LOCKED_MESSAGE, DEMO_ACCOUNT_MESSAGE } from '../../src/config/demo.js';
 import { setupRecipes } from '../tenancy/setupRecipes.js';
 import { fill } from '../tenancy/fuzzCalls.js';
 import { auth, signUp, createOrg, sendInvite } from '../helpers/orgBuilder.js';
+import { tokenFor } from '../helpers/identity.js';
 
 const LOCKED = [
   'PUT /roster-rules', 'PUT /swap-rules', 'PATCH /members/:membershipId', 'DELETE /members/:membershipId', 'POST /invites',
@@ -30,8 +29,7 @@ const LOCKED = [
 let app;
 let ids;
 let ashasShift;
-const login = (email, password = DEMO_PASSWORD) => request(app).post('/api/v1/auth/login').send({ email, password });
-const as = async (email) => auth((await login(email)).body.accessToken);
+const as = async (email) => auth(await tokenFor({ email })); // linked to the seeded account by email
 
 beforeAll(async () => {
   vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -89,10 +87,5 @@ describe('the shared demo organisation', () => {
     const { rawToken } = await sendInvite(app, { orgId: await createOrg(app, realOwner), token: realOwner, email: 'owner@relay.test' });
     const joined = await request(app).post(`/api/v1/invites/${rawToken}/accept`).set(await as('owner@relay.test'));
     expect([joined.status, joined.body.error.code]).toEqual([403, 'DEMO_LOCKED']);
-  });
-
-  it('never locks a demo account, however many wrong passwords are tried', async () => {
-    for (let i = 0; i < 8; i += 1) expect((await login('manager@relay.test', 'not-the-password')).status).toBe(401);
-    expect((await login('manager@relay.test')).status).toBe(200);
   });
 });

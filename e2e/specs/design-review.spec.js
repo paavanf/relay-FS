@@ -27,6 +27,7 @@ const capture = async (page, subject, options = {}) => {
 // Opened and captured as they are: [subject, who, path].
 const PAGES = [
   ['landing', null, () => '/'],
+  ['privacy', null, () => '/privacy'],
   ['login', null, () => '/login'],
   ['register', null, () => '/register'],
   ['forgot-password', null, () => '/forgot-password'],

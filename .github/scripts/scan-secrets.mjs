@@ -23,6 +23,9 @@ const KINDS = [
   ['Google API key', /\bAIza[0-9A-Za-z_-]{35}\b/],
   ['SendGrid key', /\bSG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}\b/],
   ['Resend key', /\bre_[A-Za-z0-9]{8,}_[A-Za-z0-9]{16,}\b/],
+  // The service role key's new form. It can do anything to every account,
+  // and belongs only in GitHub Actions secrets and a developer's own .env.
+  ['Supabase secret key', /\bsb_secret_[A-Za-z0-9_-]{20,}/],
 ];
 
 const git = (...args) => execFileSync('git', args, { maxBuffer: 1 << 30 }).toString();

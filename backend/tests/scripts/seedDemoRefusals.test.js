@@ -41,7 +41,7 @@ describe('the demo seed guards', () => {
   });
 
   it('stops before changing anything when a demo email belongs to someone else', async () => {
-    await inDatabase('taken-demo', () => User.create({ name: 'By Hand', email: 'owner@relay.test', passwordHash: 'x' }));
+    await inDatabase('taken-demo', () => User.create({ name: 'By Hand', email: 'owner@relay.test' }));
 
     expect(await seed(['--yes'], 'taken-demo')).toBe(1);
     expect(printed()).toContain('owner@relay.test already belong');

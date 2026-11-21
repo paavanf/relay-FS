@@ -1,11 +1,15 @@
+// crypto.js
+// Small helpers around Node's crypto: random tokens for invite links, the
+// hash an invite is stored under, and a constant-time comparison for the
+// shared secrets the internal job and the Supabase webhook present.
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 
-/** URL-safe random token, suitable for invites and refresh tokens. */
+/** URL-safe random token, as carried by an invite link. */
 export function randomToken(bytes = 48) {
   return randomBytes(bytes).toString('base64url');
 }
 
-/** Alias for randomToken, named for how the auth services read. */
+/** Alias for randomToken, named for how the invite service reads. */
 export const generateToken = randomToken;
 
 /** Deterministic hash for opaque tokens we store but must never read back. */

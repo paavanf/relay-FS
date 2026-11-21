@@ -1,96 +1,10 @@
 // auth.controller.js
-// HTTP layer for signing up, signing in and out, and refreshing a session.
-// Parses requests, calls services, sends responses, and owns the
-// refresh-token cookie. The password-reset endpoints are in
-// password.controller.js.
-//
-// Note: input is read from req.valid.body, not req.body. The validate
-// middleware puts the *parsed* Zod output there, which is where the email has
-// actually been trimmed and lowercased.
+// HTTP layer for GET /auth/me: who the signed-in person is in Relay, with
+// their organisations. Signing in itself is Supabase Auth's; by the time a
+// request gets here, authenticate has checked the token and found (or made)
+// the Relay user it belongs to.
 
-import {
-  registerUser,
-  loginUser,
-  refreshAccessToken,
-  logoutUser,
-  getCurrentUser,
-  signAccessToken,
-  createRefreshToken,
-} from '../services/auth/index.js';
-import { REFRESH_COOKIE_NAME, REFRESH_COOKIE_PATH } from '../config/constants.js';
-import { env } from '../config/env.js';
-
-// httpOnly  - unreadable by JavaScript, so XSS cannot steal the session
-// secure    - HTTPS only, outside development
-// sameSite  - not sent on cross-site requests, which blunts CSRF
-// path      - only ever sent to the auth endpoints that need it
-// No domain, so the cookie is host-only: no subdomain ever receives it.
-// No maxAge, so this is a session cookie the browser drops when it closes.
-//
-// The frontend is stricter still: it keeps a per-tab marker in sessionStorage
-// and will not restore a session into a tab that has no marker, so closing the
-// tab logs you out even while the browser stays open. This cookie is the
-// coarser backstop underneath that.
-const refreshCookieOptions = {
-  httpOnly: true,
-  secure: env.isProduction,
-  sameSite: 'strict',
-  path: REFRESH_COOKIE_PATH,
-};
-
-// Mints a session for this user and sets the refresh cookie. Only login uses
-// it - registering does not sign you in.
-async function issueSession(user, req, res) {
-  const accessToken = signAccessToken(user._id);
-
-  const refreshToken = await createRefreshToken(user._id, {
-    userAgent: req.get('user-agent'),
-    ip: req.ip,
-  });
-
-  res.cookie(REFRESH_COOKIE_NAME, refreshToken, refreshCookieOptions);
-
-  // Return the user and memberships so the frontend can populate its state
-  // immediately instead of making a second call to /auth/me.
-  const me = await getCurrentUser(user._id);
-
-  return { accessToken, user: me.user, memberships: me.memberships };
-}
-
-export async function register(req, res) {
-  const user = await registerUser(req.valid.body);
-
-  // Creating an account deliberately does NOT start a session: no access
-  // token, no refresh cookie. The frontend sends the user to the login page
-  // to sign in with the credentials they just chose.
-  res.status(201).json({
-    message: 'Account created successfully',
-    user: { id: user._id.toString(), email: user.email, name: user.name },
-  });
-}
-
-export async function login(req, res) {
-  const user = await loginUser(req.valid.body);
-  const session = await issueSession(user, req, res);
-
-  res.json(session);
-}
-
-export async function refresh(req, res) {
-  const rawToken = req.cookies?.[REFRESH_COOKIE_NAME];
-  const { accessToken } = await refreshAccessToken(rawToken);
-
-  res.json({ accessToken });
-}
-
-export async function logout(req, res) {
-  const rawToken = req.cookies?.[REFRESH_COOKIE_NAME];
-  await logoutUser(rawToken);
-
-  // Cleared with the attributes it was set with, so the browser matches it.
-  res.clearCookie(REFRESH_COOKIE_NAME, refreshCookieOptions);
-  res.json({ message: 'Logged out' });
-}
+import { getCurrentUser } from '../services/auth/index.js';
 
 export async function me(req, res) {
   // req.userId is set by the authenticate middleware.

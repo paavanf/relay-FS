@@ -9,6 +9,7 @@
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import mongoose from 'mongoose';
+import { PRODUCTION_AUTH_ENV } from '../helpers/productionEnv.js';
 
 let errorHandler;
 let AppError;
@@ -18,10 +19,9 @@ beforeAll(async () => {
   Object.assign(process.env, {
     NODE_ENV: 'production',
     MONGODB_URI: 'mongodb://db.example.com:27017/relay',
-    JWT_ACCESS_SECRET: 'a'.repeat(40),
-    JWT_REFRESH_SECRET: 'b'.repeat(40),
     FRONTEND_URL: 'https://relay.example.com',
     INTERNAL_JOB_SECRET: 'c'.repeat(40),
+    ...PRODUCTION_AUTH_ENV,
   });
   ({ env } = await import('../../src/config/env.js'));
   ({ errorHandler } = await import('../../src/middleware/errorHandler.js'));

@@ -1,6 +1,7 @@
 // templates.js
-// The HTML for the emails Relay sends: a password reset, an invite, and a
-// notification about something that expires (Milestone 9).
+// The HTML for the emails Relay sends: an invite, and a notification about
+// something that expires (Milestone 9). Sign-up and password-reset emails
+// are Supabase Auth's (docs/deploy/SUPABASE.md).
 //
 // Inline styles only - email clients strip <style> blocks, so there is no way
 // to use the app's design tokens here. These hex values are the same brand
@@ -37,20 +38,6 @@ function button(href, label) {
       ${label}
     </a>
   `;
-}
-
-export function passwordResetEmail(resetLink) {
-  return layout(`
-    <h2 style="color: ${INK}; font-size: 20px;">Reset your password</h2>
-    <p>We received a request to reset your Relay password.</p>
-    <p>Choose a new one using the button below. This link expires in an hour,
-       and only the most recent link works.</p>
-    ${button(resetLink, 'Reset password')}
-    <p style="color: ${MUTED}; font-size: 13px; margin-top: 24px;">
-      If you didn't request this, you can safely ignore this email - your
-      password will not change.
-    </p>
-  `);
 }
 
 export function inviteEmail({ inviteLink, orgName, inviterName }) {

@@ -15,9 +15,12 @@ import { CoverageRequirement, Availability, Roster, Assignment, FairnessLedger, 
 
 export const DEMO_ANCHOR = '2026-03-02'; // a Monday
 
-/** Runs the seed with these arguments against one database of the in-memory server. */
+/**
+ * Runs the seed with these arguments against one database of the in-memory
+ * server - leaving Supabase out: test sign-ins link to the demo by email.
+ */
 export function seed(argv, database = 'relay-demo') {
-  return main(argv, { MONGODB_URI: testServerUri(database) }, { anchor: DEMO_ANCHOR });
+  return main(argv, { MONGODB_URI: testServerUri(database) }, { anchor: DEMO_ANCHOR, accounts: false });
 }
 
 /**

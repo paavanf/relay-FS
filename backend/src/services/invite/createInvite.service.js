@@ -27,7 +27,7 @@ export async function createInvite({ orgId, email, role, qualificationIds, creat
 
   const rawToken = generateToken(32);
 
-  // Same rule as refresh tokens: only the hash is persisted.
+  // Only the hash is stored: the raw token travels in the invite link alone.
   const tokenHash = hashToken(rawToken);
 
   const expiresAt = new Date();

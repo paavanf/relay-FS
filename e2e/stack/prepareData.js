@@ -20,7 +20,9 @@ if (!/^mongodb:\/\/127\.0\.0\.1:\d+\/[\w-]+-demo\?/.test(uri)) {
   process.exit(1);
 }
 
-const code = await seedDemo(['--yes'], { MONGODB_URI: uri });
+// No Supabase: the suite's sign-ins are the offline stand-in, and link to
+// the demo's accounts by email.
+const code = await seedDemo(['--yes'], { MONGODB_URI: uri }, { accounts: false });
 if (code !== 0) process.exit(code);
 
 await mongoose.connect(uri);

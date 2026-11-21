@@ -1,18 +1,19 @@
 // envSchema.test.js
 // The server refuses to start in production with settings that would make it
-// unsafe (config/envSchema.js): FRONTEND_URL not https, JWT secrets short or
-// the same, no INTERNAL_JOB_SECRET. Outside production it starts on defaults.
+// unsafe (config/envSchema.js): FRONTEND_URL not https, no
+// INTERNAL_JOB_SECRET. Outside production it starts on defaults. The sign-in
+// settings have tests of their own (authEnv.test.js).
 
 import { describe, it, expect } from 'vitest';
 import { parseEnv } from '../../src/config/envSchema.js';
+import { PRODUCTION_AUTH_ENV } from '../helpers/productionEnv.js';
 
 const production = (changes = {}) => ({
   NODE_ENV: 'production',
   MONGODB_URI: 'mongodb://db.example.com:27017/relay',
-  JWT_ACCESS_SECRET: 'a'.repeat(40),
-  JWT_REFRESH_SECRET: 'b'.repeat(40),
   FRONTEND_URL: 'https://relay.example.com',
   INTERNAL_JOB_SECRET: 'c'.repeat(40),
+  ...PRODUCTION_AUTH_ENV,
   ...changes,
 });
 
@@ -29,20 +30,13 @@ describe('production environment checks', () => {
     ]);
   });
 
-  it('refuses JWT secrets that are short, or the same as each other', () => {
-    expect(problems(production({ JWT_ACCESS_SECRET: 'too-short' }))).toEqual(['JWT_ACCESS_SECRET: must be at least 32 characters long']);
-    expect(problems(production({ JWT_REFRESH_SECRET: 'a'.repeat(40) }))).toEqual([
-      'JWT_REFRESH_SECRET: must be different from JWT_ACCESS_SECRET',
-    ]);
-  });
-
   it('refuses a missing INTERNAL_JOB_SECRET - and a blank one counts as missing', () => {
     expect(problems(production({ INTERNAL_JOB_SECRET: undefined }))).toEqual(['INTERNAL_JOB_SECRET: is required']);
     expect(problems(production({ INTERNAL_JOB_SECRET: '' }))).toEqual(['INTERNAL_JOB_SECRET: is required']);
   });
 
-  it('outside production, starts on local defaults with no proxy trusted', () => {
-    expect(parseEnv({ NODE_ENV: 'development' })).toMatchObject({
+  it('outside production, starts on local defaults with no proxy trusted - given where people sign in', () => {
+    expect(parseEnv({ NODE_ENV: 'development', ...PRODUCTION_AUTH_ENV })).toMatchObject({
       ok: true,
       data: { TRUST_PROXY: 0, FRONTEND_URL: 'http://localhost:5173' },
     });

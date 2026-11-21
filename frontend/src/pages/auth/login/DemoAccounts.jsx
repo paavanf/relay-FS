@@ -11,7 +11,7 @@ import { useLoginAttempt } from './useLoginAttempt.js';
 import { DEMO_ACCOUNTS, DEMO_PASSWORD, DEMO_ORG_ID } from './demoAccounts.js';
 
 export function DemoAccounts() {
-  const { attempt, isSubmitting, errorMessage, secondsLeft } = useLoginAttempt(null);
+  const { attempt, isSubmitting, errorMessage } = useLoginAttempt(null);
   const [chosen, setChosen] = useState(null);
   const navigate = useNavigate();
 
@@ -32,7 +32,7 @@ export function DemoAccounts() {
       <p className="mt-1 mb-3 text-body-sm text-content-secondary">
         A shared hospital ward with real rosters and swaps. It resets every night, and some settings are locked.
       </p>
-      <LoginError message={errorMessage} secondsLeft={secondsLeft} />
+      <LoginError message={errorMessage} />
 
       <ul className="mt-3 divide-y divide-line-subtle">
         {DEMO_ACCOUNTS.map((account) => (

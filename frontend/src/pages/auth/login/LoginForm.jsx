@@ -1,4 +1,4 @@
-// LoginForm - email + password form.
+// LoginForm - "Continue with Google", then the email + password form.
 // Plain useState, no form library: easier to read while learning.
 //
 // Failures are shown inline rather than as a toast, because the thing that
@@ -10,9 +10,9 @@ import { Input } from '../../../components/ui/Input.jsx';
 import { PasswordInput } from '../../../components/ui/PasswordInput.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { LoginError } from './LoginError.jsx';
+import { GoogleSignIn } from './GoogleSignIn.jsx';
 import { useLoginAttempt } from './useLoginAttempt.js';
 import { useReturnPath } from '../../../features/auth/useReturnPath.js';
-import { formatWait } from './lockoutWait.js';
 
 export function LoginForm() {
   const location = useLocation();
@@ -25,9 +25,7 @@ export function LoginForm() {
 
   const [email, setEmail] = useState(prefillEmail);
   const [password, setPassword] = useState('');
-  const { attempt, isSubmitting, errorMessage, secondsLeft } = useLoginAttempt(next);
-
-  const isLockedOut = secondsLeft > 0;
+  const { attempt, isSubmitting, errorMessage } = useLoginAttempt(next);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -35,39 +33,37 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <LoginError message={errorMessage} secondsLeft={secondsLeft} />
+    <>
+      <GoogleSignIn next={next} />
 
-      <Input
-        label="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="you@example.com"
-        autoComplete="email"
-        required
-      />
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <LoginError message={errorMessage} />
 
-      <PasswordInput
-        label="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Your password"
-        autoComplete="current-password"
-        // A pre-filled email means the password is all that is left to type.
-        autoFocus={Boolean(prefillEmail)}
-        required
-      />
+        <Input
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          autoComplete="email"
+          required
+        />
 
-      <Button
-        type="submit"
-        size="lg"
-        className="w-full"
-        isLoading={isSubmitting}
-        disabled={isLockedOut}
-      >
-        {isLockedOut ? `Locked for ${formatWait(secondsLeft)}` : 'Log in'}
-      </Button>
-    </form>
+        <PasswordInput
+          label="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Your password"
+          autoComplete="current-password"
+          // A pre-filled email means the password is all that is left to type.
+          autoFocus={Boolean(prefillEmail)}
+          required
+        />
+
+        <Button type="submit" size="lg" className="w-full" isLoading={isSubmitting}>
+          Log in
+        </Button>
+      </form>
+    </>
   );
 }

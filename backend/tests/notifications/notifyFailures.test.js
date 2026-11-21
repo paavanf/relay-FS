@@ -17,7 +17,6 @@ vi.mock('../../src/services/email/email.service.js', () => ({
   sendNoticeEmail: vi.fn(async () => {
     throw new Error('The mail server is down');
   }),
-  sendPasswordResetEmail: vi.fn(async () => false),
   sendInviteEmail: vi.fn(async () => false),
 }));
 

@@ -4,18 +4,17 @@
 // refusals the grid will not even let a person attempt.
 //
 // Requests go straight to the local test backend the stack started - never
-// anywhere else.
+// anywhere else - signed in with a test token (testToken.js), as the
+// browser's stand-in for Supabase signs people in.
 
 import { request } from '@playwright/test';
 import { stack } from './stack.js';
-import { PASSWORD } from './people.js';
+import { signTestToken } from './testToken.js';
 
 export async function apiAs(who) {
   const http = await request.newContext({ baseURL: stack().apiURL });
 
-  const login = await http.post('/api/v1/auth/login', { data: { email: who.email, password: PASSWORD } });
-  if (!login.ok()) throw new Error(`could not sign ${who.email} in to the API: ${login.status()}`);
-  const headers = { Authorization: `Bearer ${(await login.json()).accessToken}` };
+  const headers = { Authorization: `Bearer ${signTestToken(who.email, stack().authSecret)}` };
 
   const send = async (method, path, data) => {
     const response = await http.fetch(`/api/v1${path}`, { method, headers, data });

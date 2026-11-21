@@ -19,7 +19,6 @@ import { chainWorld, chainApi, wrenProposes } from '../swapChains/chainWorld.js'
 const sent = vi.hoisted(() => []);
 vi.mock('../../src/services/email/email.service.js', () => ({
   sendNoticeEmail: vi.fn(async (to, email) => sent.push({ to, ...email }) > 0),
-  sendPasswordResetEmail: vi.fn(async () => true),
   sendInviteEmail: vi.fn(async () => true),
 }));
 

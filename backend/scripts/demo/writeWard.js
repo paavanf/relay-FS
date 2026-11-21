@@ -3,7 +3,6 @@
 // templates, coverage and availability. The rosters come after, from
 // writeRosters.js, because generating them reads all of this back.
 
-import { hashPassword } from '../../src/utils/passwords.js';
 import {
   Organisation,
   User,
@@ -13,7 +12,6 @@ import {
   CoverageRequirement,
   Availability,
 } from '../../src/models/index.js';
-import { DEMO_PASSWORD } from './ward.js';
 import {
   organisationDoc,
   userDocs,
@@ -24,17 +22,11 @@ import {
   availabilityDocs,
 } from './wardDocs.js';
 
-export async function writeWard({ anchor }) {
+export async function writeWard({ anchor, identities }) {
   await Organisation.create(organisationDoc());
 
-  // Hashed exactly as registration hashes - the same function, so the same
-  // OWASP settings - and logging in cannot tell these accounts from real
-  // ones; each of the demo's one-click sign-ins then reserves 19 MiB, not 64.
-  // One hash serves everyone: the password is shared and printed anyway, and
-  // argon2 is slow on purpose.
-  const passwordHash = await hashPassword(DEMO_PASSWORD);
-
-  const users = await User.insertMany(userDocs(passwordHash));
+  // Who they are in MongoDB, each linked to their Supabase sign-in.
+  const users = await User.insertMany(userDocs(identities));
   await Membership.insertMany(membershipDocs(anchor));
   const qualifications = await Qualification.insertMany(qualificationDocs());
   const templates = await ShiftTemplate.insertMany(templateDocs());

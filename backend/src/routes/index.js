@@ -21,6 +21,7 @@ import swapRequestRoutes from './swapRequest.routes.js';
 import swapChainRoutes from './swapChain.routes.js';
 import notificationRoutes from './notification.routes.js';
 import internalRoutes from './internal.routes.js';
+import webhookRoutes from './webhook.routes.js';
 
 const router = Router();
 
@@ -64,5 +65,8 @@ router.use('/orgs/:orgId/notifications', notificationRoutes);
 
 // Jobs a scheduler calls, guarded by a shared secret rather than a login.
 router.use('/internal', internalRoutes);
+
+// Calls from Supabase when an account changes, guarded the same way.
+router.use('/webhooks', webhookRoutes);
 
 export default router;

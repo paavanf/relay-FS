@@ -3,7 +3,6 @@
 // blocks SMTP. EMAIL_ENABLED is then off, and:
 //
 //   GET /api/v1/config   says so, publicly
-//   forgot password      refuses with EMAIL_DISABLED and creates no token
 //   invites              are created and answered with their link, with no
 //                        attempt to email them - and no link reaches the logs
 //   notification emails  are not claimed or sent
@@ -15,6 +14,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
 import { startTestDb, stopTestDb } from '../helpers/db.js';
 import { PRODUCTION_ENV } from '../helpers/productionEnv.js';
+import { startFakeSupabase } from '../helpers/fakeSupabase.js';
 
 const lines = vi.hoisted(() => []);
 vi.mock('../../src/utils/logger.js', async () => {
@@ -29,26 +29,26 @@ vi.mock('../../src/utils/logger.js', async () => {
   return { logger: pino({ level: 'debug' }, sink) };
 });
 
-let app;
-let models;
-let notifications;
-let logEmailConfiguration;
+let app, models, notifications, logEmailConfiguration, project;
 
 beforeAll(async () => {
-  Object.assign(process.env, PRODUCTION_ENV);
+  // Sign-in as in production, against a local stand-in for Supabase.
+  project = await startFakeSupabase();
+  Object.assign(process.env, PRODUCTION_ENV, { SUPABASE_URL: project.url });
   await startTestDb();
   app = (await import('../../src/app.js')).createApp();
   models = await import('../../src/models/index.js');
   notifications = await import('../../src/services/notification/emailNotices.js');
   ({ logEmailConfiguration } = await import('../../src/services/email/startupLog.js'));
 }, 120_000);
-afterAll(stopTestDb);
+afterAll(() => Promise.all([stopTestDb(), project.close()]));
 
-const person = { name: 'Kim Cole', email: 'kim@example.com', password: 'password123' };
+const person = { name: 'Kim Cole', email: 'kim@example.com' };
 
 async function signIn() {
-  await request(app).post('/api/v1/auth/register').send(person);
-  return (await request(app).post('/api/v1/auth/login').send({ email: person.email, password: person.password })).body.accessToken;
+  const token = await project.signToken({ email: person.email, name: person.name });
+  await request(app).get('/api/v1/auth/me').set('Authorization', `Bearer ${token}`);
+  return token;
 }
 
 describe('a production server that sends no email', () => {
@@ -57,17 +57,8 @@ describe('a production server that sends no email', () => {
     expect([res.status, res.body]).toEqual([200, { emailEnabled: false }]);
   });
 
-  it('refuses a password reset with EMAIL_DISABLED, and creates no token', async () => {
-    const token = await signIn();
-    expect(token).toBeTruthy();
-    const res = await request(app).post('/api/v1/auth/forgot-password').send({ email: person.email });
-    expect([res.status, res.body.error.code]).toEqual([403, 'EMAIL_DISABLED']);
-    expect(res.body.error.message).toBe("Password reset by email isn't available on this deployment, because it doesn't send email.");
-    expect(await models.PasswordResetToken.countDocuments()).toBe(0);
-  });
-
   it('creates an invite and hands back its link, without emailing it - or logging it', async () => {
-    const token = (await request(app).post('/api/v1/auth/login').send({ email: person.email, password: person.password })).body.accessToken;
+    const token = await signIn();
     const org = await request(app).post('/api/v1/orgs').set('Authorization', `Bearer ${token}`).send({ name: 'Ward A' });
     const res = await request(app)
       .post(`/api/v1/orgs/${org.body.id}/invites`)

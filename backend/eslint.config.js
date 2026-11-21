@@ -38,6 +38,9 @@ export default [
                 'pino',
                 'pino-http',
                 'express',
+                // Sign-in fetches keys over the network; the engine never signs anyone in.
+                'jose',
+                '@supabase/*',
                 '**/models',
                 '**/models/**',
                 '**/repositories',

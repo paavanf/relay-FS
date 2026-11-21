@@ -1,6 +1,6 @@
 // Invite.js
-// A pending invitation to join an organisation. Like refresh tokens, only the
-// hash of the invite token is stored - the raw value goes to the invitee.
+// A pending invitation to join an organisation. Only the hash of the invite
+// token is stored - the raw value goes to the invitee, in the link.
 
 import mongoose from 'mongoose';
 import { ROLES } from '../config/constants.js';

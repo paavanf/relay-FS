@@ -6,7 +6,6 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import cookieParser from 'cookie-parser';
 import mongoSanitize from 'express-mongo-sanitize';
 import pinoHttp from 'pino-http';
 
@@ -52,11 +51,10 @@ export function createApp() {
   );
 
   app.use(helmet());
-  // credentials: true is required for the refresh-token cookie to travel.
-  app.use(cors({ origin: env.corsOrigins, credentials: true }));
+  // No cookies: a request proves who it is with its Bearer token alone.
+  app.use(cors({ origin: env.corsOrigins }));
   app.use(express.json({ limit: JSON_BODY_LIMIT }));
   app.use(express.urlencoded({ extended: true, limit: JSON_BODY_LIMIT }));
-  app.use(cookieParser());
   app.use(mongoSanitize());
 
   // Unversioned liveness probe. Kept at /api/health so uptime checks and the

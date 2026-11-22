@@ -3,7 +3,7 @@
 **Date:** 22 Nov 2026. **Commit audited:** `725485f` on `main`.
 **How:** everything ran locally and offline - unit tests, the in-memory database and the e2e environment with the offline test sign-in. Nothing was sent to the live site, any deployed service, the live database or Supabase.
 
-**Phase 1 (this document):** the audit, plus tests that only *prove* an error path already works. Nothing in the app was changed. **Phase 2:** only the fixes approved below, each with a test.
+**Phase 1:** the audit, plus tests that only *prove* an error path already works. Nothing in the app was changed. **Phase 2:** only the fixes approved below, each with a test - what was fixed, what was left, the Lighthouse scores and the final run are at the end, in [Phase 2: what was done](#phase-2-what-was-done).
 
 Each finding gives the file and line, what is wrong, the proposed fix, and the risk of changing it.
 
@@ -105,7 +105,7 @@ Dead code, stale docs, small UX.
 
 **The page head:** a title ("Rosters that follow your rules - Relay"), a meta description, an SVG favicon and a theme colour are there; social cards are not (S12).
 
-**Lighthouse: not run.** `npx lighthouse` downloads and runs a package, which this session's permission policy refuses. To run it: `VITE_DEMO_MODE=true npm run build -w frontend`, then `npm run preview -w frontend -- --port 4173`, then `npx lighthouse http://localhost:4173/ --preset=desktop --view` and the same without `--preset` for mobile, and again for `/login`. Allow `npx` and it can be done in Phase 2.
+**Lighthouse: not run in Phase 1.** `npx lighthouse` downloads and runs a package, which this session's permission policy refuses without asking. It was run in Phase 2, with permission: the scores and what costs points are in [Phase 2](#lighthouse).
 
 **Bundle:** the entry chunk is 344 kB (110 kB gzipped): React, React Router, TanStack Query and the app shell. supabase-js is 229 kB (60 kB gzipped) in a chunk of its own, loaded only when a session may exist - a first-time visitor to the landing page never downloads it. Luxon is 71 kB (22 kB gzipped), shared by the pages that need dates. The CSS is 47 kB (10 kB gzipped). Every page is already its own lazy chunk (79 files). Nothing large is left to lazy-load.
 
@@ -127,3 +127,93 @@ Run on 22 Nov 2026, with this report's proof tests included:
 - End to end: `e2e/specs/03-api-unreachable.spec.js`.
 
 Each passes against the code as it is; none changes behaviour.
+
+---
+
+## Phase 2: what was done
+
+Approved on 22 Nov 2026: M1-M5 and S1-S13, with three conditions - S4 keeps the script and documents it instead of removing it; M2 decides staleness by the run's deadline, so it stays right with two server instances; M1 gets a test of two requests at once. Everything ran locally and offline, as in Phase 1: nothing was sent to the live site, any deployed service, the live database or Supabase.
+
+### Fixed
+
+| # | Commit | What changed | Test |
+| --- | --- | --- | --- |
+| M1 | `7256b98` | A run starts by claiming its organisation in one atomic update (`generationStartedAt` on the organisation, `backend/src/services/roster/generationClaim.js`), so of two requests arriving together exactly one wins - on one server or several. The worker slot is reserved before anything is awaited (`reserveWorker()`), so the capacity check cannot be passed twice either. **Not the proposed partial unique index:** production connects with `autoIndex` off (`backend/src/config/db.js:53`), so a new index would not be built on the live database without a manual step, and until then the guard would be missing without a word. The claim needs no index. | `backend/tests/roster/generationRace.test.js`: two Generate requests at once give one 202, one 409 and one job, in each of 4 rounds. Before the fix the same requests gave two 202s and two jobs, 5 times out of 5. |
+| M2 | `7256b98` | Staleness is decided by the run's deadline, `GENERATION_DEADLINE_MS` in `backend/src/config/constants.js`: 2 minutes, against the engine's 25-second budget, the 10 seconds' grace before its worker is killed, and loading and saving the roster. A claim older than that is taken over. A `queued` or `running` job older than that is marked failed - "This run did not finish: the server stopped while it was working. Generate the roster again." - when its page asks for it, and once at start-up (`backend/src/startupTasks.js`). Nothing younger than the deadline is touched, so a run on another instance is never disturbed. | `backend/tests/roster/abandonedRuns.test.js` (3 tests): past the deadline, a run no longer blocks its organisation, is reported failed when asked for, and is failed at start-up; a recent one is left alone each time. |
+| M3, S13 | `f9a13bf` | Dependency updates inside the same major versions; the lockfile changes are listed below. The ranges in `package.json` were raised to match, so a fresh install cannot resolve an affected version. | The full test, lint, build and e2e run on the updated tree: backend 640, frontend 167, e2e 64 of 64, axe 0 issues. |
+| M4 | `295b42a` | README: the demo "reseeds every night at 03:00 IST". | - |
+| M5 | The commit that adds this section | README test counts and the e2e line, from the final run below. | - |
+| S1 | `23d2b2b` | Removed `NOTIFICATION_LIST_LIMIT`, `isAllowed`, and `getRequestContext` with its `AsyncLocalStorage` store; the request id stays (header, logs, error bodies). `activeGenerationCount` went in M1's rewrite of `backend/src/jobs/runGeneration.js`. | The existing suites. |
+| S2 | `23d2b2b` | Uninstalled `react-hook-form`, `@hookform/resolvers`, `zod`, `zustand` and `recharts` from the frontend: 41 packages fewer in the lockfile (`recharts` brought most of them). `zod` stays for the backend. | Build and frontend tests. |
+| S3 | `23d2b2b` | Deleted the two unused barrel files. | Build. |
+| S4 | `b5798c0` | **Kept, as decided.** `docs/deploy/SUPABASE.md` (section 9), the README and the script's own header record it as a one-time migration, run on the live database on 22 Nov 2026, and safe to run again: it finds nothing. | `backend/tests/scripts/cleanupLegacyAuth.test.js`: a second run with `--yes` finds nothing and changes nothing. |
+| S5 | `b5798c0` | `backend/src/models/User.js` says the old password fields were removed, and when. | - |
+| S6 | - | `supabase-auth` deleted, locally and on `origin`; both still had 0 commits that `main` lacks. | - |
+| S7 | `295b42a` | `AGENTS.md` forbids calls to a real Supabase project, approves `npm run e2e` and `npm run scan:secrets`, and says Relay's own API goes through `src/lib/apiClient.js` while sign-in goes through `src/lib/auth/`. | - |
+| S8 | `cb64765` | A header comment on each of the five files; `backend/src/server.js` stays under 100 lines. Every source file now has one. | - |
+| S9 | `0629908` | Email log lines name a masked address, `w***@example.com` (`maskEmail` in `backend/src/utils/logSafety.js`). | `backend/tests/security/logSafety.test.js`. |
+| S10 | `35011d2` | "Relay's server is not answering. Try again in a moment." | `frontend/src/lib/apiError.test.js`. |
+| S11 | `35011d2` | A banner while offline: "You are offline. Relay will carry on when you are back online." A page whose code could not load says "This page could not be loaded" without the raw message, and reloads once the browser is back online. | `frontend/src/components/layout/OfflineBanner.test.jsx`, `frontend/src/pages/routeError/RouteErrorPage.test.jsx`, and `e2e/specs/03-offline.spec.js` in a real browser with `context.setOffline()`. |
+| S12 | `9c5bc64` | Open Graph and Twitter tags in `frontend/index.html`, and `frontend/public/og-image.png`: 1200x630, a screenshot of the demo's Swaps page with the three-person swap chain, taken on the local e2e stack. | `frontend/src/app/socialPreview.test.js`: the tags, and the image's size read from its PNG header. |
+
+### Lockfile changes (M3, S13)
+
+`package-lock.json`, from `d32ea17` to `f9a13bf`. Runtime:
+
+| Package | Before | After | Note |
+| --- | --- | --- | --- |
+| `body-parser` | 1.20.8 | 1.20.9 | High: denial of service via trailing bytes. |
+| `mongoose` | 8.24.4 | 8.24.10 | High: several, fixed in 8.24.7. |
+| `mquery` | 5.0.0 | 5.0.1 | Comes with `mongoose`. |
+| `nodemailer` | 10.0.16 | 10.6.1 | Moderate: address parsing. Now installed under `backend/node_modules`. |
+| `qs` | 6.16.0 | 6.16.2 | Moderate. |
+
+Development only:
+
+| Package | Before | After | Note |
+| --- | --- | --- | --- |
+| `follow-redirects` | 1.16.0 | 1.16.3 | |
+| `nodemon` | 3.1.14 | 3.1.11 | A downgrade, and npm audit's own fix: 3.1.14 brought `minimatch` 10.2.6, which the advisory covers. Pinned exactly (`"nodemon": "3.1.11"`) so a later install cannot float back up. Its nested `minimatch`, `brace-expansion` 5.0.12 and `balanced-match` 4.0.4 are gone. Now under `backend/node_modules`, with `semver` 7.8.6 (was 7.8.5), `supports-color` 5.5.0 and `has-flag` 3.0.0. |
+| `vite` (the frontend's) | 6.4.3 | 6.4.6 | Under `frontend/node_modules`, with `fdir` 6.5.0 and `picomatch` 4.0.7. The root's 6.4.3 stays: it is Vitest 2's (L2). |
+
+`npm audit` afterwards: runtime only (`--omit=dev`), **1 finding: `zod`** (high; the only fix is Zod 4 - L1). Everything: 7 findings - `zod`, and six in Vitest 2's chain (L2). Both were left, as before.
+
+### Lighthouse
+
+Run on 22 Nov 2026, with permission, against the local e2e stack only: a fresh production build (demo mode, offline test sign-in) served compressed by `vite preview` on 127.0.0.1, and an in-memory database behind it. Lighthouse 13.6.0 in headless Chrome 157, one run each. Mobile is Lighthouse's default emulation: a slow 4G network (150 ms round trips, 1.6 Mbit/s) and a CPU slowed 4 times, both simulated. The live site's numbers will differ, mainly by its distance on the network.
+
+| Page | Form factor | Performance | Accessibility | Best practices | SEO |
+| --- | --- | --- | --- | --- | --- |
+| Landing (`/`) | Desktop | 94 | 100 | 100 | 91 |
+| Landing (`/`) | Mobile | 71 | 100 | 100 | 91 |
+| Sign-in (`/login`) | Desktop | 99 | 98 | 100 | 91 |
+| Sign-in (`/login`) | Mobile | 62 | 98 | 100 | 91 |
+
+Mobile metrics: the landing page FCP 2.2 s, LCP 4.4 s, TBT 420 ms, CLS 0; sign-in FCP 2.3 s, LCP 3.8 s, TBT 340 ms, CLS 0.335. Desktop: the landing page LCP 1.4 s, TBT 60 ms; sign-in LCP 1.0 s, TBT 0 ms, CLS 0.
+
+What costs points. These were found in Phase 2, so **none is fixed: each needs approval.**
+
+| # | Where | What is wrong | Proposed fix | Risk of the fix |
+| --- | --- | --- | --- | --- |
+| P1 | `frontend/public/` | **SEO 91 on every page: no `robots.txt`.** `/robots.txt` is answered with the app's `index.html` - the single-page fallback, as on Vercel (`frontend/vercel.json`'s last rewrite) - which Lighthouse reads as a robots.txt with 74 errors. | Add `frontend/public/robots.txt` (`User-agent: *`, `Allow: /`). A built file is served before the fallback. | None. |
+| P2 | `frontend/src/components/layout/PublicLayout/PublicLayout.jsx:25` | **Accessibility 98 on sign-in: no `<main>` landmark** on the signed-out pages (axe's `landmark-one-main`, a best-practice rule; the e2e axe check runs only the WCAG A and AA rules, so it passed). | Make the form's wrapper a `<main>`. | None. |
+| P3 | The same file, and the fonts in `frontend/index.html` | **CLS 0.335 on sign-in, mobile.** The form is centred vertically, so when the web fonts arrive and replace the fallback, its height changes and the whole form moves; Lighthouse names "Web font loaded" as the cause. Desktop: 0. | Fallback font faces with matching metrics (`size-adjust`), or the form placed at the top on small screens. | Low. |
+| P4 | `frontend/index.html` (Google Fonts) | **Mobile performance 71 and 62.** The Google Fonts stylesheet blocks the first paint - Lighthouse estimates 840-870 ms off FCP and LCP on mobile without it - and the fonts come from two more origins. | Serve the three fonts from Relay's own origin, preloaded. The CSP and its test (`frontend/src/app/vercelConfig.test.js`) change with it. | Medium: fonts, CSP and test change together. |
+
+### Left
+
+L1-L12 stand as written above. `zod` (L1) and the Vitest chain (L2) are still the only `npm audit` findings.
+
+### Final run
+
+Run on 22 Nov 2026 after the last code commit:
+
+| Command | Result |
+| --- | --- |
+| `npm test` | Backend **646 tests in 148 files**, frontend **176 tests in 50 files** - all passed. Phase 1's 640 and 167, plus the tests added with the fixes. |
+| `npm run lint` | Clean in both workspaces. |
+| `npm run build` | Built; `og-image.png` and the social tags are in the output. |
+| `npm run e2e` | **65 tests in 25 spec files**, all passed, in 8.4 minutes. axe: 40 page-and-theme checks, **0 issues at any severity**. |
+| `npm run scan:secrets` | Nothing found in the whole history (86 commits at the time); no environment file is tracked. |
+
+The README's counts (M5) were updated from this run.

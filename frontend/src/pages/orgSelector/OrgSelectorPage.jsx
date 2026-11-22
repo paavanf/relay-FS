@@ -21,7 +21,7 @@ function OrgSelectorPage() {
 
   return (
     <div className="min-h-full bg-surface-base">
-      <div className="mx-auto max-w-3xl px-6 py-8">
+      <main className="mx-auto max-w-3xl px-6 py-8">
         <OrgSelectorHeader />
 
         <PageHeader
@@ -44,7 +44,7 @@ function OrgSelectorPage() {
         ) : (
           <EmptyOrgState onCreateClick={() => setIsDialogOpen(true)} />
         )}
-      </div>
+      </main>
 
       <CreateOrgDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} />
     </div>

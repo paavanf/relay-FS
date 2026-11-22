@@ -14,6 +14,7 @@ export function NoOffers({ orgId }) {
   return (
     <Card>
       <EmptyState
+        as="h3"
         illustration="swap"
         title="You have not offered any shifts"
         description="Offer a shift you cannot work from My shifts, then come back here to find swaps for it."

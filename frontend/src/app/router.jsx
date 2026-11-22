@@ -7,7 +7,9 @@
 //
 // Every group has an errorElement: a page that crashes shows a message with
 // "Try again" in its own place - inside the app, the sidebar and top bar
-// stay - instead of a white screen.
+// stay - instead of a white screen. Inside the app the message sits in
+// AppLayout's <main>; anywhere else it is the whole page, so it is wrapped in
+// a <main> of its own - one main landmark either way.
 
 import { createBrowserRouter } from 'react-router';
 import RequireAuth from '../features/auth/RequireAuth.jsx';
@@ -19,7 +21,12 @@ import * as Page from './lazyPages.js';
 import { guestPages, linkPages } from './publicRoutes.jsx';
 import { appPages } from './appRoutes.jsx';
 
-const failed = <RouteErrorPage />;
+const failed = (
+  <main>
+    <RouteErrorPage />
+  </main>
+);
+const failedInApp = <RouteErrorPage />;
 
 export const router = createBrowserRouter([
   { path: '/', element: <RootRedirect />, errorElement: failed },
@@ -43,7 +50,7 @@ export const router = createBrowserRouter([
             <Page.AppLayout />
           </OrgProvider>
         ),
-        children: [{ errorElement: failed, children: appPages }],
+        children: [{ errorElement: failedInApp, children: appPages }],
       },
     ],
   },

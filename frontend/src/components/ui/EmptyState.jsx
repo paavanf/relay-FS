@@ -1,11 +1,13 @@
 // EmptyState - shown when a list has nothing in it yet.
 // `illustration` names one of the small drawings in components/illustrations
 // ('calendar', 'swap', 'scale', 'bell', 'setup'); `icon`, a lucide component,
-// is the plainer fallback for places that have no drawing.
+// is the plainer fallback for places that have no drawing. The title is an
+// h2, for an empty state that stands in for a page's content right under its
+// h1; as="h3" inside a section with its own h2 (see Card.jsx's CardTitle).
 import { ILLUSTRATIONS } from '../illustrations/index.js';
 import { cn } from '../../lib/utils.js';
 
-export function EmptyState({ illustration, icon: Icon, title, description, action, className }) {
+export function EmptyState({ illustration, icon: Icon, title, description, action, className, as: Heading = 'h2' }) {
   const Illustration = ILLUSTRATIONS[illustration];
 
   return (
@@ -17,7 +19,7 @@ export function EmptyState({ illustration, icon: Icon, title, description, actio
         </div>
       )}
 
-      <h3 className="text-h3 text-content-primary">{title}</h3>
+      <Heading className="text-h3 font-stretch-normal tracking-normal text-content-primary">{title}</Heading>
 
       {description && <p className="mt-1.5 max-w-sm text-body-sm text-content-secondary">{description}</p>}
 

@@ -8,7 +8,7 @@ import { ThemeToggle } from '../../ui/ThemeToggle.jsx';
 
 export function TopBar({ onOpenNav }) {
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-line-subtle bg-surface-raised px-3 lg:px-4">
+    <div className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-line-subtle bg-surface-raised px-3 lg:px-4">
       <div className="flex min-w-0 items-center gap-2">
         <button
           type="button"
@@ -29,6 +29,6 @@ export function TopBar({ onOpenNav }) {
         <ThemeToggle />
         <UserMenu />
       </div>
-    </header>
+    </div>
   );
 }

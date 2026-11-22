@@ -46,7 +46,7 @@ export function NotificationPanel({ onClose }) {
         </div>
 
         {latest.isPending && <Skeleton className="m-4 h-24" />}
-        {latest.error && <ErrorState title="Could not load notifications" message={latest.error.message} onRetry={() => latest.refetch()} className="m-4" />}
+        {latest.error && <ErrorState as="h3" title="Could not load notifications" message={latest.error.message} onRetry={() => latest.refetch()} className="m-4" />}
         {latest.data && notifications.length === 0 && (
           <p className="px-4 py-8 text-center text-body-sm text-content-secondary">You&apos;re all caught up.</p>
         )}

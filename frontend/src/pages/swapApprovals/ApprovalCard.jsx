@@ -6,6 +6,10 @@
 // or, if anything changed since it was proposed, none does and the reason
 // is given. The outcome is told in a toast, since the swap leaves this list
 // either way.
+//
+// Each card opens with a heading only screen readers show, naming the people
+// in the swap: it is how someone moving by headings finds each swap, and the
+// card's own Coverage, Fairness and Rule check headings sit one level below.
 import { useState } from 'react';
 import { Button } from '../../components/ui/Button.jsx';
 import { useToast } from '../../components/ui/toast/useToast.js';
@@ -20,7 +24,9 @@ export function ApprovalCard({ chain, onTimeUp, highlight = false }) {
   const { showToast } = useToast();
   const act = useChainAction(orgId);
   const [isRejecting, setIsRejecting] = useState(false);
-  const names = chain.participants.map((person) => person.name).join(' and ');
+  const people = chain.participants.map((person) => person.name);
+  const names = people.join(' and ');
+  const heading = <h2 className="sr-only">Swap between {new Intl.ListFormat('en-GB').format(people)}</h2>;
 
   const decide = (action, body, success) =>
     act.mutate(
@@ -48,7 +54,7 @@ export function ApprovalCard({ chain, onTimeUp, highlight = false }) {
 
   return (
     <>
-      <ChainCard chain={chain} onTimeUp={onTimeUp} actions={actions} highlight={highlight} />
+      <ChainCard chain={chain} onTimeUp={onTimeUp} actions={actions} heading={heading} highlight={highlight} />
       {isRejecting && (
         <RejectDialog
           names={names}

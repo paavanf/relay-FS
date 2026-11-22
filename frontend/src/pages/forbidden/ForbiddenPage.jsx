@@ -8,7 +8,7 @@ function ForbiddenPage() {
   useDocumentTitle('Not allowed');
 
   return (
-    <div className="flex h-full flex-col items-center justify-center bg-surface-base px-6 text-center">
+    <main className="flex h-full flex-col items-center justify-center bg-surface-base px-6 text-center">
       <ShieldAlert className="size-6 text-warning-content" aria-hidden="true" />
 
       <p className="data mt-6 text-body-sm text-content-tertiary">403</p>
@@ -26,7 +26,7 @@ function ForbiddenPage() {
       >
         Back to my organisations
       </Link>
-    </div>
+    </main>
   );
 }
 

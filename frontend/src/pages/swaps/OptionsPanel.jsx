@@ -50,7 +50,7 @@ export function OptionsPanel({ orgId, request, onProposed }) {
       </div>
 
       {options.isPending && <Skeleton className="h-64 w-full" />}
-      {options.error && <ErrorState message={options.error.message} onRetry={() => options.refetch()} />}
+      {options.error && <ErrorState as="h3" message={options.error.message} onRetry={() => options.refetch()} />}
       {data && !found && <NoOptions noMatch={data.noMatch} />}
       {found && (
         <>

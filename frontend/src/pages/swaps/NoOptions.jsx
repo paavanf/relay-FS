@@ -9,6 +9,7 @@ export function NoOptions({ noMatch }) {
   return (
     <Card>
       <EmptyState
+        as="h3"
         illustration="swap"
         title="No swaps found yet"
         description={noMatch?.summary ?? 'Nothing could be found for this shift.'}

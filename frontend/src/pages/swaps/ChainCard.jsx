@@ -5,7 +5,8 @@
 // The sentences start from the person looking, when they are in it ("Asha
 // takes your night shift..."), and use names when they are not. Stacked on
 // a phone - people answer these on their phones - side by side on a wide
-// screen.
+// screen. `heading`, if given, opens the card: the approvals page names each
+// swap that way for screen readers.
 import { useEffect, useRef } from 'react';
 import { Badge } from '../../components/ui/Badge.jsx';
 import { ChainDiagram } from '../../features/swaps/components/ChainDiagram.jsx';
@@ -15,7 +16,7 @@ import { isLive } from '../../features/swaps/chainSections.js';
 import { TimeLeft } from './TimeLeft.jsx';
 import { ParticipantStates } from './ParticipantStates.jsx';
 
-export function ChainCard({ chain, onTimeUp, actions, highlight = false }) {
+export function ChainCard({ chain, onTimeUp, actions, heading, highlight = false }) {
   const you = chain.participants.find((person) => person.isYou);
   const sentences = chainSentences(chain, {
     requesterId: you?.membershipId ?? chain.proposer.membershipId,
@@ -36,6 +37,7 @@ export function ChainCard({ chain, onTimeUp, actions, highlight = false }) {
       aria-label={`Swap proposed by ${chain.proposer.name}`}
       className={`rounded-lg border bg-surface-raised elevation-sm ${highlight ? 'border-brand-border' : 'border-line-subtle'}`}
     >
+      {heading}
       <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center">
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">

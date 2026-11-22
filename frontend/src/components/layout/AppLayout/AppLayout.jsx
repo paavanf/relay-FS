@@ -42,8 +42,12 @@ function AppLayout() {
       <MobileNav isOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar onOpenNav={() => setIsNavOpen(true)} />
-        <DemoBanner />
+        {/* The page's banner landmark: the top bar, and the demo strip under
+            it, so no line of the page sits outside a landmark. */}
+        <header className="shrink-0">
+          <TopBar onOpenNav={() => setIsNavOpen(true)} />
+          <DemoBanner />
+        </header>
 
         <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8">
           <Suspense fallback={<PageLoading />}>

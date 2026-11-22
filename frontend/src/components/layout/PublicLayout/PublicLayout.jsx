@@ -4,7 +4,8 @@
 // A split layout: the form on the left, a brand panel on the right that shows
 // what the product does. The panel sits on the rail's deep tone (data-surface
 // "rail" in index.css), the same structure as the signed-in app. Below lg the
-// brand panel is dropped and only the form remains.
+// brand panel is dropped and only the form remains. Every line sits in a
+// landmark: the logo row is the banner, the form is the page's main.
 
 import { Suspense } from 'react';
 import { Outlet } from 'react-router';
@@ -17,19 +18,19 @@ function PublicLayout() {
   return (
     <div className="flex min-h-full bg-surface-base">
       <div className="flex w-full flex-col lg:w-1/2">
-        <div className="flex items-center justify-between px-6 py-5 lg:px-10">
+        <header className="flex items-center justify-between px-6 py-5 lg:px-10">
           <Logo size="md" />
           <ThemeToggle />
-        </div>
+        </header>
 
-        <div className="flex flex-1 items-center justify-center px-6 pb-12 lg:px-10">
+        <main className="flex flex-1 items-center justify-center px-6 pb-12 lg:px-10">
           <div className="w-full max-w-sm">
             {/* Each form loads on demand; a spinner holds its place meanwhile. */}
             <Suspense fallback={<Spinner className="mx-auto text-brand-solid" />}>
               <Outlet />
             </Suspense>
           </div>
-        </div>
+        </main>
       </div>
 
       {/* Brand panel. Hidden on small screens, where the form is the point. */}

@@ -22,9 +22,13 @@ export function CardHeader({ children, className }) {
   );
 }
 
-export function CardTitle({ children, className }) {
+// An h2, since a card usually sits right under the page's h1 and heading
+// levels must not skip one; as="h3" for a card inside a section with its own
+// h2. It looks the same either way: index.css widens every h2, and
+// font-stretch-normal and tracking-normal undo that here.
+export function CardTitle({ as: Heading = 'h2', children, className }) {
   return (
-    <h3 className={cn('text-h3 text-content-primary', className)}>{children}</h3>
+    <Heading className={cn('text-h3 font-stretch-normal tracking-normal text-content-primary', className)}>{children}</Heading>
   );
 }
 

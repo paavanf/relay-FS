@@ -22,10 +22,12 @@
   /* ------------------------------------------------------------------ *
    * Typefaces: Archivo for headings and figures (its width axis is the
    * voice), Inter for dense UI text, Geist Mono for times and hours.
+   * Served by Relay itself (assets/fonts/fonts.css); each is followed by
+   * its stand-in, sized to match while it loads (assets/fonts/fallbacks.css).
    * ------------------------------------------------------------------ */
-  --font-display: 'Archivo', 'Inter', system-ui, sans-serif;
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --font-display: 'Archivo', 'Archivo Fallback', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Inter', 'Inter Fallback', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', ui-monospace, 'SFMono-Regular', monospace;
 
   /* Type scale, named for the job. Each step carries its own weight, and
      there is real distance between them: a page title is 2.1x the body. */

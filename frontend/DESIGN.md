@@ -205,9 +205,11 @@ Plus the structural contrast of the rail, described above.
   wide.
 - **Geist Mono** for times and hours, via the `.data` class.
 
-All three come from Google Fonts, which the Content-Security-Policy in
-`vercel.json` already allows (`style-src` fonts.googleapis.com, `font-src`
-fonts.gstatic.com).
+All three are served by Relay itself, from `src/assets/fonts/` (its
+README says where they come from and how they are licensed), so the
+Content-Security-Policy in `vercel.json` lets in no font service. Inter and
+Archivo are preloaded. While a font loads, a local stand-in sized to match
+it shows instead (`fallbacks.css`), so nothing moves when it arrives.
 
 | Token | Size / weight | Used for |
 | --- | --- | --- |

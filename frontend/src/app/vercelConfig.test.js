@@ -7,7 +7,7 @@
 //   CSP        allows the inline theme script in index.html by the hash of
 //              its current text, and no other inline script - so editing
 //              that script without updating the hash fails here, not as a
-//              blank page in production
+//              blank page in production; styles and fonts from Relay alone
 //   the rest   no framing, and assets cached for a year while the app shell
 //              is always checked again. Connections: vercelConnect.test.js
 //
@@ -56,10 +56,12 @@ describe('vercel.json', () => {
     expect(pageHeaders['Content-Security-Policy']).not.toContain('unsafe-eval');
   });
 
-  it('lets in only our own code and Google Fonts, and cannot be framed', () => {
+  it('lets in only our own code, styles and fonts, and cannot be framed', () => {
     expect(csp['default-src']).toEqual(["'self'"]);
-    expect(csp['style-src']).toEqual(["'self'", 'https://fonts.googleapis.com']);
-    expect(csp['font-src']).toEqual(["'self'", 'https://fonts.gstatic.com']);
+    // Relay serves its own fonts (src/assets/fonts), so no font service is let in.
+    expect(csp['style-src']).toEqual(["'self'"]);
+    expect(csp['font-src']).toEqual(["'self'"]);
+    expect(pageHeaders['Content-Security-Policy']).not.toMatch(/googleapis|gstatic/);
     expect(csp['frame-ancestors']).toEqual(["'none'"]);
     expect(csp['object-src']).toEqual(["'none'"]);
     expect(pageHeaders).toMatchObject({

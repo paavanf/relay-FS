@@ -1,0 +1,79 @@
+/* fallbacks.css
+   What shows while a web font loads (font-display: swap): a font the
+   computer already has - Arial, Arial Bold, Courier New - resized to the web
+   font's width and given its ascent, descent and line gap, so text wraps the
+   same way in both and nothing moves when the font arrives. index.css lists
+   each stand-in right after its font; without Arial (Android) the stack goes
+   on to the system font, as before. size-adjust is the web font's width over
+   the stand-in's on a paragraph of Relay's text, measured in Chromium; each
+   override is the web font's metric divided by it (README.md). Archivo gets
+   one stand-in per width the app sets: 100% (h3, figures), 106% (h2),
+   112-112.5% (h1, section titles, wordmark), 115% (landing headline). */
+
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  font-weight: 400 500;
+  size-adjust: 106.73%;
+  ascent-override: 90.79%;
+  descent-override: 22.58%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial Bold');
+  font-weight: 600;
+  size-adjust: 100.81%;
+  ascent-override: 96.12%;
+  descent-override: 23.91%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Archivo Fallback';
+  src: local('Arial Bold');
+  font-weight: 500 800;
+  font-stretch: 100%;
+  size-adjust: 96.86%;
+  ascent-override: 90.65%;
+  descent-override: 21.68%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Archivo Fallback';
+  src: local('Arial Bold');
+  font-weight: 500 800;
+  font-stretch: 101% 109%;
+  size-adjust: 105.14%;
+  ascent-override: 83.51%;
+  descent-override: 19.97%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Archivo Fallback';
+  src: local('Arial Bold');
+  font-weight: 500 800;
+  font-stretch: 110% 113%;
+  size-adjust: 112.74%;
+  ascent-override: 77.88%;
+  descent-override: 18.63%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Archivo Fallback';
+  src: local('Arial Bold');
+  font-weight: 500 800;
+  font-stretch: 114% 125%;
+  size-adjust: 117.82%;
+  ascent-override: 74.52%;
+  descent-override: 17.82%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Geist Mono Fallback';
+  src: local('Courier New');
+  font-weight: 400 500;
+  size-adjust: 99.98%;
+  ascent-override: 100.52%;
+  descent-override: 29.5%;
+  line-gap-override: 0%;
+}

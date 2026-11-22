@@ -35,14 +35,12 @@
     <!-- Kept in sync with the resolved theme by themeStorage.applyTheme. -->
     <meta name="theme-color" content="#edf1f2" />
 
-    <!-- Archivo for headings and figures (its width axis is used), Inter for
-         UI text, Geist Mono for times and hours. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Archivo:wdth,wght@100..125,500..800&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Relay serves its own fonts (src/assets/fonts). The two every first
+         screen shows - Inter for text, Archivo for headings - are fetched at
+         once, before the stylesheet asks for them; the build swaps in their
+         hashed addresses. Geist Mono, for times, loads when a page uses it. -->
+    <link rel="preload" href="/src/assets/fonts/inter/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/src/assets/fonts/archivo/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin />
 
     <!-- Apply the theme before first paint, so a dark-theme user never sees a
          flash of the light page. This runs before React mounts and must stay

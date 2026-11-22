@@ -2,7 +2,7 @@
 // the browser. The key names and the 7 days are imported from the code that
 // uses them, so the page cannot name a key the app no longer writes. Nothing
 // else in frontend/src touches localStorage, sessionStorage or cookies, and
-// the only outside requests the page makes are for Google Fonts (index.html).
+// the fonts are Relay's own (src/assets/fonts): no font service is asked.
 import { SESSION_KEY } from '../../../lib/auth/storedSession.js';
 import { SIGNED_IN_AT_KEY } from '../../../lib/auth/sessionAge.js';
 import { STORAGE_KEY as THEME_KEY } from '../../../features/theme/themeStorage.js';
@@ -31,8 +31,8 @@ export function InYourBrowser() {
         scripts.
       </p>
       <p>
-        Relay&apos;s fonts come from Google Fonts, so opening Relay makes your browser download them from Google&apos;s
-        servers.
+        Relay serves its own fonts, so opening Relay downloads nothing from Google Fonts or any other font
+        service.
       </p>
     </PolicySection>
   );

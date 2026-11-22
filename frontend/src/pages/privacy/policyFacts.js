@@ -5,4 +5,4 @@
 
 export const CONTACT_EMAIL = 'pavu0504@gmail.com';
 
-export const LAST_UPDATED = '21 November 2026';
+export const LAST_UPDATED = '22 November 2026';

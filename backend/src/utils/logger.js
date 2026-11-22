@@ -1,3 +1,9 @@
+// logger.js
+// The API's one logger (pino): silent in tests, readable coloured lines at
+// debug level in development, and JSON at info level in production. The
+// Authorization and Cookie headers and password fields are written as
+// [redacted]; request log lines are trimmed further by utils/logSafety.js.
+
 import pino from 'pino';
 import { env } from '../config/env.js';
 

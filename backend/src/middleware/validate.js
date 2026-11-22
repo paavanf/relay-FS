@@ -1,3 +1,9 @@
+// validate.js
+// Checks a request's body, query and params against Zod schemas before its
+// controller runs - the "validator" step of route -> validator -> controller.
+// A mismatch is a 422 that gives each field's reason; what passes, parsed,
+// is on req.valid.
+
 import { AppError } from '../errors/AppError.js';
 
 const TARGETS = ['body', 'query', 'params'];

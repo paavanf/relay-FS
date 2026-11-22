@@ -1,3 +1,8 @@
+// server.js
+// Starts the API: connects to the database, runs the start-up tasks, listens
+// on PORT, and shuts down cleanly on SIGINT or SIGTERM. The app itself - its
+// middleware and routes - is built in app.js.
+
 import { createApp } from './app.js';
 import { connectDb, disconnectDb } from './config/db.js';
 import { env } from './config/env.js';
@@ -45,10 +50,8 @@ async function start() {
     logger.info(`Relay API listening on http://localhost:${env.PORT}`);
   });
 
-  // Without this, a failed bind reaches the uncaughtException handler and is
-  // reported as a FATAL with a stack trace, which reads like a crash in the
-  // app. The usual cause is far more mundane: a second copy of this server is
-  // already running. Say that plainly and stop.
+  // Otherwise a failed bind is a FATAL with a stack trace, which reads like a
+  // crash; the usual cause is a second copy of this server. Say so and stop.
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
       logger.error(

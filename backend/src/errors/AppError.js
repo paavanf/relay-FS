@@ -1,3 +1,9 @@
+// AppError.js
+// The error the API throws on purpose: a message a person can read, an HTTP
+// status, and a code from ERROR_CODES (config/constants.js). Make one with a
+// helper - AppError.notFound(), AppError.conflict() and so on - and
+// middleware/errorHandler.js turns it into the API's one error shape.
+
 import { ERROR_CODES } from '../config/constants.js';
 
 export class AppError extends Error {

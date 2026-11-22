@@ -84,12 +84,3 @@ export function findEligibleWorkers(slot, workers, assignments, context) {
 
   return { eligible, qualifiedCount: qualified.length, blockedBy };
 }
-
-/** Is this one specific pairing legal right now? */
-export function isAllowed(slot, membershipId, assignments, context) {
-  return canAssign(
-    toAssignment(slot, membershipId),
-    ownAssignments(assignments, membershipId),
-    context,
-  ).allowed;
-}

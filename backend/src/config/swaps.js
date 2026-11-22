@@ -22,10 +22,6 @@ export const DEFAULT_SWAP_POLICY = Object.freeze({
 export const SWAP_CHAIN_LENGTH_RANGE = Object.freeze({ min: 2, max: 4 });
 export const SWAP_ACCEPTANCE_WINDOW_RANGE = Object.freeze({ min: 1, max: 168 });
 
-// The newest notifications the Swaps page lists (the full notification
-// centre is Milestone 9).
-export const NOTIFICATION_LIST_LIMIT = 30;
-
 export const SWAP_SEARCH = Object.freeze({
   topN: 5,
   // Keeps one search well inside half a second on the free tier, and stops

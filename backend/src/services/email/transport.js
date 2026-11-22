@@ -19,6 +19,7 @@ import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
 import { env } from '../../config/env.js';
 import { logger } from '../../utils/logger.js';
+import { maskEmail } from '../../utils/logSafety.js';
 
 export function chooseTransport() {
   if (!env.EMAIL_ENABLED) return 'off';
@@ -67,7 +68,7 @@ export async function deliver({ to, subject, html }) {
   try {
     if (EMAIL_TRANSPORT === 'smtp') {
       await smtp.sendMail({ from: env.SMTP_USER, to, subject, html });
-      logger.info({ to, transport: 'smtp' }, 'Email sent');
+      logger.info({ to: maskEmail(to), transport: 'smtp' }, 'Email sent');
       return { delivered: true };
     }
 
@@ -77,16 +78,16 @@ export async function deliver({ to, subject, html }) {
     const { error } = await resend.emails.send({ from: env.EMAIL_FROM, to, subject, html });
 
     if (error) {
-      logger.error({ to, reason: error.message ?? String(error) }, 'Email rejected by Resend');
+      logger.error({ to: maskEmail(to), reason: error.message ?? String(error) }, 'Email rejected by Resend');
       return { delivered: false, reason: error.message ?? String(error) };
     }
 
-    logger.info({ to, transport: 'resend' }, 'Email sent');
+    logger.info({ to: maskEmail(to), transport: 'resend' }, 'Email sent');
     return { delivered: true };
   } catch (err) {
     // A network fault or bad credentials. Logged loudly, but swallowed here:
     // the caller's operation must not fail because email did.
-    logger.error({ to, err: err.message }, 'Email delivery failed');
+    logger.error({ to: maskEmail(to), err: err.message }, 'Email delivery failed');
     return { delivered: false, reason: err.message };
   }
 }

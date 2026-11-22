@@ -10,6 +10,7 @@
 
 import { env } from '../../config/env.js';
 import { logger } from '../../utils/logger.js';
+import { maskEmail } from '../../utils/logSafety.js';
 import { deliver } from './transport.js';
 import { inviteEmail, noticeEmail } from './templates.js';
 
@@ -29,7 +30,7 @@ async function trySend(message) {
     const { delivered } = await deliver(message);
     return delivered;
   } catch (err) {
-    logger.error({ to: message.to, err: err.message }, 'Email send threw unexpectedly');
+    logger.error({ to: maskEmail(message.to), err: err.message }, 'Email send threw unexpectedly');
     return false;
   }
 }

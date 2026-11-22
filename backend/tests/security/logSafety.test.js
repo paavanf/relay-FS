@@ -3,7 +3,7 @@
 // pino-http itself, wired the way app.js wires it, on a small app that sees
 // the risky things: an invite-token URL, a Supabase access token in the
 // Authorization header, and the webhook's shared secret with an account's
-// email in the body.
+// email in the body. And an email address a log line names is masked.
 
 import { describe, it, expect } from 'vitest';
 import express from 'express';
@@ -11,7 +11,7 @@ import request from 'supertest';
 import pino from 'pino';
 import pinoHttp from 'pino-http';
 import { Writable } from 'node:stream';
-import { maskUrl, requestForLog, responseForLog } from '../../src/utils/logSafety.js';
+import { maskUrl, maskEmail, requestForLog, responseForLog } from '../../src/utils/logSafety.js';
 
 function appLoggingTo(lines) {
   const sink = new Writable({
@@ -34,6 +34,12 @@ describe('request logs', () => {
   it('mask invite tokens in URLs, and keep everything else', () => {
     expect(maskUrl('/api/v1/invites/abc123/accept')).toBe('/api/v1/invites/[redacted]/accept');
     expect(maskUrl('/api/v1/orgs/123/rosters?from=2026-01-01')).toBe('/api/v1/orgs/123/rosters?from=2026-01-01');
+  });
+
+  it('mask an email address down to its first letter and its domain', () => {
+    expect(maskEmail('wren.worker@example.com')).toBe('w***@example.com');
+    expect(maskEmail('not-an-address')).toBe('***');
+    expect(maskEmail(undefined)).toBe('***');
   });
 
   it('never hold an invite token, an access token, the webhook secret or what the webhook sent', async () => {

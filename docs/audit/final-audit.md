@@ -132,7 +132,7 @@ Each passes against the code as it is; none changes behaviour.
 
 ## Phase 2: what was done
 
-Approved on 22 Nov 2026: M1-M5 and S1-S13, with three conditions - S4 keeps the script and documents it instead of removing it; M2 decides staleness by the run's deadline, so it stays right with two server instances; M1 gets a test of two requests at once. Everything ran locally and offline, as in Phase 1: nothing was sent to the live site, any deployed service, the live database or Supabase.
+Approved on 22 Nov 2026: M1-M5 and S1-S13, with three conditions - S4 keeps the script and documents it instead of removing it; M2 decides staleness by the run's deadline, so it stays right with two server instances; M1 gets a test of two requests at once. P1-P4, which Lighthouse found during Phase 2, were approved afterwards and are fixed too ([P1-P4: fixed](#p1-p4-fixed)). Everything ran locally and offline, as in Phase 1: nothing was sent to the live site, any deployed service, the live database or Supabase.
 
 ### Fixed
 
@@ -191,7 +191,9 @@ Run on 22 Nov 2026, with permission, against the local e2e stack only: a fresh p
 
 Mobile metrics: the landing page FCP 2.2 s, LCP 4.4 s, TBT 420 ms, CLS 0; sign-in FCP 2.3 s, LCP 3.8 s, TBT 340 ms, CLS 0.335. Desktop: the landing page LCP 1.4 s, TBT 60 ms; sign-in LCP 1.0 s, TBT 0 ms, CLS 0.
 
-What costs points. These were found in Phase 2, so **none is fixed: each needs approval.**
+These are the scores before P1-P4 below were fixed; the scores after are in [P1-P4: fixed](#p1-p4-fixed).
+
+What cost points. Found in Phase 2 and approved afterwards, on 22 Nov 2026: **all four are now fixed** (see [P1-P4: fixed](#p1-p4-fixed)).
 
 | # | Where | What is wrong | Proposed fix | Risk of the fix |
 | --- | --- | --- | --- | --- |
@@ -200,20 +202,43 @@ What costs points. These were found in Phase 2, so **none is fixed: each needs a
 | P3 | The same file, and the fonts in `frontend/index.html` | **CLS 0.335 on sign-in, mobile.** The form is centred vertically, so when the web fonts arrive and replace the fallback, its height changes and the whole form moves; Lighthouse names "Web font loaded" as the cause. Desktop: 0. | Fallback font faces with matching metrics (`size-adjust`), or the form placed at the top on small screens. | Low. |
 | P4 | `frontend/index.html` (Google Fonts) | **Mobile performance 71 and 62.** The Google Fonts stylesheet blocks the first paint - Lighthouse estimates 840-870 ms off FCP and LCP on mobile without it - and the fonts come from two more origins. | Serve the three fonts from Relay's own origin, preloaded. The CSP and its test (`frontend/src/app/vercelConfig.test.js`) change with it. | Medium: fonts, CSP and test change together. |
 
+### P1-P4: fixed
+
+Approved on 22 Nov 2026: P3 and P4 together, by serving the fonts from Relay's own origin; P2 with the e2e accessibility check made to catch this kind of problem from now on.
+
+| # | Commit | What changed | Test |
+| --- | --- | --- | --- |
+| P1 | `d290f58` | `frontend/public/robots.txt` (`User-agent: *`, `Allow: /`), a built file, so it is served before the single-page fallback. | `frontend/src/app/vercelDeepLinks.test.js`. |
+| P3, P4 | `608affc` | **The fonts come from Relay's own origin** (`frontend/src/assets/fonts/`): Google Fonts' own files - Archivo v25, Inter v20, Geist Mono v6, from the Fontsource 5.3.0 packages, the same versions the site loaded from Google - as woff2, normal style only, Latin and Latin Extended, each `@font-face` declaring only the range the app uses (Archivo weights 500-800 and widths 100-125%, Inter 400-600, Geist Mono 400-500). Vite hashes them into `/assets/`, cached for a year, and `index.html` preloads the Latin Inter and Archivo files. **No jump:** `font-display: swap`, with local stand-ins - Arial, Arial Bold, Courier New - given `size-adjust`, `ascent-override`, `descent-override` and `line-gap-override` measured in Chromium against these files, one stand-in per Archivo width. A line then takes 99.1-100.7% of the real font's width and wraps the same; the system font before took 85-105%, and three of ten sample blocks wrapped differently. **CSP:** `style-src` and `font-src` are `'self'` alone - `fonts.googleapis.com` and `fonts.gstatic.com` are gone. The privacy page no longer says the fonts come from Google, and its date moved on to 22 November 2026. **Licences:** all three fonts are under the SIL Open Font License 1.1, which allows serving them as long as the licence goes with them; each family's folder keeps its `OFL.txt`, and none declares a Reserved Font Name. | `frontend/src/app/selfHostedFonts.test.js`: no font service named, every face a real woff2 that swaps in, licences present, preloads matching, every family with a sized stand-in. `frontend/src/app/vercelConfig.test.js`: the stricter CSP. |
+| P2 | `3ebac4e` | **A main landmark on every signed-out page:** the sign-in layout (sign-in, register, invites, password reset, the sign-in callback), the 404 and 403 pages, and a crashed page of its own - the router wraps it in a `<main>`, while inside the app it stays in AppLayout's. The organisation picker got one too. **The e2e check** now runs axe's best-practice rules as well as WCAG 2.1 A and AA; fails on any impact, since a missing main landmark is only "moderate" and failing on serious and critical alone would not catch it; covers the invite, 403 and 404 pages; and runs under the production CSP, whose bypass existed only because axe fetched Google's stylesheet. **What the new rules found** - all "moderate" - is fixed: content outside every landmark (the sign-in pages' logo row, the app's demo strip), now inside banner landmarks; and headings that skipped a level on Schedule, Availability, Notifications and Swap approvals - card titles and empty and error states are `h2` by default (`as="h3"` inside a section with its own `h2`), each swap waiting for approval has a heading for screen readers, and its Coverage, Fairness and Rule check headings are `h3`. Nothing looks different. | `frontend/src/app/landmarks.test.jsx`; the e2e axe run: 46 page-and-theme checks, nothing found at any severity. |
+
+**Lighthouse, before and after** - the same four pages and settings: Lighthouse 13.6.0, headless Chrome 157, the local e2e stack. Before: one run each, as above. After: three runs each; the median is shown, every run in brackets.
+
+| Page | Form factor | Performance | Accessibility | Best practices | SEO |
+| --- | --- | --- | --- | --- | --- |
+| Landing (`/`) | Desktop | 94 → **99** (99, 100, 99) | 100 → **100** | 100 → **100** | 91 → **100** |
+| Landing (`/`) | Mobile | 71 → **87** (79, 90, 87) | 100 → **100** | 100 → **100** | 91 → **100** |
+| Sign-in (`/login`) | Desktop | 99 → **100** (100, 100, 100) | 98 → **100** | 100 → **100** | 91 → **100** |
+| Sign-in (`/login`) | Mobile | 62 → **94** (90, 94, 95) | 98 → **100** | 100 → **100** | 91 → **100** |
+
+Mobile, before → after (the median run): the landing page FCP 2.2 → 0.8 s, LCP 4.4 → 3.7 s, TBT 420 → 180 ms, CLS 0 → 0; sign-in FCP 2.3 → 0.8 s, LCP 3.8 → 3.0 s, TBT 340 → 120 ms, **CLS 0.335 → 0**. The only render-blocking request left is the app's own stylesheet, an estimated 100-150 ms. What still costs points on mobile: LCP, because the largest text is drawn by the app's JavaScript - the single-page app's design, not a fault - and Total Blocking Time, which is CPU-bound under the simulated 4x slowdown and varies from run to run (60-410 ms on the landing page).
+
+**Left:** the fonts cover Latin and Latin Extended. A name in Cyrillic, Greek or Vietnamese shows those letters in the device's own font; Inter has those scripts, and adding them is a matter of copying in their files (`frontend/src/assets/fonts/README.md`). Where Arial is missing (Android), the stand-ins are skipped and the system font shows while the fonts load, as before.
+
 ### Left
 
 L1-L12 stand as written above. `zod` (L1) and the Vitest chain (L2) are still the only `npm audit` findings.
 
 ### Final run
 
-Run on 22 Nov 2026 after the last code commit:
+Run on 22 Nov 2026 after the last code commit (`3ebac4e`, with P1-P4 fixed):
 
 | Command | Result |
 | --- | --- |
-| `npm test` | Backend **646 tests in 148 files**, frontend **176 tests in 50 files** - all passed. Phase 1's 640 and 167, plus the tests added with the fixes. |
+| `npm test` | Backend **646 tests in 148 files**, frontend **185 tests in 52 files** - all passed. Phase 1's 640 and 167, plus the tests added with the fixes. |
 | `npm run lint` | Clean in both workspaces. |
-| `npm run build` | Built; `og-image.png` and the social tags are in the output. |
-| `npm run e2e` | **65 tests in 25 spec files**, all passed, in 8.4 minutes. axe: 40 page-and-theme checks, **0 issues at any severity**. |
-| `npm run scan:secrets` | Nothing found in the whole history (86 commits at the time); no environment file is tracked. |
+| `npm run build` | Built: the six font files are hashed under `/assets/`, the preloads point at them, and `og-image.png` and the social tags are in the output. |
+| `npm run e2e` | **65 tests in 25 spec files**, all passed, in 6.6 minutes, every spec - the accessibility one included - under the production CSP. axe, now with its best-practice rules: 46 page-and-theme checks, **0 issues at any severity**. |
+| `npm run scan:secrets` | Nothing found in the whole history (90 commits at the time); no environment file is tracked. |
 
-The README's counts (M5) were updated from this run.
+An earlier final run, before P1-P4 (after `ad1dcde`), gave frontend 176 tests in 50 files, e2e 65 in 8.4 minutes, and axe 40 checks with nothing found. The README's counts (M5) come from the run above.

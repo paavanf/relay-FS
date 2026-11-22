@@ -4,10 +4,10 @@
 // (role, hours, qualifications) live on Membership, not here, because one
 // user can belong to several organisations with a different role in each.
 //
-// Accounts from before the move to Supabase may still carry old password
-// fields in the database; nothing reads them, every query that answers a
-// request picks its fields by name, and `npm run cleanup:legacy-auth`
-// removes them.
+// The old password fields that accounts from before the move to Supabase
+// carried were removed from the live database on 22 Nov 2026, by a one-time
+// cleanup (docs/deploy/SUPABASE.md, section 9). Nothing reads them, and
+// every query that answers a request picks its fields by name.
 
 import mongoose from 'mongoose';
 

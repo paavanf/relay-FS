@@ -196,7 +196,7 @@ Passwords from before the move stay behind: they were Relay's, and Supabase neve
 2. Follows the link in the confirmation email.
 3. Is signed in to their old account, with the same organisations, roles and history. The first request linked the new sign-in to it by email.
 
-Once everyone has moved, `npm run cleanup:legacy-auth` (in `backend/`) removes what the old sign-in left behind: password hashes, lockout counters, and the old session and reset-link collections. It shows what it would do and changes nothing until you add `-- --yes`.
+**The cleanup: a one-time migration, already done.** `npm run cleanup:legacy-auth` (in `backend/`) removes what the old sign-in left behind: password hashes, lockout counters, and the old session and reset-link collections. It shows what it would do and changes nothing until you add `-- --yes`. It was run on the live database on 22 Nov 2026. Running it again is safe: it finds nothing, so it changes nothing, with or without `--yes` (`backend/tests/scripts/cleanupLegacyAuth.test.js` runs it a second time to check). Accounts keep their name, email, organisations and history, so anyone who has not signed up again yet still can, as above.
 
 ## 10. Pausing, and restoring a paused project
 

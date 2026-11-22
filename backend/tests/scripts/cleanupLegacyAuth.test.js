@@ -4,7 +4,8 @@
 //   - without --yes it counts what it found and changes nothing
 //   - with --yes it removes the old fields and collections, and leaves every
 //     account's name, email and sign-in link as they were
-//   - run again, it finds nothing
+//   - run again, even with --yes, it finds nothing and changes nothing - so
+//     running this one-time migration twice is safe
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import mongoose from 'mongoose';
@@ -59,6 +60,17 @@ describe('cleaning up the old sign-in', () => {
     });
 
     expect((await clean([])).lines).toContain('  Users with an old password or lockout   0');
+  });
+
+  it('finds nothing and changes nothing when run again with --yes', async () => {
+    const users = () => db().collection('users').find().sort({ email: 1 }).toArray();
+    const before = await inDatabase(DATABASE, users);
+
+    const { code, lines } = await clean(['--yes']);
+    expect(code).toBe(0);
+    expect(lines).toContain('  Users with an old password or lockout   0');
+    expect(lines.filter((line) => line.startsWith('  Collection '))).toEqual([]);
+    expect(await inDatabase(DATABASE, users)).toEqual(before);
   });
 
   it('refuses an address without a database name', async () => {

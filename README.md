@@ -245,6 +245,8 @@ The first request from a new sign-in finds or makes the Relay user behind it, ju
 
 Someone who had a Relay account before the move signs up again with the same email, and their first request links the new sign-in to the old account - but only while the project makes people confirm their email. No token tells a confirmed address from one Supabase marked confirmed without asking, so the API asks the project itself (`mailer_autoconfirm` in its public settings, cached for 10 minutes). With confirmation off, linking, copying a changed email and accepting an invite are all refused with `EMAIL_NOT_PROVEN`. Ten first requests at once still make one account. An optional webhook from Supabase passes on email changes and deletions ([SUPABASE.md, section 8](docs/deploy/SUPABASE.md#8-optional-the-account-webhook)).
 
+What the old sign-in left in the database - password hashes, lockout counters, and the old session and reset-link collections - was removed by a one-time migration, `npm run cleanup:legacy-auth` in `backend/`, run on the live database on 22 Nov 2026. Running it again is safe: it finds nothing, so it changes nothing ([SUPABASE.md, section 9](docs/deploy/SUPABASE.md#9-existing-accounts-sign-up-again)).
+
 ### Sessions
 
 Supabase keeps a signed-in session in the browser's **localStorage**: an access token that lasts an hour, and a refresh token that gets the next one. So a session survives closing the tab or the browser - for 7 days at most (below). Signing out ends it at Supabase too - for that browser only, since the shared demo accounts are signed in by many people at once.

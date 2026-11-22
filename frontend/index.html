@@ -9,6 +9,26 @@
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+    <!-- The card a shared link shows in chat apps and social sites. The
+         picture is a real screenshot of the demo (public/og-image.png, 1200x630,
+         the size these cards use). Crawlers need full addresses, so these name
+         the live site. Checked by src/app/socialPreview.test.js. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://relay-fs.vercel.app/" />
+    <meta property="og:title" content="Rosters that follow your rules - Relay" />
+    <meta
+      property="og:description"
+      content="Relay builds staff rosters around qualifications, availability and rest limits, and says exactly why when a shift cannot be filled."
+    />
+    <meta property="og:image" content="https://relay-fs.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Relay's Swaps page: a three-person swap chain in which Dara takes Elif's day shift, Elif takes Femi's night shift and Femi takes Dara's."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <!-- Tells the browser we support both, so native controls, form widgets
          and scrollbars are drawn to match instead of always light. -->
     <meta name="color-scheme" content="light dark" />

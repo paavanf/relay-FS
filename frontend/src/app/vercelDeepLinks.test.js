@@ -2,8 +2,9 @@
 // A page opened straight from its address - a link from Google's consent
 // screen to /privacy, say, or a refresh - must get the app, not a 404. On
 // Vercel that is frontend/vercel.json's last rewrite, /(.*) to /index.html,
-// reached by any path that is not a built file and not /api. Rewrite order
-// and the API's own rule: vercelConfig.test.js.
+// reached by any path that is not a built file and not /api - so
+// /robots.txt is a built file of its own. Rewrite order and the API's own
+// rule: vercelConfig.test.js.
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
@@ -29,5 +30,12 @@ describe('opening a page by its address on Vercel', () => {
   it('has no built file called privacy that would answer instead', () => {
     expect(existsSync(new URL('../../public/privacy', import.meta.url))).toBe(false);
     expect(existsSync(new URL('../../public/privacy.html', import.meta.url))).toBe(false);
+  });
+
+  it('answers /robots.txt with a real robots file, not the app', () => {
+    // A built file is served before any rewrite, so this - not index.html,
+    // which crawlers would read as a broken robots.txt - is what they get.
+    const robots = readFileSync(new URL('../../public/robots.txt', import.meta.url), 'utf8');
+    expect(robots.split(/\r?\n/).filter(Boolean)).toEqual(['User-agent: *', 'Allow: /']);
   });
 });

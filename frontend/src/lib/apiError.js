@@ -40,12 +40,12 @@ function readableMessage(error, fallback) {
 /** The ApiError for a response that is not 2xx, given its decoded body (null when it had none). */
 export function errorFor(response, payload) {
   // Every error the API itself sends carries an {error:{...}} envelope. A
-  // 5xx with no JSON body therefore did not come from the API - it is the
-  // dev proxy (or a gateway) saying it could not reach the backend at all.
-  // Reporting that as "Internal Server Error" sends you hunting for a
-  // server bug that does not exist.
+  // 5xx with no JSON body therefore did not come from the API - it is a
+  // proxy or gateway (Vercel's rewrite, the dev proxy) saying it could not
+  // reach the server at all. Visitors are told that in plain words, not
+  // "Internal Server Error", which would point at a bug that does not exist.
   if (payload === null && response.status >= 500) {
-    return new ApiError('Cannot reach the Relay API. Is the backend running?', { status: response.status });
+    return new ApiError("Relay's server is not answering. Try again in a moment.", { status: response.status });
   }
 
   const error = payload?.error ?? {};

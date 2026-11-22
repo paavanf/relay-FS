@@ -6,9 +6,11 @@
 // kills the process, which loses both jobs and every in-flight request with
 // them. One at a time is slower and survivable.
 //
-// Every exit path - success, thrown error, timeout - resolves the promise and
-// terminates the worker. A leaked thread would keep the slot occupied and no
-// further generation could ever start.
+// The one slot is taken with reserveWorker() before the caller awaits
+// anything, so two requests at once cannot both take it, and given back with
+// releaseWorker() however the run ends (services/roster/generationJob.js).
+// Every exit path here - success, thrown error, timeout - resolves the promise
+// and terminates the worker, so no thread is ever left behind.
 
 import { Worker } from 'worker_threads';
 import { fileURLToPath } from 'url';
@@ -26,12 +28,16 @@ const GRACE_MS = 10_000;
 
 let running = 0;
 
-export function activeGenerationCount() {
-  return running;
+/** Takes the worker slot there and then, if it is free. False when it is taken. */
+export function reserveWorker() {
+  if (running >= MAX_CONCURRENT_GENERATIONS) return false;
+  running += 1;
+  return true;
 }
 
-export function hasCapacity() {
-  return running < MAX_CONCURRENT_GENERATIONS;
+/** Gives the slot back. Called once for every reserveWorker() that returned true. */
+export function releaseWorker() {
+  running = Math.max(0, running - 1);
 }
 
 /**
@@ -40,21 +46,17 @@ export function hasCapacity() {
  * @returns {Promise<Object>}   the generator's result
  */
 export function runGeneration(payload, onProgress) {
-  running += 1;
-
   return new Promise((resolve, reject) => {
     const worker = new Worker(WORKER_PATH, { workerData: payload });
 
     let settled = false;
 
-    // One place that cleans up, so no path can leave the worker alive or the
-    // counter wrong.
+    // One place that cleans up, so no path can leave the worker alive.
     function finish(err, result) {
       if (settled) return;
       settled = true;
 
       clearTimeout(timer);
-      running -= 1;
       worker.terminate().catch(() => {});
 
       if (err) reject(err);

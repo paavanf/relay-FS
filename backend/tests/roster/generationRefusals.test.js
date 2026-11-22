@@ -3,13 +3,16 @@
 // is going, another organisation's roster (404), and a malformed id.
 //
 // The refusals matter more than the happy path: a published roster is what
-// people have arranged childcare around, and a job stuck in `running` blocks
-// the organisation forever. The world - an owner and one member - is
+// people have arranged childcare around, and two runs at once would write
+// over each other. (Two requests at the very same moment are
+// generationRace.test.js; a run left going by a stopped server,
+// abandonedRuns.test.js.) The world - an owner and one member - is
 // ../config/configWorld.js.
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
-import { Roster, GenerationJob } from '../../src/models/index.js';
+import { Roster } from '../../src/models/index.js';
+import { claimGeneration } from '../../src/services/roster/generationClaim.js';
 import { useConfigWorld, auth, signUp as signUpAs } from '../config/configWorld.js';
 
 const world = useConfigWorld({ timezone: 'Europe/London' });
@@ -25,7 +28,8 @@ const makeRoster = async (status = 'draft') =>
 describe('POST /orgs/:orgId/rosters/:rosterId/generate', () => {
   it('refuses a second run while one is already going', async () => {
     const rosterId = await makeRoster();
-    await GenerationJob.create({ orgId, rosterId, status: 'running' });
+    // A run is going: it holds the organisation's claim.
+    await claimGeneration(orgId, new Date());
 
     const res = await request(app)
       .post(`/api/v1/orgs/${orgId}/rosters/${rosterId}/generate`)

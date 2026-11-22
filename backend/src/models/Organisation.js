@@ -54,6 +54,12 @@ const organisationSchema = new mongoose.Schema(
       },
       requireManagerApproval: { type: Boolean, default: DEFAULT_SWAP_POLICY.requireManagerApproval },
     },
+
+    // When this organisation's current roster generation started: its claim
+    // on the one run it may have at a time (services/roster/generationClaim.js).
+    // Null when none is running. One older than the run deadline belongs to a
+    // server that stopped part-way, and the next run takes it over.
+    generationStartedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

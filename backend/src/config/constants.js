@@ -25,6 +25,13 @@ export const INVITE_EXPIRY_HOURS = 72;
 // and a public server should not keep every bell ring forever.
 export const NOTIFICATION_TTL_DAYS = 90;
 
+// The longest one roster generation can take, start to finish: the engine's
+// 25-second budget, the 10 seconds' grace before its worker is killed, and
+// loading the ward and writing the roster - with a wide margin. A claim on an
+// organisation, or a job, older than this belongs to a server that stopped
+// part-way (services/roster/generationClaim.js, abandonedJobs.js).
+export const GENERATION_DEADLINE_MS = 2 * MINUTE;
+
 // The working-time rules a roster is generated against. Stored per
 // organisation; these are the fallback for one created before the field
 // existed. The constraint engine sits out any limit that is unset, so an
